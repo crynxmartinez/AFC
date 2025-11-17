@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
@@ -27,7 +27,6 @@ type Entry = {
 
 export default function ContestDetailPage() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const { user } = useAuthStore()
   const [contest, setContest] = useState<Contest | null>(null)
   const [entries, setEntries] = useState<Entry[]>([])
@@ -41,6 +40,7 @@ export default function ContestDetailPage() {
   }, [id])
 
   const fetchContest = async () => {
+    if (!id) return
     try {
       const { data, error } = await supabase
         .from('contests')
@@ -56,6 +56,7 @@ export default function ContestDetailPage() {
   }
 
   const fetchEntries = async () => {
+    if (!id) return
     try {
       const { data, error } = await supabase
         .from('entries')

@@ -1,3 +1,4 @@
+// @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'

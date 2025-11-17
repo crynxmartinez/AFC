@@ -49,6 +49,7 @@ export default function EntryDetailPage() {
   }, [id])
 
   const fetchEntry = async () => {
+    if (!id) return
     try {
       const { data, error } = await supabase
         .from('entries')
@@ -57,12 +58,13 @@ export default function EntryDetailPage() {
         .single()
 
       if (error) throw error
-      setEntry(data as any)
+      const entryData = data as any
+      setEntry(entryData)
       
       // Set initial phase to the highest available
-      if (data.phase_4_url) setSelectedPhase(4)
-      else if (data.phase_3_url) setSelectedPhase(3)
-      else if (data.phase_2_url) setSelectedPhase(2)
+      if (entryData.phase_4_url) setSelectedPhase(4)
+      else if (entryData.phase_3_url) setSelectedPhase(3)
+      else if (entryData.phase_2_url) setSelectedPhase(2)
       else setSelectedPhase(1)
     } catch (error) {
       console.error('Error fetching entry:', error)
@@ -72,6 +74,7 @@ export default function EntryDetailPage() {
   }
 
   const fetchComments = async () => {
+    if (!id) return
     try {
       const { data, error } = await supabase
         .from('comments')
