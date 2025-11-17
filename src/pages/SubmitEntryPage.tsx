@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 
 export default function SubmitEntryPage() {
-  const { id } = useParams()
+  const { id: _id } = useParams()
 
   return (
     <div className="max-w-2xl mx-auto">

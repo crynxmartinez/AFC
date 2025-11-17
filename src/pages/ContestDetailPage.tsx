@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 
 export default function ContestDetailPage() {
-  const { id } = useParams()
+  const { id: _id } = useParams()
 
   return (
     <div>

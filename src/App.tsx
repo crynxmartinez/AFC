@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { useAuthStore } from './stores/authStore'
 import Layout from './components/layout/Layout'
 import AuthLayout from './components/layout/AuthLayout'
 import HomePage from './pages/HomePage'

@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     // Listen for auth changes
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    supabase.auth.onAuthStateChange(async (_event, session) => {
       set({ user: session?.user ?? null })
       if (session?.user) {
         await get().fetchProfile()
@@ -66,7 +66,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         total_spent: 0,
         xp: 0,
         level: 1,
-      })
+      } as any)
 
     if (profileError) throw profileError
 
