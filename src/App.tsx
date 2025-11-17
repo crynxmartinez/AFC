@@ -11,6 +11,7 @@ import SubmitEntryPage from './pages/SubmitEntryPage'
 import FeedPage from './pages/FeedPage'
 import PointsPage from './pages/PointsPage'
 import NotificationsPage from './pages/NotificationsPage'
+import SettingsPage from './pages/SettingsPage'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminContests from './pages/admin/AdminContests'
 import AdminCreateContest from './pages/admin/AdminCreateContest'
@@ -43,6 +44,7 @@ function App() {
           <Route path="/contests/:id/submit" element={<SubmitEntryPage />} />
           <Route path="/points" element={<PointsPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
 
         {/* Admin Routes */}
