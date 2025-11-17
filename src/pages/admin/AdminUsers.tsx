@@ -1,0 +1,143 @@
+// @ts-nocheck - Supabase type inference issues
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { formatDate } from '@/lib/utils'
+
+type User = {
+  id: string
+  username: string
+  email: string
+  level: number
+  points_balance: number
+  created_at: string
+  role: string
+  avatar_url: string | null
+}
+
+export default function AdminUsers() {
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setUsers(data || [])
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateUserRole = async (userId: string, newRole: string) => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ role: newRole } as any)
+        .eq('id', userId)
+
+      if (error) throw error
+      
+      // Refresh users list
+      fetchUsers()
+      alert(`User role updated to ${newRole}`)
+    } catch (error: any) {
+      alert('Failed to update role: ' + error.message)
+    }
+  }
+
+  if (loading) {
+    return <div className="text-center py-12">Loading users...</div>
+  }
+
+  return (
+    <div>
+      <h1 className="text-3xl font-bold mb-6">User Management</h1>
+
+      {users.length === 0 ? (
+        <div className="text-center py-12 bg-surface rounded-lg border border-border">
+          <p className="text-text-secondary">No users found</p>
+        </div>
+      ) : (
+        <div className="bg-surface rounded-lg border border-border overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-background">
+              <tr>
+                <th className="text-left px-6 py-4 text-sm font-semibold">User</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold">Email</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold">Role</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold">Level</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold">Points</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold">Joined</th>
+                <th className="text-left px-6 py-4 text-sm font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id} className="border-t border-border">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      {user.avatar_url ? (
+                        <img
+                          src={user.avatar_url}
+                          alt={user.username}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold">
+                          {user.username[0].toUpperCase()}
+                        </div>
+                      )}
+                      <span className="font-semibold">@{user.username}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-text-secondary">{user.email}</td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={user.role}
+                      onChange={(e) => updateUserRole(user.id, e.target.value)}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold bg-transparent border-2 cursor-pointer ${
+                        user.role === 'admin'
+                          ? 'border-error text-error'
+                          : 'border-text-secondary text-text-secondary'
+                      }`}
+                    >
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-1 bg-primary/20 text-primary rounded text-sm font-semibold">
+                      Level {user.level}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 font-semibold">{user.points_balance} pts</td>
+                  <td className="px-6 py-4 text-text-secondary">{formatDate(user.created_at)}</td>
+                  <td className="px-6 py-4">
+                    <a
+                      href={`/profile/${user.username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline text-sm font-medium"
+                    >
+                      View Profile
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
