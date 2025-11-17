@@ -1,0 +1,110 @@
+import { Link, useLocation } from 'react-router-dom'
+import { Home, Flame, Trophy, Users, PlusCircle, LayoutDashboard, FileText, UserCog } from 'lucide-react'
+import { useAuthStore } from '../../stores/authStore'
+import { cn } from '../../lib/utils'
+
+export default function Sidebar() {
+  const location = useLocation()
+  const { profile } = useAuthStore()
+  const isAdmin = profile?.role === 'admin'
+
+  const navItems = [
+    { icon: Home, label: 'Home', path: '/' },
+    { icon: Flame, label: 'Active Contests', path: '/contests/active' },
+    { icon: Trophy, label: 'Winners', path: '/winners' },
+    { icon: Users, label: 'Artists', path: '/artists' },
+    { icon: PlusCircle, label: 'Submit Entry', path: '/submit' },
+  ]
+
+  const adminItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
+    { icon: FileText, label: 'Contests', path: '/admin/contests' },
+    { icon: FileText, label: 'Reviews', path: '/admin/reviews' },
+    { icon: UserCog, label: 'Users', path: '/admin/users' },
+  ]
+
+  return (
+    <aside className="hidden md:block fixed left-0 top-16 bottom-0 w-64 bg-surface border-r border-border overflow-y-auto scrollbar-hide">
+      <div className="p-4 space-y-6">
+        {/* Main Navigation */}
+        <nav className="space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const isActive = location.pathname === item.path
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+                  isActive
+                    ? 'bg-primary text-white'
+                    : 'hover:bg-background text-text-secondary hover:text-text-primary'
+                )}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="font-medium">{item.label}</span>
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Admin Section */}
+        {isAdmin && (
+          <div>
+            <div className="px-4 py-2 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              Admin
+            </div>
+            <nav className="space-y-1">
+              {adminItems.map((item) => {
+                const Icon = item.icon
+                const isActive = location.pathname === item.path
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={cn(
+                      'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+                      isActive
+                        ? 'bg-primary text-white'
+                        : 'hover:bg-background text-text-secondary hover:text-text-primary'
+                    )}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                )
+              })}
+            </nav>
+          </div>
+        )}
+
+        {/* User Stats */}
+        {profile && (
+          <div className="px-4 py-4 bg-background rounded-lg">
+            <div className="text-sm text-text-secondary mb-2">Your Stats</div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm">Level</span>
+                <span className="font-semibold text-primary">{profile.level}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm">XP</span>
+                <span className="font-semibold">{profile.xp}</span>
+              </div>
+              <div className="w-full bg-border rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all"
+                  style={{ width: `${(profile.xp % 100)}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-text-secondary text-center">
+                {100 - (profile.xp % 100)} XP to next level
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </aside>
+  )
+}
