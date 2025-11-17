@@ -1,9 +1,12 @@
-import { Link } from 'react-router-dom'
-import { Search, Bell, User } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Search, Bell, User, LogOut, Settings } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
+import { useState } from 'react'
 
 export default function Navbar() {
-  const { user, profile } = useAuthStore()
+  const { user, profile, signOut } = useAuthStore()
+  const navigate = useNavigate()
+  const [showDropdown, setShowDropdown] = useState(false)
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-surface border-b border-border z-50">
@@ -47,24 +50,79 @@ export default function Navbar() {
                 <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
               </Link>
 
-              {/* Profile */}
-              <Link
-                to={`/profile/${profile?.username}`}
-                className="flex items-center gap-2 hover:bg-background rounded-lg p-2 transition-colors"
-              >
-                {profile?.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile.username}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                    <User className="w-5 h-5" />
-                  </div>
+              {/* Profile Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="flex items-center gap-2 hover:bg-background rounded-lg p-2 transition-colors"
+                >
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt={profile.username}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                      <User className="w-5 h-5" />
+                    </div>
+                  )}
+                  <span className="hidden md:block font-medium">{profile?.username}</span>
+                </button>
+
+                {/* Dropdown Menu */}
+                {showDropdown && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShowDropdown(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-56 bg-surface border border-border rounded-lg shadow-lg py-2 z-20">
+                      <Link
+                        to={`/profile/${profile?.username}`}
+                        className="flex items-center gap-3 px-4 py-2 hover:bg-background transition-colors"
+                        onClick={() => setShowDropdown(false)}
+                      >
+                        <User className="w-5 h-5" />
+                        <span>Profile</span>
+                      </Link>
+                      <Link
+                        to="/settings"
+                        className="flex items-center gap-3 px-4 py-2 hover:bg-background transition-colors"
+                        onClick={() => setShowDropdown(false)}
+                      >
+                        <Settings className="w-5 h-5" />
+                        <span>Settings</span>
+                      </Link>
+                      {profile?.role === 'admin' && (
+                        <Link
+                          to="/admin/contests"
+                          className="flex items-center gap-3 px-4 py-2 hover:bg-background transition-colors border-t border-border"
+                          onClick={() => setShowDropdown(false)}
+                        >
+                          <span className="text-primary font-semibold">Admin Panel</span>
+                        </Link>
+                      )}
+                      <hr className="my-2 border-border" />
+                      <button
+                        onClick={async () => {
+                          try {
+                            await signOut()
+                            setShowDropdown(false)
+                            navigate('/')
+                          } catch (error) {
+                            console.error('Logout error:', error)
+                          }
+                        }}
+                        className="flex items-center gap-3 px-4 py-2 hover:bg-background transition-colors w-full text-left text-error"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        <span>Log Out</span>
+                      </button>
+                    </div>
+                  </>
                 )}
-                <span className="hidden md:block font-medium">{profile?.username}</span>
-              </Link>
+              </div>
             </>
           ) : (
             <div className="flex items-center gap-3">
