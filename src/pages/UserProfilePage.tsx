@@ -430,11 +430,11 @@ export default function UserProfilePage() {
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
                         entry.status === 'approved' 
                           ? 'bg-success/90 text-white' 
-                          : entry.status === 'pending'
+                          : entry.status === 'pending_review' || entry.status === 'pending'
                           ? 'bg-yellow-500/90 text-white'
                           : 'bg-red-500/90 text-white'
                       }`}>
-                        {entry.status.toUpperCase()}
+                        {entry.status === 'pending_review' ? 'PENDING' : entry.status.toUpperCase()}
                       </span>
                     </div>
 
