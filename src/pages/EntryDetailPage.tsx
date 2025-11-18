@@ -1,7 +1,8 @@
 import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { formatNumber, formatTimeAgo } from '@/lib/utils'
+import ReactionPicker from '@/components/social/ReactionPicker'
+import Comments from '@/components/social/Comments'
 
 type Entry = {
   id: string
@@ -24,27 +25,15 @@ type Entry = {
   }
 }
 
-type Comment = {
-  id: string
-  text: string
-  created_at: string
-  users: {
-    username: string
-    avatar_url: string | null
-  }
-}
-
 export default function EntryDetailPage() {
   const { id } = useParams()
   const [entry, setEntry] = useState<Entry | null>(null)
-  const [comments, setComments] = useState<Comment[]>([])
   const [selectedPhase, setSelectedPhase] = useState(4)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (id) {
       fetchEntry()
-      fetchComments()
     }
   }, [id])
 
@@ -70,22 +59,6 @@ export default function EntryDetailPage() {
       console.error('Error fetching entry:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const fetchComments = async () => {
-    if (!id) return
-    try {
-      const { data, error } = await supabase
-        .from('comments')
-        .select('*, users(username, avatar_url)')
-        .eq('entry_id', id)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setComments(data as any || [])
-    } catch (error) {
-      console.error('Error fetching comments:', error)
     }
   }
 
@@ -195,17 +168,15 @@ export default function EntryDetailPage() {
             {entry.status.replace('_', ' ').toUpperCase()}
           </span>
 
+          {/* Reaction Picker */}
           {entry.status === 'approved' && (
-            <button className="w-full py-3 bg-primary hover:bg-primary-hover rounded-lg font-semibold mb-4 transition-colors">
-              🔥 Vote (1 point)
-            </button>
+            <div className="mb-6">
+              <ReactionPicker entryId={entry.id} />
+            </div>
           )}
 
+          {/* Stats */}
           <div className="bg-surface rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-text-secondary">Total Votes</span>
-              <span className="font-semibold text-lg">{formatNumber(entry.vote_count)}</span>
-            </div>
             {entry.final_rank && (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-text-secondary">Current Rank</span>
@@ -214,30 +185,9 @@ export default function EntryDetailPage() {
             )}
           </div>
 
+          {/* Comments Section */}
           <div>
-            <h3 className="font-semibold mb-3">Comments ({comments.length})</h3>
-            {comments.length === 0 ? (
-              <p className="text-text-secondary text-sm">No comments yet</p>
-            ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="bg-surface rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      {comment.users.avatar_url && (
-                        <img
-                          src={comment.users.avatar_url}
-                          alt={comment.users.username}
-                          className="w-5 h-5 rounded-full"
-                        />
-                      )}
-                      <span className="font-semibold text-sm">@{comment.users.username}</span>
-                      <span className="text-xs text-text-secondary">{formatTimeAgo(comment.created_at)}</span>
-                    </div>
-                    <p className="text-sm">{comment.text}</p>
-                  </div>
-                ))}
-              </div>
-            )}
+            <Comments entryId={entry.id} entryOwnerId={entry.user_id} />
           </div>
         </div>
       </div>
