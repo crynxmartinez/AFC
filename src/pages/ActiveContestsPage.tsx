@@ -33,22 +33,30 @@ export default function ActiveContestsPage() {
       // Fetch all contests (status is calculated from dates)
       const { data, error } = await supabase
         .from('contests')
-        .select('*, entries(count)')
+        .select('*')
         .order('start_date', { ascending: false })
 
       if (error) throw error
 
-      // Calculate status for each contest and filter to only active
-      const activeContests = (data || [])
-        .map((contest: any) => {
+      // Get entry counts and calculate status for each contest
+      const contestsWithCounts = await Promise.all(
+        (data || []).map(async (contest: any) => {
+          const { count } = await supabase
+            .from('entries')
+            .select('*', { count: 'exact', head: true })
+            .eq('contest_id', contest.id)
+
           const calculatedStatus = getContestStatus(contest.start_date, contest.end_date)
           return {
             ...contest,
             status: calculatedStatus,
-            entry_count: contest.entries?.[0]?.count || 0,
+            entry_count: count || 0,
           }
         })
-        .filter(c => c.status === 'active')
+      )
+
+      // Filter to only active contests
+      const activeContests = contestsWithCounts.filter(c => c.status === 'active')
 
       setContests(activeContests)
     } catch (error) {
