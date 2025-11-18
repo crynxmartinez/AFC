@@ -12,7 +12,7 @@ export default function MobileNav() {
     { icon: Flame, label: 'Active', path: '/contests/active' },
     { icon: PlusCircle, label: 'Submit', path: '/submit' },
     { icon: Trophy, label: 'Winners', path: '/winners' },
-    { icon: User, label: 'Profile', path: profile ? `/profile/${profile.username}` : '/login' },
+    { icon: User, label: 'Profile', path: profile ? `/users/${profile.username}` : '/login' },
   ]
 
   return (
