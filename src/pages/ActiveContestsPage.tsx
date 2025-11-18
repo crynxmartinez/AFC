@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { formatDate } from '@/lib/utils'
+import { formatDate, getContestStatus, getPhaseTimeRemaining } from '@/lib/utils'
 import { Clock, Users, Trophy } from 'lucide-react'
 
 type Contest = {
@@ -27,28 +27,33 @@ export default function ActiveContestsPage() {
 
   const fetchContests = async () => {
     try {
-      let query = supabase
+      // Fetch all contests (status is calculated from dates)
+      const { data, error } = await supabase
         .from('contests')
         .select('*, entries(count)')
         .order('start_date', { ascending: false })
 
-      // Apply filter
-      if (filter === 'all') {
-        query = query.in('status', ['active', 'voting'])
-      } else {
-        query = query.eq('status', filter)
-      }
-
-      const { data, error } = await query
-
       if (error) throw error
 
-      const contestsWithCounts = data?.map((contest: any) => ({
-        ...contest,
-        entry_count: contest.entries?.[0]?.count || 0,
-      })) || []
+      // Calculate status for each contest and filter
+      const contestsWithStatus = (data || []).map((contest: any) => {
+        const calculatedStatus = getContestStatus(contest.start_date, contest.end_date)
+        return {
+          ...contest,
+          status: calculatedStatus,
+          entry_count: contest.entries?.[0]?.count || 0,
+        }
+      })
 
-      setContests(contestsWithCounts)
+      // Filter based on selected tab
+      let filtered = contestsWithStatus
+      if (filter === 'all') {
+        filtered = contestsWithStatus.filter(c => c.status === 'active' || c.status === 'voting')
+      } else {
+        filtered = contestsWithStatus.filter(c => c.status === filter)
+      }
+
+      setContests(filtered)
     } catch (error) {
       console.error('Error fetching contests:', error)
     } finally {
@@ -56,20 +61,6 @@ export default function ActiveContestsPage() {
     }
   }
 
-  const getTimeRemaining = (endDate: string) => {
-    const now = new Date()
-    const end = new Date(endDate)
-    const diff = end.getTime() - now.getTime()
-    
-    if (diff < 0) return 'Ended'
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-    
-    if (days > 0) return `${days} day${days > 1 ? 's' : ''} left`
-    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} left`
-    return 'Ending soon'
-  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -187,7 +178,7 @@ export default function ActiveContestsPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="w-4 h-4 text-primary" />
                     <span className="text-primary font-semibold">
-                      {getTimeRemaining(contest.end_date)}
+                      {getPhaseTimeRemaining(contest.start_date, contest.end_date)}
                     </span>
                   </div>
                 </div>
