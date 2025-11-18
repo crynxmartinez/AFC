@@ -178,33 +178,33 @@ export default function UserProfilePage() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Profile Header */}
-      <div className="bg-surface rounded-lg p-8 mb-6">
-        <div className="flex items-start gap-6">
+      <div className="bg-surface rounded-lg p-4 md:p-8 mb-6">
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
           {/* Avatar */}
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             {profile.avatar_url ? (
               <img
                 src={profile.avatar_url}
                 alt={profile.username}
-                className="w-32 h-32 rounded-full object-cover border-4 border-primary"
+                className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-primary"
               />
             ) : (
-              <div className="w-32 h-32 rounded-full bg-primary/20 flex items-center justify-center border-4 border-primary">
-                <span className="text-4xl font-bold text-primary">
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-primary/20 flex items-center justify-center border-4 border-primary">
+                <span className="text-3xl md:text-4xl font-bold text-primary">
                   {profile.username.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
             {/* Level Badge */}
-            <div className="absolute -bottom-2 -right-2 bg-primary text-white rounded-full w-12 h-12 flex items-center justify-center font-bold border-4 border-surface">
+            <div className="absolute -bottom-2 -right-2 bg-primary text-white rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center font-bold border-4 border-surface text-sm md:text-base">
               {profile.level}
             </div>
           </div>
 
           {/* Profile Info */}
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold">{profile.display_name || profile.username}</h1>
+          <div className="flex-1 text-center md:text-left">
+            <div className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-3 mb-2">
+              <h1 className="text-2xl md:text-3xl font-bold">{profile.display_name || profile.username}</h1>
               {profile.profile_title && (
                 <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm font-semibold">
                   {profile.profile_title}
@@ -218,7 +218,7 @@ export default function UserProfilePage() {
             )}
 
             {/* Social Links */}
-            <div className="flex gap-3 mb-4">
+            <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-4">
               {profile.instagram_url && (
                 <a
                   href={profile.instagram_url}
