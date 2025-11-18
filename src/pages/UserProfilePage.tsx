@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { formatDate, formatNumber } from '@/lib/utils'
-import { Trophy, Award, Calendar, MapPin, Link as LinkIcon, Instagram, Twitter, ExternalLink } from 'lucide-react'
+import { Trophy, Award, Calendar, MapPin, Link as LinkIcon, Instagram, Twitter, ExternalLink, Users } from 'lucide-react'
+import FollowButton from '@/components/social/FollowButton'
 
 type UserProfile = {
   id: string
@@ -64,6 +65,8 @@ export default function UserProfilePage() {
     contestsWon: 0,
     totalReactions: 0,
     totalPrizeMoney: 0,
+    followersCount: 0,
+    followingCount: 0,
   })
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'portfolio' | 'badges' | 'wins'>('portfolio')
@@ -176,11 +179,25 @@ export default function UserProfilePage() {
         }
       }
 
+      // Get follower count
+      const { count: followersCount } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', userData.id)
+
+      // Get following count
+      const { count: followingCount } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', userData.id)
+
       setStats({
         totalEntries,
         contestsWon,
         totalPrizeMoney,
         totalReactions,
+        followersCount: followersCount || 0,
+        followingCount: followingCount || 0,
       })
     } catch (error) {
       console.error('Error fetching profile:', error)
@@ -239,6 +256,28 @@ export default function UserProfilePage() {
               )}
             </div>
             <p className="text-text-secondary mb-1">@{profile.username}</p>
+
+            {/* Follower/Following Stats */}
+            <div className="flex items-center justify-center md:justify-start gap-4 text-sm mb-4">
+              <div className="flex items-center gap-1">
+                <Users className="w-4 h-4 text-text-secondary" />
+                <span className="font-semibold">{formatNumber(stats.followersCount)}</span>
+                <span className="text-text-secondary">Followers</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="font-semibold">{formatNumber(stats.followingCount)}</span>
+                <span className="text-text-secondary">Following</span>
+              </div>
+            </div>
+
+            {/* Follow Button */}
+            <div className="mb-4">
+              <FollowButton 
+                userId={profile.id} 
+                username={profile.username}
+                onFollowChange={fetchProfile}
+              />
+            </div>
 
             {profile.bio && (
               <p className="text-text-secondary mt-4 mb-4">{profile.bio}</p>
