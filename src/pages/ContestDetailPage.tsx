@@ -60,13 +60,27 @@ export default function ContestDetailPage() {
     try {
       const { data, error } = await supabase
         .from('entries')
-        .select('id, user_id, phase_4_url, vote_count, users(username, avatar_url)')
+        .select('id, user_id, phase_4_url, users(username, avatar_url)')
         .eq('contest_id', id)
         .eq('status', 'approved')
-        .order('vote_count', { ascending: false })
 
       if (error) throw error
-      setEntries(data as any || [])
+
+      // Get reaction counts for each entry
+      const entriesWithVotes = await Promise.all(
+        (data || []).map(async (entry: any) => {
+          const { count } = await supabase
+            .from('reactions')
+            .select('*', { count: 'exact', head: true })
+            .eq('entry_id', entry.id)
+
+          return { ...entry, vote_count: count || 0 }
+        })
+      )
+
+      // Sort by vote count
+      entriesWithVotes.sort((a, b) => b.vote_count - a.vote_count)
+      setEntries(entriesWithVotes)
     } catch (error) {
       console.error('Error fetching entries:', error)
     } finally {
