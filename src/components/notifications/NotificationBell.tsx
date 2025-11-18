@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { Bell, X } from 'lucide-react'
 import { formatTimeAgo } from '@/lib/utils'
+import { usePendingReviews } from '@/hooks/usePendingReviews'
 
 type Notification = {
   id: string
@@ -21,12 +22,16 @@ type Notification = {
 }
 
 export default function NotificationBell() {
-  const { user } = useAuthStore()
+  const { user, profile } = useAuthStore()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [showDropdown, setShowDropdown] = useState(false)
   const [loading, setLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const { pendingCount } = usePendingReviews()
+  
+  // Total badge count includes unread notifications + pending reviews for admins
+  const totalBadgeCount = unreadCount + (profile?.role === 'admin' ? pendingCount : 0)
 
   useEffect(() => {
     if (user) {
@@ -197,9 +202,9 @@ export default function NotificationBell() {
         className="relative p-2 hover:bg-surface rounded-lg transition-colors"
       >
         <Bell className="w-6 h-6" />
-        {unreadCount > 0 && (
+        {totalBadgeCount > 0 && (
           <span className="absolute top-0 right-0 bg-error text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {totalBadgeCount > 9 ? '9+' : totalBadgeCount}
           </span>
         )}
       </button>
@@ -220,6 +225,25 @@ export default function NotificationBell() {
               </button>
             )}
           </div>
+
+          {/* Pending Reviews (Admin Only) */}
+          {profile?.role === 'admin' && pendingCount > 0 && (
+            <Link
+              to="/admin/reviews"
+              onClick={() => setShowDropdown(false)}
+              className="block p-4 bg-warning/10 hover:bg-warning/20 border-b border-border transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">📋</div>
+                <div className="flex-1">
+                  <p className="font-semibold text-warning">
+                    {pendingCount} {pendingCount === 1 ? 'Entry' : 'Entries'} Pending Review
+                  </p>
+                  <p className="text-xs text-text-secondary">Click to review submissions</p>
+                </div>
+              </div>
+            </Link>
+          )}
 
           {/* Notifications List */}
           <div className="max-h-96 overflow-y-auto">

@@ -3,11 +3,13 @@ import { Home, Flame, Trophy, Users, PlusCircle, LayoutDashboard, FileText, User
 import { useAuthStore } from '../../stores/authStore'
 import { cn } from '../../lib/utils'
 import XPProgressBar from '../xp/XPProgressBar'
+import { usePendingReviews } from '../../hooks/usePendingReviews'
 
 export default function Sidebar() {
   const location = useLocation()
   const { profile } = useAuthStore()
   const isAdmin = profile?.role === 'admin'
+  const { pendingCount } = usePendingReviews()
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
@@ -62,12 +64,13 @@ export default function Sidebar() {
               {adminItems.map((item) => {
                 const Icon = item.icon
                 const isActive = location.pathname === item.path
+                const showBadge = item.path === '/admin/reviews' && pendingCount > 0
                 return (
                   <Link
                     key={item.path}
                     to={item.path}
                     className={cn(
-                      'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+                      'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative',
                       isActive
                         ? 'bg-primary text-white'
                         : 'hover:bg-background text-text-secondary hover:text-text-primary'
@@ -75,6 +78,11 @@ export default function Sidebar() {
                   >
                     <Icon className="w-5 h-5" />
                     <span className="font-medium">{item.label}</span>
+                    {showBadge && (
+                      <span className="ml-auto bg-error text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        {pendingCount}
+                      </span>
+                    )}
                   </Link>
                 )
               })}
