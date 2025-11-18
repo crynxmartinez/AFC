@@ -73,18 +73,31 @@ export default function NotificationBell() {
     try {
       const { data, error } = await supabase
         .from('notifications')
-        .select(`
-          *,
-          users!notifications_actor_id_fkey (username, avatar_url)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(20)
 
       if (error) throw error
 
-      setNotifications(data || [])
-      setUnreadCount(data?.filter(n => !n.read).length || 0)
+      // Fetch actor data separately for each notification
+      const notificationsWithActors = await Promise.all(
+        (data || []).map(async (notification) => {
+          if (notification.actor_id) {
+            const { data: actorData } = await supabase
+              .from('users')
+              .select('username, avatar_url')
+              .eq('id', notification.actor_id)
+              .single()
+
+            return { ...notification, users: actorData }
+          }
+          return { ...notification, users: null }
+        })
+      )
+
+      setNotifications(notificationsWithActors)
+      setUnreadCount(notificationsWithActors.filter(n => !n.read).length || 0)
     } catch (error) {
       console.error('Error fetching notifications:', error)
     }
