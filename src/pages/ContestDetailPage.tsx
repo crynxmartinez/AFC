@@ -53,7 +53,6 @@ export default function ContestDetailPage() {
         .single()
 
       if (error) throw error
-      console.log('Contest data:', data)
       setContest(data)
     } catch (error) {
       console.error('Error fetching contest:', error)
