@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
+import WhoReactedModal from './WhoReactedModal'
 
 type ReactionType = 'like' | 'love' | 'wow' | 'sad' | 'angry' | 'celebrate'
 
@@ -22,6 +23,7 @@ type Props = {
 export default function ReactionPicker({ entryId, onReactionChange }: Props) {
   const { user } = useAuthStore()
   const [showPicker, setShowPicker] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   const [userReaction, setUserReaction] = useState<ReactionType | null>(null)
   const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({})
   const [totalReactions, setTotalReactions] = useState(0)
@@ -218,7 +220,21 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
               </span>
             )
           })}
+          <button
+            onClick={() => setShowModal(true)}
+            className="text-primary hover:underline ml-2"
+          >
+            See all
+          </button>
         </div>
+      )}
+
+      {/* Who Reacted Modal */}
+      {showModal && (
+        <WhoReactedModal
+          entryId={entryId}
+          onClose={() => setShowModal(false)}
+        />
       )}
     </div>
   )

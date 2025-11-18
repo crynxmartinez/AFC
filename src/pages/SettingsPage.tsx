@@ -28,12 +28,14 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
 
   // Notification preferences
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [contestUpdates, setContestUpdates] = useState(true)
-  const [commentNotifications, setCommentNotifications] = useState(true)
+  const [notifyReactions, setNotifyReactions] = useState(true)
+  const [notifyComments, setNotifyComments] = useState(true)
+  const [notifyArtistContests, setNotifyArtistContests] = useState(true)
 
   // Privacy settings
   const [profileVisibility, setProfileVisibility] = useState<'public' | 'private'>('public')
+  const [showContestsJoined, setShowContestsJoined] = useState(true)
+  const [showContestsWon, setShowContestsWon] = useState(true)
 
   useEffect(() => {
     if (profile) {
@@ -45,6 +47,11 @@ export default function SettingsPage() {
       setPortfolioUrl(profile.portfolio_url || '')
       setAvatarPreview(profile.avatar_url || null)
       setProfileVisibility(profile.profile_visibility || 'public')
+      setNotifyReactions(profile.notify_reactions ?? true)
+      setNotifyComments(profile.notify_comments ?? true)
+      setNotifyArtistContests(profile.notify_artist_contests ?? true)
+      setShowContestsJoined(profile.show_contests_joined ?? true)
+      setShowContestsWon(profile.show_contests_won ?? true)
     }
   }, [profile])
 
@@ -150,6 +157,33 @@ export default function SettingsPage() {
     }
   }
 
+  const handleNotificationsUpdate = async () => {
+    if (!user) return
+
+    setLoading(true)
+    setMessage('')
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({
+          notify_reactions: notifyReactions,
+          notify_comments: notifyComments,
+          notify_artist_contests: notifyArtistContests,
+        } as any)
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      await fetchProfile()
+      setMessage('Notification preferences updated!')
+    } catch (error: any) {
+      setMessage('Error: ' + error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handlePrivacyUpdate = async () => {
     if (!user) return
 
@@ -161,6 +195,8 @@ export default function SettingsPage() {
         .from('users')
         .update({
           profile_visibility: profileVisibility,
+          show_contests_joined: showContestsJoined,
+          show_contests_won: showContestsWon,
         } as any)
         .eq('id', user.id)
 
@@ -416,30 +452,14 @@ export default function SettingsPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between py-4 border-b border-border">
             <div>
-              <h3 className="font-medium">Email Notifications</h3>
-              <p className="text-sm text-text-secondary">Receive email updates about your account</p>
+              <h3 className="font-medium">Reaction Notifications</h3>
+              <p className="text-sm text-text-secondary">Get notified when someone reacts to your entries</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={emailNotifications}
-                onChange={(e) => setEmailNotifications(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-background peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-            </label>
-          </div>
-
-          <div className="flex items-center justify-between py-4 border-b border-border">
-            <div>
-              <h3 className="font-medium">Contest Updates</h3>
-              <p className="text-sm text-text-secondary">Get notified about new contests and results</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={contestUpdates}
-                onChange={(e) => setContestUpdates(e.target.checked)}
+                checked={notifyReactions}
+                onChange={(e) => setNotifyReactions(e.target.checked)}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-background peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
@@ -449,22 +469,52 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between py-4 border-b border-border">
             <div>
               <h3 className="font-medium">Comment Notifications</h3>
-              <p className="text-sm text-text-secondary">Get notified when someone comments on your work</p>
+              <p className="text-sm text-text-secondary">Get notified when someone comments on your entries</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={commentNotifications}
-                onChange={(e) => setCommentNotifications(e.target.checked)}
+                checked={notifyComments}
+                onChange={(e) => setNotifyComments(e.target.checked)}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-background peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
             </label>
           </div>
 
-          <p className="text-sm text-text-secondary mt-4">
-            Note: Notification preferences are currently for display only. Full functionality coming soon.
-          </p>
+          <div className="flex items-center justify-between py-4 border-b border-border">
+            <div>
+              <h3 className="font-medium">Followed Artists</h3>
+              <p className="text-sm text-text-secondary">Get notified when followed artists join contests</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notifyArtistContests}
+                onChange={(e) => setNotifyArtistContests(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-background peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+
+          <button
+            onClick={handleNotificationsUpdate}
+            disabled={loading}
+            className="w-full px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader className="w-5 h-5 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5" />
+                Save Preferences
+              </>
+            )}
+          </button>
         </div>
       )}
 
@@ -506,10 +556,43 @@ export default function SettingsPage() {
             </div>
           </div>
 
+          <div>
+            <h3 className="font-semibold text-lg mb-4">Profile Stats Display</h3>
+            <p className="text-sm text-text-secondary mb-4">Choose what stats to show on your public profile</p>
+            
+            <div className="space-y-3">
+              <label className="flex items-center justify-between p-4 border border-border rounded-lg cursor-pointer hover:border-primary transition-colors">
+                <div>
+                  <p className="font-medium">Show Contests Joined</p>
+                  <p className="text-sm text-text-secondary">Display total number of contests you've participated in</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={showContestsJoined}
+                  onChange={(e) => setShowContestsJoined(e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-4 border border-border rounded-lg cursor-pointer hover:border-primary transition-colors">
+                <div>
+                  <p className="font-medium">Show Contests Won</p>
+                  <p className="text-sm text-text-secondary">Display total number of contests you've won (top 3)</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={showContestsWon}
+                  onChange={(e) => setShowContestsWon(e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </label>
+            </div>
+          </div>
+
           <button
             onClick={handlePrivacyUpdate}
             disabled={loading}
-            className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover rounded-lg font-medium transition-colors disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary/80 rounded-lg font-medium transition-colors disabled:opacity-50"
           >
             {loading ? (
               <>
