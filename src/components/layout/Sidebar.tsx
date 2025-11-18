@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Flame, Trophy, Users, PlusCircle, LayoutDashboard, FileText, UserCog } from 'lucide-react'
+import { Home, Flame, Trophy, Users, PlusCircle, LayoutDashboard, FileText, UserCog, Award } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { cn } from '../../lib/utils'
 
@@ -21,6 +21,7 @@ export default function Sidebar() {
     { icon: FileText, label: 'Contests', path: '/admin/contests' },
     { icon: FileText, label: 'Reviews', path: '/admin/reviews' },
     { icon: UserCog, label: 'Users', path: '/admin/users' },
+    { icon: Award, label: 'XP System', path: '/admin/xp-system' },
   ]
 
   return (
