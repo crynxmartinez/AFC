@@ -195,7 +195,7 @@ export default function EntryDetailPage() {
 
           {/* Comments Section */}
           <div>
-            <Comments entryId={entry.id} entryOwnerId={entry.user_id} />
+            <Comments entryId={entry.id} />
           </div>
         </div>
       </div>

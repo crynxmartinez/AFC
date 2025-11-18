@@ -2,17 +2,16 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
-import { formatTimeAgo } from '@/lib/utils'
-import { MessageCircle, Edit2, Trash2, Send } from 'lucide-react'
+import { formatDate } from '@/lib/utils'
+import { MessageCircle, Send, Reply, Trash2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 type Comment = {
   id: string
-  user_id: string
   entry_id: string
+  user_id: string
   parent_comment_id: string | null
-  content: string
-  edited: boolean
-  edited_at: string | null
+  comment_text: string
   created_at: string
   users: {
     username: string
@@ -23,410 +22,308 @@ type Comment = {
 
 type Props = {
   entryId: string
-  entryOwnerId: string
 }
 
-export default function Comments({ entryId, entryOwnerId }: Props) {
+export default function CommentSection({ entryId }: Props) {
   const { user } = useAuthStore()
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
-  const [replyTo, setReplyTo] = useState<string | null>(null)
-  const [replyContent, setReplyContent] = useState('')
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editContent, setEditContent] = useState('')
+  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [replyText, setReplyText] = useState('')
   const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     fetchComments()
   }, [entryId])
 
   const fetchComments = async () => {
+    setLoading(true)
     try {
       const { data, error } = await supabase
-        .from('comments')
+        .from('entry_comments')
         .select(`
           *,
-          users:user_id (username, avatar_url)
+          users (username, avatar_url)
         `)
         .eq('entry_id', entryId)
-        .order('created_at', { ascending: true })
+        .is('parent_comment_id', null)
+        .order('created_at', { ascending: false })
 
       if (error) throw error
 
-      // Organize comments into parent-child structure
-      const parentComments = data?.filter(c => !c.parent_comment_id) || []
-      const organized = parentComments.map(parent => ({
-        ...parent,
-        replies: data?.filter(c => c.parent_comment_id === parent.id) || []
-      }))
+      // Fetch replies for each comment
+      const commentsWithReplies = await Promise.all(
+        (data || []).map(async (comment) => {
+          const { data: replies } = await supabase
+            .from('entry_comments')
+            .select(`
+              *,
+              users (username, avatar_url)
+            `)
+            .eq('parent_comment_id', comment.id)
+            .order('created_at', { ascending: true })
 
-      setComments(organized)
+          return {
+            ...comment,
+            replies: replies || [],
+          }
+        })
+      )
+
+      setComments(commentsWithReplies)
     } catch (error) {
       console.error('Error fetching comments:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleAddComment = async () => {
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault()
     if (!user || !newComment.trim()) return
 
-    setLoading(true)
+    setSubmitting(true)
     try {
-      const { error } = await supabase.from('comments').insert({
-        entry_id: entryId,
-        user_id: user.id,
-        content: newComment.trim(),
-      })
+      const { error } = await supabase
+        .from('entry_comments')
+        .insert({
+          entry_id: entryId,
+          user_id: user.id,
+          comment_text: newComment.trim(),
+        })
 
       if (error) throw error
-
-      // Create notification for entry owner
-      await createCommentNotification(newComment.trim(), null)
 
       setNewComment('')
       await fetchComments()
     } catch (error) {
-      console.error('Error adding comment:', error)
-      alert('Failed to add comment')
+      console.error('Error submitting comment:', error)
+      alert('Failed to post comment. Please try again.')
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 
-  const handleReply = async (parentId: string) => {
-    if (!user || !replyContent.trim()) return
+  const handleSubmitReply = async (parentId: string) => {
+    if (!user || !replyText.trim()) return
 
-    setLoading(true)
-    try {
-      const { error } = await supabase.from('comments').insert({
-        entry_id: entryId,
-        user_id: user.id,
-        parent_comment_id: parentId,
-        content: replyContent.trim(),
-      })
-
-      if (error) throw error
-
-      // Create notification for parent comment owner
-      await createCommentNotification(replyContent.trim(), parentId)
-
-      setReplyTo(null)
-      setReplyContent('')
-      await fetchComments()
-    } catch (error) {
-      console.error('Error adding reply:', error)
-      alert('Failed to add reply')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleEdit = async (commentId: string) => {
-    if (!editContent.trim()) return
-
-    setLoading(true)
+    setSubmitting(true)
     try {
       const { error } = await supabase
-        .from('comments')
-        .update({
-          content: editContent.trim(),
-          edited: true,
-          edited_at: new Date().toISOString(),
+        .from('entry_comments')
+        .insert({
+          entry_id: entryId,
+          user_id: user.id,
+          parent_comment_id: parentId,
+          comment_text: replyText.trim(),
         })
-        .eq('id', commentId)
 
       if (error) throw error
 
-      setEditingId(null)
-      setEditContent('')
+      setReplyText('')
+      setReplyingTo(null)
       await fetchComments()
     } catch (error) {
-      console.error('Error editing comment:', error)
-      alert('Failed to edit comment')
+      console.error('Error submitting reply:', error)
+      alert('Failed to post reply. Please try again.')
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 
-  const handleDelete = async (commentId: string, hasReplies: boolean) => {
-    const message = hasReplies
-      ? 'This comment has replies. Delete anyway?'
-      : 'Are you sure you want to delete this comment?'
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm('Are you sure you want to delete this comment?')) return
 
-    if (!confirm(message)) return
-
-    setLoading(true)
     try {
       const { error } = await supabase
-        .from('comments')
+        .from('entry_comments')
         .delete()
         .eq('id', commentId)
 
       if (error) throw error
-
       await fetchComments()
     } catch (error) {
       console.error('Error deleting comment:', error)
-      alert('Failed to delete comment')
-    } finally {
-      setLoading(false)
+      alert('Failed to delete comment.')
     }
   }
 
-  const createCommentNotification = async (content: string, parentId: string | null) => {
-    try {
-      let notifyUserId = entryOwnerId
-      let notifType = 'comment'
-
-      // If it's a reply, notify the parent comment owner
-      if (parentId) {
-        const { data: parentComment } = await supabase
-          .from('comments')
-          .select('user_id')
-          .eq('id', parentId)
-          .single()
-
-        if (parentComment) {
-          notifyUserId = parentComment.user_id
-          notifType = 'reply'
-        }
-      }
-
-      // Don't notify self
-      if (notifyUserId === user?.id) return
-
-      // Check notification preferences
-      const { data: owner } = await supabase
-        .from('users')
-        .select('notify_comments')
-        .eq('id', notifyUserId)
-        .single()
-
-      if (!owner?.notify_comments) return
-
-      // Get entry title
-      const { data: entry } = await supabase
-        .from('entries')
-        .select('title')
-        .eq('id', entryId)
-        .single()
-
-      // Create notification
-      const notifContent = notifType === 'reply'
-        ? `replied to your comment: "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`
-        : `commented on your entry "${entry?.title}": "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`
-
-      await supabase.from('notifications').insert({
-        user_id: notifyUserId,
-        type: notifType,
-        actor_id: user?.id,
-        entry_id: entryId,
-        content: notifContent,
-      })
-    } catch (error) {
-      console.error('Error creating notification:', error)
-    }
-  }
-
-  const renderComment = (comment: Comment, isReply = false) => {
-    const isOwner = user?.id === comment.user_id
-    const isEditing = editingId === comment.id
-
-    return (
-      <div key={comment.id} className={`${isReply ? 'ml-12' : ''} mb-4`}>
-        <div className="flex gap-3">
-          {/* Avatar */}
-          {comment.users?.avatar_url ? (
+  const renderComment = (comment: Comment, isReply = false) => (
+    <div
+      key={comment.id}
+      className={`${isReply ? 'ml-12 mt-3' : 'mb-4'} bg-background rounded-lg p-4`}
+    >
+      <div className="flex items-start gap-3">
+        <Link to={`/users/${comment.users.username}`}>
+          {comment.users.avatar_url ? (
             <img
               src={comment.users.avatar_url}
               alt={comment.users.username}
-              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+              className="w-10 h-10 rounded-full"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold flex-shrink-0">
-              {comment.users?.username?.[0]?.toUpperCase()}
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-sm font-bold">
+              {comment.users.username.charAt(0).toUpperCase()}
             </div>
           )}
-
-          {/* Comment Content */}
-          <div className="flex-1 bg-surface rounded-lg p-3 border border-border">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-semibold">{comment.users?.username}</span>
-              <span className="text-xs text-text-secondary">
-                {formatTimeAgo(comment.created_at)}
-              </span>
-              {comment.edited && (
-                <span className="text-xs text-text-secondary italic">(edited)</span>
-              )}
-            </div>
-
-            {isEditing ? (
-              <div className="space-y-2">
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary resize-none"
-                  rows={3}
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(comment.id)}
-                    disabled={loading}
-                    className="px-3 py-1 bg-primary text-white rounded-lg text-sm hover:bg-primary/80 transition-colors"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditingId(null)
-                      setEditContent('')
-                    }}
-                    className="px-3 py-1 bg-surface border border-border rounded-lg text-sm hover:bg-background transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <p className="text-text-primary whitespace-pre-wrap">{comment.content}</p>
-
-                {/* Actions */}
-                <div className="flex items-center gap-3 mt-2">
-                  {user && !isReply && (
-                    <button
-                      onClick={() => setReplyTo(comment.id)}
-                      className="text-xs text-text-secondary hover:text-primary transition-colors flex items-center gap-1"
-                    >
-                      <MessageCircle className="w-3 h-3" />
-                      Reply
-                    </button>
-                  )}
-
-                  {isOwner && (
-                    <>
-                      <button
-                        onClick={() => {
-                          setEditingId(comment.id)
-                          setEditContent(comment.content)
-                        }}
-                        className="text-xs text-text-secondary hover:text-primary transition-colors flex items-center gap-1"
-                      >
-                        <Edit2 className="w-3 h-3" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(comment.id, (comment.replies?.length || 0) > 0)}
-                        className="text-xs text-text-secondary hover:text-error transition-colors flex items-center gap-1"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Delete
-                      </button>
-                    </>
-                  )}
-                </div>
-              </>
+        </Link>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <Link
+              to={`/users/${comment.users.username}`}
+              className="font-semibold hover:text-primary transition-colors"
+            >
+              @{comment.users.username}
+            </Link>
+            <span className="text-xs text-text-secondary">
+              {formatDate(comment.created_at)}
+            </span>
+          </div>
+          <p className="text-text-primary whitespace-pre-wrap">{comment.comment_text}</p>
+          <div className="flex items-center gap-4 mt-2">
+            {!isReply && (
+              <button
+                onClick={() => setReplyingTo(comment.id)}
+                className="flex items-center gap-1 text-sm text-text-secondary hover:text-primary transition-colors"
+              >
+                <Reply className="w-4 h-4" />
+                Reply
+              </button>
+            )}
+            {user?.id === comment.user_id && (
+              <button
+                onClick={() => handleDeleteComment(comment.id)}
+                className="flex items-center gap-1 text-sm text-error hover:text-error/80 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
             )}
           </div>
-        </div>
 
-        {/* Reply Form */}
-        {replyTo === comment.id && (
-          <div className="ml-12 mt-2">
-            <div className="flex gap-2">
-              <textarea
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Write a reply..."
-                className="flex-1 px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary resize-none"
-                rows={2}
-              />
-              <button
-                onClick={() => handleReply(comment.id)}
-                disabled={loading || !replyContent.trim()}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </div>
-            <button
-              onClick={() => {
-                setReplyTo(null)
-                setReplyContent('')
+          {/* Reply Form */}
+          {replyingTo === comment.id && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSubmitReply(comment.id)
               }}
-              className="text-xs text-text-secondary hover:text-text-primary mt-1"
+              className="mt-3"
             >
-              Cancel
-            </button>
-          </div>
-        )}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Write a reply..."
+                  className="flex-1 px-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary"
+                  disabled={submitting}
+                />
+                <button
+                  type="submit"
+                  disabled={submitting || !replyText.trim()}
+                  className="px-4 py-2 bg-primary hover:bg-primary-hover disabled:bg-primary/50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReplyingTo(null)
+                    setReplyText('')
+                  }}
+                  className="px-4 py-2 bg-background hover:bg-border rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
 
-        {/* Replies */}
-        {comment.replies && comment.replies.length > 0 && (
-          <div className="mt-3">
-            {comment.replies.map(reply => renderComment(reply, true))}
-          </div>
-        )}
+          {/* Replies */}
+          {comment.replies && comment.replies.length > 0 && (
+            <div className="mt-3 space-y-3">
+              {comment.replies.map((reply) => renderComment(reply, true))}
+            </div>
+          )}
+        </div>
       </div>
-    )
-  }
+    </div>
+  )
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-xl font-bold flex items-center gap-2">
-        <MessageCircle className="w-5 h-5" />
-        Comments ({comments.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0)})
-      </h3>
+    <div className="bg-surface rounded-lg p-6">
+      <div className="flex items-center gap-2 mb-6">
+        <MessageCircle className="w-6 h-6 text-primary" />
+        <h2 className="text-2xl font-bold">
+          Comments ({comments.reduce((sum, c) => sum + 1 + (c.replies?.length || 0), 0)})
+        </h2>
+      </div>
 
-      {/* Add Comment Form */}
+      {/* Comment Form */}
       {user ? (
-        <div className="flex gap-3">
-          <div className="flex-shrink-0">
-            {user.user_metadata?.avatar_url ? (
-              <img
-                src={user.user_metadata.avatar_url}
-                alt="You"
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
-                {user.email?.[0]?.toUpperCase()}
+        <form onSubmit={handleSubmitComment} className="mb-6">
+          <div className="flex gap-3">
+            {user && (
+              <div className="flex-shrink-0">
+                {user.user_metadata?.avatar_url ? (
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt="Your avatar"
+                    className="w-10 h-10 rounded-full"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-sm font-bold">
+                    {user.email?.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
             )}
+            <div className="flex-1 flex gap-2">
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Write a comment..."
+                className="flex-1 px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
+                disabled={submitting}
+              />
+              <button
+                type="submit"
+                disabled={submitting || !newComment.trim()}
+                className="px-6 py-3 bg-primary hover:bg-primary-hover disabled:bg-primary/50 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors flex items-center gap-2"
+              >
+                <Send className="w-5 h-5" />
+                Post
+              </button>
+            </div>
           </div>
-          <div className="flex-1">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Write a comment..."
-              className="w-full px-4 py-3 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary resize-none"
-              rows={3}
-            />
-            <button
-              onClick={handleAddComment}
-              disabled={loading || !newComment.trim()}
-              className="mt-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50 flex items-center gap-2"
-            >
-              <Send className="w-4 h-4" />
-              Comment
-            </button>
-          </div>
-        </div>
+        </form>
       ) : (
-        <div className="text-center py-6 bg-surface rounded-lg border border-border">
-          <p className="text-text-secondary">Please login to comment</p>
+        <div className="mb-6 p-4 bg-background rounded-lg text-center">
+          <p className="text-text-secondary">
+            <Link to="/login" className="text-primary hover:underline">
+              Log in
+            </Link>{' '}
+            to leave a comment
+          </p>
         </div>
       )}
 
       {/* Comments List */}
-      <div className="space-y-4">
-        {comments.length === 0 ? (
-          <div className="text-center py-8 text-text-secondary">
-            No comments yet. Be the first to comment!
-          </div>
-        ) : (
-          comments.map(comment => renderComment(comment))
-        )}
-      </div>
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        </div>
+      ) : comments.length === 0 ? (
+        <div className="text-center py-8">
+          <MessageCircle className="w-12 h-12 mx-auto mb-3 text-text-secondary" />
+          <p className="text-text-secondary">No comments yet. Be the first to comment!</p>
+        </div>
+      ) : (
+        <div>{comments.map((comment) => renderComment(comment))}</div>
+      )}
     </div>
   )
 }
