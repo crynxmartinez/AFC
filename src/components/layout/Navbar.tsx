@@ -19,14 +19,15 @@ export default function Navbar() {
 
         {/* Search Bar (Desktop) */}
         <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
+          <button
+            onClick={() => navigate('/search')}
+            className="relative w-full text-left"
+          >
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary" />
-            <input
-              type="text"
-              placeholder="Search contests, artists..."
-              className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary"
-            />
-          </div>
+            <div className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2 text-sm text-text-secondary hover:border-primary transition-colors">
+              Search contests, artists...
+            </div>
+          </button>
         </div>
 
         {/* Right Side */}

@@ -16,6 +16,7 @@ import WinnersPage from './pages/WinnersPage'
 import ActiveContestsPage from './pages/ActiveContestsPage'
 import UserProfilePage from './pages/UserProfilePage'
 import LeaderboardPage from './pages/LeaderboardPage'
+import SearchPage from './pages/SearchPage'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminContests from './pages/admin/AdminContests'
 import AdminCreateContest from './pages/admin/AdminCreateContest'
@@ -42,6 +43,7 @@ function App() {
           <Route path="/contests/active" element={<ActiveContestsPage />} />
           <Route path="/winners" element={<WinnersPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/contests/:id" element={<ContestDetailPage />} />
           <Route path="/entries/:id" element={<EntryDetailPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
