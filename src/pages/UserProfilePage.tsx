@@ -92,17 +92,33 @@ export default function UserProfilePage() {
       // Fetch user's entries (ALL entries, not just approved)
       const { data: entriesData, error: entriesError } = await supabase
         .from('entries')
-        .select('id, contest_id, phase_4_url, created_at, status, contests(title, status)')
+        .select('id, contest_id, phase_4_url, created_at, status')
         .eq('user_id', userData.id)
         .order('created_at', { ascending: false })
 
       if (entriesError) throw entriesError
       
       console.log('Fetched entries for user:', userData.username, entriesData)
+      
+      // Fetch contest info separately for each entry
+      const entriesWithContests = await Promise.all(
+        (entriesData || []).map(async (entry: any) => {
+          const { data: contestData } = await supabase
+            .from('contests')
+            .select('title, status')
+            .eq('id', entry.contest_id)
+            .single()
+          
+          return {
+            ...entry,
+            contests: contestData
+          }
+        })
+      )
 
       // For each entry, calculate ranking based on votes
       const entriesWithRanking = await Promise.all(
-        (entriesData || []).map(async (entry: any) => {
+        (entriesWithContests || []).map(async (entry: any) => {
           // Get vote count for this entry
           const { count: voteCount } = await supabase
             .from('reactions')

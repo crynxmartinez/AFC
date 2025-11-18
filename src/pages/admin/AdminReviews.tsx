@@ -39,7 +39,7 @@ export default function AdminReviews() {
     try {
       let query = supabase
         .from('entries')
-        .select('*, users(username, avatar_url), contests(title)')
+        .select('*')
         .order('submitted_at', { ascending: false })
 
       if (filter === 'pending_review') {
@@ -49,7 +49,23 @@ export default function AdminReviews() {
       const { data, error } = await query
 
       if (error) throw error
-      setEntries(data as any || [])
+      
+      // Fetch related data separately
+      const entriesWithData = await Promise.all(
+        (data || []).map(async (entry: any) => {
+          const [{ data: userData }, { data: contestData }] = await Promise.all([
+            supabase.from('users').select('username, avatar_url').eq('id', entry.user_id).single(),
+            supabase.from('contests').select('title').eq('id', entry.contest_id).single()
+          ])
+          return {
+            ...entry,
+            users: userData,
+            contests: contestData
+          }
+        })
+      )
+      
+      setEntries(entriesWithData || [])
     } catch (error) {
       console.error('Error fetching entries:', error)
     } finally {

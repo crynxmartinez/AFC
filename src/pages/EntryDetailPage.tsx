@@ -42,12 +42,26 @@ export default function EntryDetailPage() {
     try {
       const { data, error } = await supabase
         .from('entries')
-        .select('*, users(username, avatar_url, level), contests(title)')
+        .select('*')
         .eq('id', id)
         .single()
 
       if (error) throw error
-      const entryData = data as any
+      
+      const entryRaw = data as any
+      
+      // Fetch related data separately
+      const [{ data: userData }, { data: contestData }] = await Promise.all([
+        supabase.from('users').select('username, avatar_url, level').eq('id', entryRaw.user_id).single(),
+        supabase.from('contests').select('title').eq('id', entryRaw.contest_id).single()
+      ])
+      
+      const entryData = {
+        ...entryRaw,
+        users: userData,
+        contests: contestData
+      }
+      
       setEntry(entryData)
       
       // Set initial phase to the highest available

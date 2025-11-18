@@ -80,13 +80,24 @@ export default function SearchPage() {
       if (filter === 'all' || filter === 'entries') {
         const { data: entries } = await supabase
           .from('entries')
-          .select('id, phase_4_url, contests(title), users(username)')
+          .select('id, phase_4_url, contest_id, user_id')
           .eq('status', 'approved')
           .limit(10)
 
-        if (entries) {
+        // Fetch related data separately
+        const entriesWithData = await Promise.all(
+          (entries || []).map(async (e: any) => {
+            const [{ data: contest }, { data: user }] = await Promise.all([
+              supabase.from('contests').select('title').eq('id', e.contest_id).single(),
+              supabase.from('users').select('username').eq('id', e.user_id).single()
+            ])
+            return { ...e, contests: contest, users: user }
+          })
+        )
+
+        if (entriesWithData) {
           // Filter entries where contest title matches
-          const matchingEntries = entries.filter((e: any) =>
+          const matchingEntries = entriesWithData.filter((e: any) =>
             e.contests?.title?.toLowerCase().includes(query.toLowerCase())
           )
 
