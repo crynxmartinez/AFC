@@ -14,6 +14,7 @@ import NotificationsPage from './pages/NotificationsPage'
 import SettingsPage from './pages/SettingsPage'
 import WinnersPage from './pages/WinnersPage'
 import ActiveContestsPage from './pages/ActiveContestsPage'
+import UserProfilePage from './pages/UserProfilePage'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminContests from './pages/admin/AdminContests'
 import AdminCreateContest from './pages/admin/AdminCreateContest'
@@ -42,6 +43,7 @@ function App() {
           <Route path="/contests/:id" element={<ContestDetailPage />} />
           <Route path="/entries/:id" element={<EntryDetailPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
+          <Route path="/users/:username" element={<UserProfilePage />} />
         </Route>
 
         {/* Protected User Routes */}
