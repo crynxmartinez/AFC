@@ -330,7 +330,7 @@ BEGIN
     v_next_level_xp - v_user_xp AS xp_to_next,
     CASE 
       WHEN v_next_level_xp = v_current_level_xp THEN 100
-      ELSE FLOOR(((v_user_xp - v_current_level_xp)::DECIMAL / (v_next_level_xp - v_current_level_xp)::DECIMAL) * 100)
+      ELSE FLOOR(((v_user_xp - v_current_level_xp)::DECIMAL / (v_next_level_xp - v_current_level_xp)::DECIMAL) * 100)::INT
     END AS progress_pct;
 END;
 $$ LANGUAGE plpgsql;
