@@ -53,26 +53,46 @@ export default function SubmitEntryPage() {
   const fetchExistingEntry = async () => {
     if (!id || !user?.id) return
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('entries')
         .select('*')
         .eq('contest_id', id)
         .eq('user_id', user.id)
         .single()
 
+      if (error) {
+        // Entry doesn't exist yet, that's fine
+        console.log('No existing entry found')
+        return
+      }
+
       if (data) {
         const entryData = data as any
+        console.log('Found existing entry:', entryData)
         setExistingEntry(entryData)
         // Load existing phase images
         const newPhases = [...phases]
-        if (entryData.phase_1_url) newPhases[0] = { file: null, preview: entryData.phase_1_url, uploaded: true }
-        if (entryData.phase_2_url) newPhases[1] = { file: null, preview: entryData.phase_2_url, uploaded: true }
-        if (entryData.phase_3_url) newPhases[2] = { file: null, preview: entryData.phase_3_url, uploaded: true }
-        if (entryData.phase_4_url) newPhases[3] = { file: null, preview: entryData.phase_4_url, uploaded: true }
+        if (entryData.phase_1_url) {
+          console.log('Loading phase 1:', entryData.phase_1_url)
+          newPhases[0] = { file: null, preview: entryData.phase_1_url, uploaded: true }
+        }
+        if (entryData.phase_2_url) {
+          console.log('Loading phase 2:', entryData.phase_2_url)
+          newPhases[1] = { file: null, preview: entryData.phase_2_url, uploaded: true }
+        }
+        if (entryData.phase_3_url) {
+          console.log('Loading phase 3:', entryData.phase_3_url)
+          newPhases[2] = { file: null, preview: entryData.phase_3_url, uploaded: true }
+        }
+        if (entryData.phase_4_url) {
+          console.log('Loading phase 4:', entryData.phase_4_url)
+          newPhases[3] = { file: null, preview: entryData.phase_4_url, uploaded: true }
+        }
         setPhases(newPhases)
+        console.log('Phases set:', newPhases)
       }
-    } catch {
-      // Entry doesn't exist yet, that's fine
+    } catch (err) {
+      console.error('Error fetching existing entry:', err)
     }
   }
 
