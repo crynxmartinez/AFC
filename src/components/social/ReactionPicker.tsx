@@ -87,17 +87,26 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
 
     try {
       if (userReaction === reactionType) {
-        // Remove reaction
-        const { error } = await supabase
+        // Remove reaction - refund 1 point
+        const { error: deleteError } = await supabase
           .from('reactions')
           .delete()
           .eq('entry_id', entryId)
           .eq('user_id', user.id)
 
-        if (error) throw error
+        if (deleteError) throw deleteError
+
+        // Refund 1 point to user
+        const { error: refundError } = await supabase
+          .from('users')
+          .update({ points_balance: supabase.raw('points_balance + 1') })
+          .eq('id', user.id)
+
+        if (refundError) throw refundError
+
         setUserReaction(null)
       } else if (userReaction) {
-        // Update existing reaction
+        // Update existing reaction (no point cost, just changing reaction type)
         const { error } = await supabase
           .from('reactions')
           .update({ reaction_type: reactionType })
@@ -107,8 +116,32 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
         if (error) throw error
         setUserReaction(reactionType)
       } else {
-        // Add new reaction
-        const { error } = await supabase
+        // Add new reaction - costs 1 point
+        // First check if user has enough points
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('points_balance')
+          .eq('id', user.id)
+          .single()
+
+        if (userError) throw userError
+
+        if (!userData || userData.points_balance < 1) {
+          alert('You need at least 1 point to vote! Earn points by participating in contests.')
+          setLoading(false)
+          return
+        }
+
+        // Deduct 1 point from user
+        const { error: deductError } = await supabase
+          .from('users')
+          .update({ points_balance: supabase.raw('points_balance - 1') })
+          .eq('id', user.id)
+
+        if (deductError) throw deductError
+
+        // Add reaction
+        const { error: insertError } = await supabase
           .from('reactions')
           .insert({
             entry_id: entryId,
@@ -116,7 +149,15 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
             reaction_type: reactionType,
           })
 
-        if (error) throw error
+        if (insertError) {
+          // Refund point if reaction insert fails
+          await supabase
+            .from('users')
+            .update({ points_balance: supabase.raw('points_balance + 1') })
+            .eq('id', user.id)
+          throw insertError
+        }
+
         setUserReaction(reactionType)
 
         // Create notification for entry owner

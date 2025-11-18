@@ -15,6 +15,8 @@ type Contest = {
   thumbnail_url: string | null
   created_at: string
   entry_count?: number
+  prize_pool?: number
+  prize_pool_distributed?: boolean
 }
 
 export default function AdminContests() {
@@ -163,6 +165,14 @@ export default function AdminContests() {
                 >
                   Edit
                 </Link>
+                {contest.status === 'ended' && !contest.prize_pool_distributed && (
+                  <Link
+                    to={`/admin/contests/finalize/${contest.id}`}
+                    className="px-4 py-2 bg-success hover:bg-success/80 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    🏆 Finalize Winners
+                  </Link>
+                )}
                 <button
                   onClick={() => deleteContest(contest.id)}
                   className="px-4 py-2 bg-error/20 hover:bg-error/30 text-error rounded-lg text-sm font-medium transition-colors"

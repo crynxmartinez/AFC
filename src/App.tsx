@@ -22,6 +22,7 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminContests from './pages/admin/AdminContests'
 import AdminCreateContest from './pages/admin/AdminCreateContest'
 import AdminEditContest from './pages/admin/AdminEditContest'
+import AdminFinalizeContest from './pages/admin/AdminFinalizeContest'
 import AdminReviews from './pages/admin/AdminReviews'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminXPSystem from './pages/admin/AdminXPSystem'
@@ -67,6 +68,7 @@ function App() {
           <Route path="/admin/contests" element={<AdminContests />} />
           <Route path="/admin/contests/new" element={<AdminCreateContest />} />
           <Route path="/admin/contests/edit/:id" element={<AdminEditContest />} />
+          <Route path="/admin/contests/finalize/:id" element={<AdminFinalizeContest />} />
           <Route path="/admin/reviews" element={<AdminReviews />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/xp-system" element={<AdminXPSystem />} />
