@@ -97,6 +97,8 @@ export default function UserProfilePage() {
         .order('created_at', { ascending: false })
 
       if (entriesError) throw entriesError
+      
+      console.log('Fetched entries for user:', userData.username, entriesData)
 
       // For each entry, calculate ranking based on votes
       const entriesWithRanking = await Promise.all(
