@@ -16,6 +16,27 @@ type Contest = {
   sponsor_name: string | null
   sponsor_logo_url: string | null
   sponsor_prize_amount: number | null
+  prize_pool: number
+  prize_pool_distributed: boolean
+  winner_1st_id: string | null
+  winner_2nd_id: string | null
+  winner_3rd_id: string | null
+}
+
+type Winner = {
+  id: string
+  entry_id: string
+  user_id: string
+  placement: number
+  votes_received: number
+  prize_amount: number
+  users: {
+    username: string
+    avatar_url: string | null
+  }
+  entries: {
+    phase_4_url: string | null
+  }
 }
 
 type Entry = {
@@ -34,12 +55,14 @@ export default function ContestDetailPage() {
   const { user } = useAuthStore()
   const [contest, setContest] = useState<Contest | null>(null)
   const [entries, setEntries] = useState<Entry[]>([])
+  const [winners, setWinners] = useState<Winner[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (id) {
       fetchContest()
       fetchEntries()
+      fetchWinners()
     }
   }, [id])
 
@@ -89,6 +112,26 @@ export default function ContestDetailPage() {
       console.error('Error fetching entries:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchWinners = async () => {
+    if (!id) return
+    try {
+      const { data, error } = await supabase
+        .from('contest_winners')
+        .select(`
+          *,
+          users (username, avatar_url),
+          entries (phase_4_url)
+        `)
+        .eq('contest_id', id)
+        .order('placement', { ascending: true })
+
+      if (error) throw error
+      setWinners(data || [])
+    } catch (error) {
+      console.error('Error fetching winners:', error)
     }
   }
 
@@ -213,6 +256,106 @@ export default function ContestDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Winners Section */}
+      {contest.prize_pool_distributed && winners.length > 0 && (
+        <div className="bg-surface rounded-lg p-6 mb-6 border border-border">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">🏆 Contest Winners</h2>
+            <div className="text-sm text-text-secondary">
+              Prize Pool: <span className="font-bold text-primary">{contest.prize_pool} pts</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {winners.map((winner) => (
+              <div
+                key={winner.id}
+                className="relative bg-background rounded-lg overflow-hidden border-2"
+                style={{
+                  borderColor:
+                    winner.placement === 1
+                      ? '#FFD700'
+                      : winner.placement === 2
+                      ? '#C0C0C0'
+                      : '#CD7F32',
+                }}
+              >
+                {/* Placement Badge */}
+                <div className="absolute top-3 left-3 z-10">
+                  <div
+                    className="text-4xl drop-shadow-lg"
+                    style={{
+                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+                    }}
+                  >
+                    {winner.placement === 1 ? '🥇' : winner.placement === 2 ? '🥈' : '🥉'}
+                  </div>
+                </div>
+
+                {/* Entry Image */}
+                <Link to={`/entries/${winner.entry_id}`}>
+                  <div className="aspect-square bg-background flex items-center justify-center">
+                    {winner.entries.phase_4_url ? (
+                      <img
+                        src={winner.entries.phase_4_url}
+                        alt={`${winner.placement} place`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <p className="text-text-secondary">No image</p>
+                    )}
+                  </div>
+                </Link>
+
+                {/* Winner Info */}
+                <div className="p-4">
+                  <Link
+                    to={`/users/${winner.users.username}`}
+                    className="flex items-center gap-2 mb-2 hover:text-primary transition-colors"
+                  >
+                    {winner.users.avatar_url ? (
+                      <img
+                        src={winner.users.avatar_url}
+                        alt={winner.users.username}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-sm">
+                        {winner.users.username.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="font-semibold">@{winner.users.username}</span>
+                  </Link>
+
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="text-text-secondary">
+                      {winner.votes_received} votes
+                    </div>
+                    <div className="font-bold text-primary">
+                      +{winner.prize_amount} pts
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Prize Pool Display (if contest ended but not finalized) */}
+      {contest.status === 'ended' && !contest.prize_pool_distributed && contest.prize_pool > 0 && (
+        <div className="bg-warning/20 border border-warning rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="text-2xl">⏳</div>
+            <div>
+              <p className="font-semibold">Contest Ended - Awaiting Finalization</p>
+              <p className="text-sm text-text-secondary">
+                Prize Pool: <span className="font-bold">{contest.prize_pool} pts</span> will be distributed to top 3 winners soon!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {entries.length === 0 ? (
         <div className="text-center py-12 bg-surface rounded-lg border border-border">
