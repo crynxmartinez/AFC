@@ -16,6 +16,22 @@
     @apply bg-background text-text-primary;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
+
+  /* Prevent mobile zoom on input focus - iOS Safari zooms if font-size < 16px */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* On desktop, use normal sizing */
+  @media (min-width: 768px) {
+    input,
+    textarea,
+    select {
+      font-size: 0.875rem !important; /* 14px */
+    }
+  }
 }
 
 @layer utilities {
