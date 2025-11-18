@@ -125,16 +125,24 @@ export default function ContestDetailPage() {
     try {
       const { data, error } = await supabase
         .from('contest_winners')
-        .select(`
-          *,
-          users (username, avatar_url),
-          entries (phase_4_url)
-        `)
+        .select('*')
         .eq('contest_id', id)
         .order('placement', { ascending: true })
 
       if (error) throw error
-      setWinners(data || [])
+      
+      // Fetch related data separately
+      const winnersWithData = await Promise.all(
+        (data || []).map(async (winner: any) => {
+          const [{ data: userData }, { data: entryData }] = await Promise.all([
+            supabase.from('users').select('username, avatar_url').eq('id', winner.user_id).single(),
+            supabase.from('entries').select('phase_4_url').eq('id', winner.entry_id).single()
+          ])
+          return { ...winner, users: userData, entries: entryData }
+        })
+      )
+      
+      setWinners(winnersWithData)
     } catch (error) {
       console.error('Error fetching winners:', error)
     }

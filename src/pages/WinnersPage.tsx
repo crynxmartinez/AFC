@@ -55,15 +55,7 @@ export default function WinnersPage() {
           // Get all approved entries for this contest
           const { data: entriesData, error: entriesError } = await supabase
             .from('entries')
-            .select(`
-              id,
-              title,
-              artwork_url,
-              users:user_id (
-                username,
-                avatar_url
-              )
-            `)
+            .select('id, title, artwork_url, user_id')
             .eq('contest_id', contest.id)
             .eq('status', 'approved')
 
@@ -72,9 +64,14 @@ export default function WinnersPage() {
             return { ...contest, winners: [] }
           }
 
-          // Get reaction counts for each entry
+          // Fetch user data separately and get reaction counts for each entry
           const entriesWithVotes = await Promise.all(
-            (entriesData || []).map(async (entry) => {
+            (entriesData || []).map(async (entry: any) => {
+              const { data: userData } = await supabase
+                .from('users')
+                .select('username, avatar_url')
+                .eq('id', entry.user_id)
+                .single()
               const { count, error: countError } = await supabase
                 .from('reactions')
                 .select('*', { count: 'exact', head: true })
@@ -82,10 +79,10 @@ export default function WinnersPage() {
 
               if (countError) {
                 console.error('Error counting reactions:', countError)
-                return { ...entry, votes: 0 }
+                return { ...entry, users: userData, votes: 0 }
               }
 
-              return { ...entry, votes: count || 0 }
+              return { ...entry, users: userData, votes: count || 0 }
             })
           )
 

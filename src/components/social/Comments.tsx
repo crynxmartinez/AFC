@@ -42,31 +42,46 @@ export default function CommentSection({ entryId }: Props) {
     try {
       const { data, error } = await supabase
         .from('entry_comments')
-        .select(`
-          *,
-          users (username, avatar_url)
-        `)
+        .select('*')
         .eq('entry_id', entryId)
         .is('parent_comment_id', null)
         .order('created_at', { ascending: false })
 
       if (error) throw error
 
-      // Fetch replies for each comment
+      // Fetch user data and replies for each comment
       const commentsWithReplies = await Promise.all(
-        (data || []).map(async (comment) => {
-          const { data: replies } = await supabase
+        (data || []).map(async (comment: any) => {
+          // Fetch user data for comment
+          const { data: userData } = await supabase
+            .from('users')
+            .select('username, avatar_url')
+            .eq('id', comment.user_id)
+            .single()
+
+          // Fetch replies
+          const { data: repliesData } = await supabase
             .from('entry_comments')
-            .select(`
-              *,
-              users (username, avatar_url)
-            `)
+            .select('*')
             .eq('parent_comment_id', comment.id)
             .order('created_at', { ascending: true })
 
+          // Fetch user data for each reply
+          const repliesWithUsers = await Promise.all(
+            (repliesData || []).map(async (reply: any) => {
+              const { data: replyUserData } = await supabase
+                .from('users')
+                .select('username, avatar_url')
+                .eq('id', reply.user_id)
+                .single()
+              return { ...reply, users: replyUserData }
+            })
+          )
+
           return {
             ...comment,
-            replies: replies || [],
+            users: userData,
+            replies: repliesWithUsers,
           }
         })
       )

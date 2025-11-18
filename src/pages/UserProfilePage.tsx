@@ -170,15 +170,25 @@ export default function UserProfilePage() {
       // Fetch user's contest wins
       const { data: winnersData, error: winnersError } = await supabase
         .from('contest_winners')
-        .select(`
-          *,
-          contests (title)
-        `)
+        .select('*')
         .eq('user_id', userData.id)
         .order('awarded_at', { ascending: false })
 
       if (winnersError) throw winnersError
-      setWinners(winnersData || [])
+      
+      // Fetch contest titles separately
+      const winnersWithContests = await Promise.all(
+        (winnersData || []).map(async (winner: any) => {
+          const { data: contestData } = await supabase
+            .from('contests')
+            .select('title')
+            .eq('id', winner.contest_id)
+            .single()
+          return { ...winner, contests: contestData }
+        })
+      )
+      
+      setWinners(winnersWithContests)
 
       // Calculate stats
       const totalEntries = entriesData?.length || 0
