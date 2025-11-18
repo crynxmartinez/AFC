@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { supabase } from '../lib/supabase'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const { signIn } = useAuthStore()
-  const [email, setEmail] = useState('')
+  const [emailOrUsername, setEmailOrUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,7 +17,25 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      await signIn(email, password)
+      let loginEmail = emailOrUsername
+
+      // Check if input is username (no @ symbol)
+      if (!emailOrUsername.includes('@')) {
+        // Look up email by username
+        const { data: userData, error: lookupError } = await supabase
+          .from('users')
+          .select('email')
+          .eq('username', emailOrUsername)
+          .single()
+
+        if (lookupError || !userData) {
+          throw new Error('Username not found')
+        }
+
+        loginEmail = (userData as { email: string }).email
+      }
+
+      await signIn(loginEmail, password)
       navigate('/')
     } catch (err: any) {
       setError(err.message || 'Failed to sign in')
@@ -37,17 +56,17 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-2">
-            Email
+          <label htmlFor="emailOrUsername" className="block text-sm font-medium mb-2">
+            Email or Username
           </label>
           <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="emailOrUsername"
+            type="text"
+            value={emailOrUsername}
+            onChange={(e) => setEmailOrUsername(e.target.value)}
             required
             className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
-            placeholder="your@email.com"
+            placeholder="your@email.com or username"
           />
         </div>
 

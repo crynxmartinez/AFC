@@ -67,6 +67,9 @@ export default function SignupPage() {
             className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
             placeholder="johndoe"
           />
+          <p className="mt-1 text-xs text-warning">
+            ⚠️ Choose carefully! Username cannot be changed after registration.
+          </p>
         </div>
 
         <div>
