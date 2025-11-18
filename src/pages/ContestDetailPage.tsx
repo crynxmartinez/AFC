@@ -12,6 +12,10 @@ type Contest = {
   start_date: string
   end_date: string
   thumbnail_url: string | null
+  has_sponsor: boolean
+  sponsor_name: string | null
+  sponsor_logo_url: string | null
+  sponsor_prize_amount: number | null
 }
 
 type Entry = {
@@ -156,6 +160,33 @@ export default function ContestDetailPage() {
         </div>
 
         <p className="text-text-secondary text-lg mb-6">{contest.description}</p>
+
+        {/* Sponsor Section */}
+        {contest.has_sponsor && contest.sponsor_name && (
+          <div className="mb-6 p-4 bg-background rounded-lg border-2 border-primary/30">
+            <div className="flex items-center gap-4">
+              {contest.sponsor_logo_url && (
+                <img 
+                  src={contest.sponsor_logo_url} 
+                  alt={contest.sponsor_name}
+                  className="h-12 w-auto object-contain"
+                />
+              )}
+              <div className="flex-1">
+                <p className="text-sm text-text-secondary">Sponsored by</p>
+                <p className="text-xl font-bold text-primary">{contest.sponsor_name}</p>
+              </div>
+              {contest.sponsor_prize_amount && contest.sponsor_prize_amount > 0 && (
+                <div className="text-right">
+                  <p className="text-sm text-text-secondary">Additional Prize</p>
+                  <p className="text-2xl font-bold text-success">
+                    ${contest.sponsor_prize_amount.toLocaleString()}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-8 text-sm">
           <div>

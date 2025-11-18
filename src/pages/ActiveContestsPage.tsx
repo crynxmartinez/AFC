@@ -14,6 +14,10 @@ type Contest = {
   end_date: string
   status: string
   entry_count?: number
+  has_sponsor: boolean
+  sponsor_name: string | null
+  sponsor_logo_url: string | null
+  sponsor_prize_amount: number | null
 }
 
 export default function ActiveContestsPage() {
@@ -121,6 +125,31 @@ export default function ActiveContestsPage() {
               {/* Content */}
               <div className="p-4">
                 <h3 className="font-bold text-xl mb-2 line-clamp-1">{contest.title}</h3>
+                
+                {/* Sponsor Badge */}
+                {contest.has_sponsor && contest.sponsor_name && (
+                  <div className="flex items-center gap-2 mb-2 p-2 bg-primary/10 rounded border border-primary/30">
+                    {contest.sponsor_logo_url && (
+                      <img 
+                        src={contest.sponsor_logo_url} 
+                        alt={contest.sponsor_name}
+                        className="h-6 w-auto object-contain"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-text-secondary">Sponsored by</p>
+                      <p className="text-sm font-semibold text-primary truncate">{contest.sponsor_name}</p>
+                    </div>
+                    {contest.sponsor_prize_amount && contest.sponsor_prize_amount > 0 && (
+                      <div className="text-right">
+                        <p className="text-xs font-bold text-success">
+                          +${contest.sponsor_prize_amount.toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <p className="text-sm text-text-secondary mb-4 line-clamp-2">
                   {contest.description}
                 </p>
