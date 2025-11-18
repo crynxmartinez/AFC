@@ -45,16 +45,16 @@ export default function WinnersPage() {
 
       if (contestsError) throw contestsError
 
-      // For each contest, fetch top 3 entries
+      // For each contest, fetch top 3 entries based on reaction count
       const contestsWithWinners = await Promise.all(
         (contestsData || []).map(async (contest) => {
+          // Get all approved entries for this contest
           const { data: entriesData, error: entriesError } = await supabase
             .from('entries')
             .select(`
               id,
               title,
               artwork_url,
-              votes,
               users:user_id (
                 username,
                 avatar_url
@@ -62,15 +62,33 @@ export default function WinnersPage() {
             `)
             .eq('contest_id', contest.id)
             .eq('status', 'approved')
-            .order('votes', { ascending: false })
-            .limit(3)
 
           if (entriesError) {
             console.error('Error fetching entries:', entriesError)
             return { ...contest, winners: [] }
           }
 
-          const winners = (entriesData || []).map((entry, index) => ({
+          // Get reaction counts for each entry
+          const entriesWithVotes = await Promise.all(
+            (entriesData || []).map(async (entry) => {
+              const { count, error: countError } = await supabase
+                .from('reactions')
+                .select('*', { count: 'exact', head: true })
+                .eq('entry_id', entry.id)
+
+              if (countError) {
+                console.error('Error counting reactions:', countError)
+                return { ...entry, votes: 0 }
+              }
+
+              return { ...entry, votes: count || 0 }
+            })
+          )
+
+          // Sort by votes and get top 3
+          const sortedEntries = entriesWithVotes.sort((a, b) => b.votes - a.votes).slice(0, 3)
+
+          const winners = sortedEntries.map((entry, index) => ({
             id: entry.id,
             title: entry.title,
             artwork_url: entry.artwork_url,
@@ -78,7 +96,7 @@ export default function WinnersPage() {
               username: entry.users?.username || 'Unknown',
               avatar_url: entry.users?.avatar_url || null,
             },
-            votes: entry.votes || 0,
+            votes: entry.votes,
             rank: index + 1,
           }))
 
@@ -283,7 +301,7 @@ export default function WinnersPage() {
                           </Link>
 
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-text-secondary">{winner.votes} votes</span>
+                            <span className="text-text-secondary">{winner.votes} reactions</span>
                             <span className="font-semibold text-primary">
                               {winner.rank === 1 ? '🥇 1st Place' : winner.rank === 2 ? '🥈 2nd Place' : '🥉 3rd Place'}
                             </span>
