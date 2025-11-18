@@ -103,31 +103,39 @@ export default function EntryDetailPage() {
               <p className="text-text-secondary">No image for this phase</p>
             )}
           </div>
-          <div className="grid grid-cols-4 gap-2">
-            {phases.map((phase) => (
-              <button
-                key={phase.num}
-                onClick={() => phase.url && setSelectedPhase(phase.num)}
-                disabled={!phase.url}
-                className={`aspect-square rounded border transition-all ${
-                  phase.url
-                    ? selectedPhase === phase.num
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border bg-surface hover:border-primary/50'
-                    : 'border-border bg-background opacity-50 cursor-not-allowed'
-                } flex items-center justify-center text-xs font-medium overflow-hidden`}
-              >
-                {phase.url ? (
-                  <img src={phase.url} alt={phase.label} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-text-secondary">{phase.label}</span>
-                )}
-              </button>
-            ))}
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-center mb-3">4-Step Art Process</p>
+            <div className="grid grid-cols-4 gap-2">
+              {phases.map((phase) => (
+                <button
+                  key={phase.num}
+                  onClick={() => phase.url && setSelectedPhase(phase.num)}
+                  disabled={!phase.url}
+                  className={`aspect-square rounded border transition-all ${
+                    phase.url
+                      ? selectedPhase === phase.num
+                        ? 'border-primary bg-primary/10 ring-2 ring-primary'
+                        : 'border-border bg-surface hover:border-primary/50'
+                      : 'border-border bg-background opacity-50 cursor-not-allowed'
+                  } flex flex-col items-center justify-center text-xs font-medium overflow-hidden relative`}
+                >
+                  {phase.url ? (
+                    <>
+                      <img src={phase.url} alt={phase.label} className="w-full h-full object-cover" />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs py-1 text-center">
+                        {phase.label}
+                      </div>
+                    </>
+                  ) : (
+                    <span className="text-text-secondary text-center px-1">{phase.label}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-text-secondary text-center mt-2">
+              <span className="font-semibold">Viewing:</span> {phases[selectedPhase - 1].label}
+            </p>
           </div>
-          <p className="text-xs text-text-secondary text-center mt-2">
-            Phase {selectedPhase}: {phases[selectedPhase - 1].label}
-          </p>
         </div>
 
         <div>
