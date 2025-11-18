@@ -34,6 +34,18 @@ type Entry = {
   total_votes?: number
 }
 
+type Winner = {
+  id: string
+  contest_id: string
+  placement: number
+  prize_amount: number
+  votes_received: number
+  awarded_at: string
+  contests: {
+    title: string
+  }
+}
+
 type Badge = {
   id: string
   badge_name: string
@@ -46,13 +58,15 @@ export default function UserProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [entries, setEntries] = useState<Entry[]>([])
   const [badges, setBadges] = useState<Badge[]>([])
+  const [winners, setWinners] = useState<Winner[]>([])
   const [stats, setStats] = useState({
     totalEntries: 0,
     contestsWon: 0,
     totalReactions: 0,
+    totalPrizeMoney: 0,
   })
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'portfolio' | 'badges'>('portfolio')
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'badges' | 'wins'>('portfolio')
 
   useEffect(() => {
     if (username) {
@@ -132,8 +146,23 @@ export default function UserProfilePage() {
       if (badgesError) throw badgesError
       setBadges(badgesData || [])
 
+      // Fetch user's contest wins
+      const { data: winnersData, error: winnersError } = await supabase
+        .from('contest_winners')
+        .select(`
+          *,
+          contests (title)
+        `)
+        .eq('user_id', userData.id)
+        .order('awarded_at', { ascending: false })
+
+      if (winnersError) throw winnersError
+      setWinners(winnersData || [])
+
       // Calculate stats
       const totalEntries = entriesData?.length || 0
+      const contestsWon = winnersData?.length || 0
+      const totalPrizeMoney = winnersData?.reduce((sum, win) => sum + win.prize_amount, 0) || 0
 
       // Get total reactions across all entries
       let totalReactions = 0
@@ -147,12 +176,10 @@ export default function UserProfilePage() {
         }
       }
 
-      // TODO: Calculate contests won (need to implement winner tracking)
-      const contestsWon = 0
-
       setStats({
         totalEntries,
         contestsWon,
+        totalPrizeMoney,
         totalReactions,
       })
     } catch (error) {
@@ -262,7 +289,7 @@ export default function UserProfilePage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-border">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-border">
           <div className="text-center">
             <div className="text-3xl font-bold text-primary mb-1">{profile.level}</div>
             <div className="text-sm text-text-secondary">Level</div>
@@ -275,7 +302,22 @@ export default function UserProfilePage() {
             <div className="text-3xl font-bold text-primary mb-1">{stats.totalEntries}</div>
             <div className="text-sm text-text-secondary">Entries</div>
           </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-primary mb-1">{stats.contestsWon}</div>
+            <div className="text-sm text-text-secondary">Wins</div>
+          </div>
         </div>
+
+        {/* Prize Money Display */}
+        {stats.totalPrizeMoney > 0 && (
+          <div className="mt-4 p-4 bg-primary/10 border border-primary/30 rounded-lg text-center">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <Trophy className="w-5 h-5 text-primary" />
+              <span className="text-2xl font-bold text-primary">{formatNumber(stats.totalPrizeMoney)} pts</span>
+            </div>
+            <div className="text-sm text-text-secondary">Total Prize Money Won</div>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -299,6 +341,16 @@ export default function UserProfilePage() {
           }`}
         >
           Badges ({badges.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('wins')}
+          className={`px-4 py-2 font-medium transition-colors ${
+            activeTab === 'wins'
+              ? 'text-primary border-b-2 border-primary'
+              : 'text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          🏆 Wins ({winners.length})
         </button>
       </div>
 
@@ -377,7 +429,7 @@ export default function UserProfilePage() {
             </div>
           )}
         </div>
-      ) : (
+      ) : activeTab === 'badges' ? (
         <div>
           {badges.length === 0 ? (
             <div className="text-center py-12 bg-surface rounded-lg">
@@ -397,6 +449,68 @@ export default function UserProfilePage() {
                   <p className="text-xs text-text-secondary">
                     Earned {formatDate(badge.earned_at)}
                   </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div>
+          {winners.length === 0 ? (
+            <div className="text-center py-12 bg-surface rounded-lg">
+              <Trophy className="w-16 h-16 mx-auto mb-4 text-text-secondary" />
+              <h3 className="text-xl font-bold mb-2">No contest wins yet</h3>
+              <p className="text-text-secondary">This user hasn't won any contests.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {winners.map((winner) => (
+                <div
+                  key={winner.id}
+                  className="bg-surface rounded-lg p-6 border-2"
+                  style={{
+                    borderColor:
+                      winner.placement === 1
+                        ? '#FFD700'
+                        : winner.placement === 2
+                        ? '#C0C0C0'
+                        : '#CD7F32',
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="text-5xl">
+                        {winner.placement === 1 ? '🥇' : winner.placement === 2 ? '🥈' : '🥉'}
+                      </div>
+                      <div>
+                        <Link
+                          to={`/contests/${winner.contest_id}`}
+                          className="text-xl font-bold hover:text-primary transition-colors"
+                        >
+                          {winner.contests.title}
+                        </Link>
+                        <p className="text-sm text-text-secondary">
+                          {winner.placement === 1 ? '1st' : winner.placement === 2 ? '2nd' : '3rd'} Place
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-primary">
+                        +{formatNumber(winner.prize_amount)} pts
+                      </div>
+                      <p className="text-sm text-text-secondary">Prize Money</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6 text-sm text-text-secondary">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-4 h-4" />
+                      <span>{winner.votes_received} votes</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>Won {formatDate(winner.awarded_at)}</span>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
