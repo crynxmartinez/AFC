@@ -281,7 +281,7 @@ export default function AdminCreateContest() {
 
               <div>
                 <label htmlFor="sponsorPrizeAmount" className="block text-sm font-medium mb-2">
-                  Additional Prize Amount ($)
+                  Additional Prize Amount (₱)
                 </label>
                 <input
                   id="sponsorPrizeAmount"
@@ -291,7 +291,7 @@ export default function AdminCreateContest() {
                   value={sponsorPrizeAmount}
                   onChange={(e) => setSponsorPrizeAmount(e.target.value)}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
-                  placeholder="500.00"
+                  placeholder="5000.00"
                 />
               </div>
 

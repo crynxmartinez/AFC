@@ -220,7 +220,7 @@ export default function WinnersPage() {
                         </div>
                         {contest.sponsor_prize_amount && contest.sponsor_prize_amount > 0 && (
                           <span className="text-xs font-bold text-success ml-2">
-                            +${contest.sponsor_prize_amount.toLocaleString()}
+                            +₱{contest.sponsor_prize_amount.toLocaleString()}
                           </span>
                         )}
                       </div>

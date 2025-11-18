@@ -143,7 +143,7 @@ export default function ActiveContestsPage() {
                     {contest.sponsor_prize_amount && contest.sponsor_prize_amount > 0 && (
                       <div className="text-right">
                         <p className="text-xs font-bold text-success">
-                          +${contest.sponsor_prize_amount.toLocaleString()}
+                          +₱{contest.sponsor_prize_amount.toLocaleString()}
                         </p>
                       </div>
                     )}

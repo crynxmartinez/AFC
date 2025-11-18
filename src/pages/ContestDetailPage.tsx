@@ -53,6 +53,7 @@ export default function ContestDetailPage() {
         .single()
 
       if (error) throw error
+      console.log('Contest data:', data)
       setContest(data)
     } catch (error) {
       console.error('Error fetching contest:', error)
@@ -180,7 +181,7 @@ export default function ContestDetailPage() {
                 <div className="text-right">
                   <p className="text-sm text-text-secondary">Additional Prize</p>
                   <p className="text-2xl font-bold text-success">
-                    ${contest.sponsor_prize_amount.toLocaleString()}
+                    ₱{contest.sponsor_prize_amount.toLocaleString()}
                   </p>
                 </div>
               )}
