@@ -28,7 +28,10 @@ type Entry = {
   status: string
   contests: {
     title: string
+    status: string
   }
+  ranking?: number
+  total_votes?: number
 }
 
 type Badge = {
@@ -69,16 +72,55 @@ export default function UserProfilePage() {
       if (userError) throw userError
       setProfile(userData)
 
-      // Fetch user's entries
+      // Fetch user's entries (ALL entries, not just approved)
       const { data: entriesData, error: entriesError } = await supabase
         .from('entries')
-        .select('id, contest_id, phase_4_url, created_at, status, contests(title)')
+        .select('id, contest_id, phase_4_url, created_at, status, contests(title, status)')
         .eq('user_id', userData.id)
-        .eq('status', 'approved')
         .order('created_at', { ascending: false })
 
       if (entriesError) throw entriesError
-      setEntries(entriesData || [])
+
+      // For each entry, calculate ranking based on votes
+      const entriesWithRanking = await Promise.all(
+        (entriesData || []).map(async (entry: any) => {
+          // Get vote count for this entry
+          const { count: voteCount } = await supabase
+            .from('reactions')
+            .select('*', { count: 'exact', head: true })
+            .eq('entry_id', entry.id)
+
+          // Get all entries in the same contest with their vote counts
+          const { data: contestEntries } = await supabase
+            .from('entries')
+            .select('id')
+            .eq('contest_id', entry.contest_id)
+            .eq('status', 'approved')
+
+          // Calculate ranking
+          let ranking = 1
+          if (contestEntries && entry.status === 'approved') {
+            for (const otherEntry of contestEntries) {
+              const { count: otherVotes } = await supabase
+                .from('reactions')
+                .select('*', { count: 'exact', head: true })
+                .eq('entry_id', otherEntry.id)
+              
+              if ((otherVotes || 0) > (voteCount || 0)) {
+                ranking++
+              }
+            }
+          }
+
+          return {
+            ...entry,
+            total_votes: voteCount || 0,
+            ranking: entry.status === 'approved' ? ranking : null,
+          }
+        })
+      )
+
+      setEntries(entriesWithRanking)
 
       // Fetch user's badges
       const { data: badgesData, error: badgesError } = await supabase
@@ -220,7 +262,7 @@ export default function UserProfilePage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-border">
+        <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-border">
           <div className="text-center">
             <div className="text-3xl font-bold text-primary mb-1">{profile.level}</div>
             <div className="text-sm text-text-secondary">Level</div>
@@ -232,10 +274,6 @@ export default function UserProfilePage() {
           <div className="text-center">
             <div className="text-3xl font-bold text-primary mb-1">{stats.totalEntries}</div>
             <div className="text-sm text-text-secondary">Entries</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-primary mb-1">{stats.totalReactions}</div>
-            <div className="text-sm text-text-secondary">Reactions</div>
           </div>
         </div>
       </div>
@@ -281,20 +319,58 @@ export default function UserProfilePage() {
                   to={`/entries/${entry.id}`}
                   className="bg-surface rounded-lg overflow-hidden border border-border hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/20"
                 >
-                  {entry.phase_4_url ? (
-                    <img
-                      src={entry.phase_4_url}
-                      alt="Entry"
-                      className="w-full aspect-square object-cover"
-                    />
-                  ) : (
-                    <div className="w-full aspect-square bg-background flex items-center justify-center">
-                      <Trophy className="w-16 h-16 text-text-secondary" />
+                  <div className="relative">
+                    {entry.phase_4_url ? (
+                      <img
+                        src={entry.phase_4_url}
+                        alt="Entry"
+                        className="w-full aspect-square object-cover"
+                      />
+                    ) : (
+                      <div className="w-full aspect-square bg-background flex items-center justify-center">
+                        <Trophy className="w-16 h-16 text-text-secondary" />
+                      </div>
+                    )}
+                    
+                    {/* Status Badge */}
+                    <div className="absolute top-2 right-2">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        entry.status === 'approved' 
+                          ? 'bg-success/90 text-white' 
+                          : entry.status === 'pending'
+                          ? 'bg-yellow-500/90 text-white'
+                          : 'bg-red-500/90 text-white'
+                      }`}>
+                        {entry.status.toUpperCase()}
+                      </span>
                     </div>
-                  )}
+
+                    {/* Ranking Badge (only for approved entries) */}
+                    {entry.ranking && entry.status === 'approved' && (
+                      <div className="absolute top-2 left-2">
+                        <div className={`px-3 py-1 rounded-full font-bold text-white ${
+                          entry.ranking === 1 
+                            ? 'bg-yellow-500' 
+                            : entry.ranking === 2
+                            ? 'bg-gray-400'
+                            : entry.ranking === 3
+                            ? 'bg-amber-600'
+                            : 'bg-primary'
+                        }`}>
+                          #{entry.ranking}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="p-4">
                     <h3 className="font-semibold mb-1 line-clamp-1">{entry.contests.title}</h3>
-                    <p className="text-sm text-text-secondary">{formatDate(entry.created_at)}</p>
+                    <div className="flex items-center justify-between text-sm text-text-secondary">
+                      <span>{formatDate(entry.created_at)}</span>
+                      {entry.total_votes !== undefined && (
+                        <span className="font-semibold text-primary">{entry.total_votes} votes</span>
+                      )}
+                    </div>
                   </div>
                 </Link>
               ))}
