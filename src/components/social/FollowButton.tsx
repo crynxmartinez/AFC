@@ -29,12 +29,12 @@ export default function FollowButton({ userId, username, onFollowChange, size = 
     try {
       const { data, error } = await supabase
         .from('follows')
-        .select('id')
+        .select('follower_id')
         .eq('follower_id', user.id)
         .eq('following_id', userId)
-        .single()
+        .maybeSingle()
 
-      if (error && error.code !== 'PGRST116') throw error
+      if (error) throw error
       setIsFollowing(!!data)
     } catch (error) {
       console.error('Error checking follow status:', error)

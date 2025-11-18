@@ -87,21 +87,26 @@ export default function ContestDetailPage() {
     try {
       const { data, error } = await supabase
         .from('entries')
-        .select('id, user_id, phase_4_url, users(username, avatar_url)')
+        .select('id, user_id, phase_4_url')
         .eq('contest_id', id)
         .eq('status', 'approved')
 
       if (error) throw error
 
-      // Get reaction counts for each entry
+      // Fetch user data separately and get reaction counts for each entry
       const entriesWithVotes = await Promise.all(
         (data || []).map(async (entry: any) => {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('username, avatar_url')
+            .eq('id', entry.user_id)
+            .single()
           const { count } = await supabase
             .from('reactions')
             .select('*', { count: 'exact', head: true })
             .eq('entry_id', entry.id)
 
-          return { ...entry, vote_count: count || 0 }
+          return { ...entry, users: userData, vote_count: count || 0 }
         })
       )
 

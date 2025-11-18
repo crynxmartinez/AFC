@@ -56,19 +56,18 @@ export default function ArtistsPage() {
             .eq('status', 'approved')
 
           // Get latest entry image
-          const { data: latestEntry } = await supabase
+          const { data: latestEntries } = await supabase
             .from('entries')
             .select('phase_4_url')
             .eq('user_id', user.id)
             .eq('status', 'approved')
             .order('created_at', { ascending: false })
             .limit(1)
-            .single()
 
           return {
             ...user,
             total_entries: entryCount || 0,
-            latest_entry_image: latestEntry?.phase_4_url || null,
+            latest_entry_image: latestEntries?.[0]?.phase_4_url || null,
           }
         })
       )
