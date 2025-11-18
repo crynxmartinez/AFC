@@ -157,6 +157,12 @@ export default function AdminContests() {
                 >
                   View
                 </Link>
+                <Link
+                  to={`/admin/contests/edit/${contest.id}`}
+                  className="px-4 py-2 bg-primary hover:bg-primary-hover rounded-lg text-sm font-medium transition-colors"
+                >
+                  Edit
+                </Link>
                 <button
                   onClick={() => deleteContest(contest.id)}
                   className="px-4 py-2 bg-error/20 hover:bg-error/30 text-error rounded-lg text-sm font-medium transition-colors"

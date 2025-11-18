@@ -1,10 +1,11 @@
 // @ts-nocheck - Supabase type inference issues
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 
-export default function AdminCreateContest() {
+export default function AdminEditContest() {
+  const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const [title, setTitle] = useState('')
@@ -13,6 +14,7 @@ export default function AdminCreateContest() {
   const [endDate, setEndDate] = useState('')
   const [thumbnail, setThumbnail] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [existingThumbnailUrl, setExistingThumbnailUrl] = useState<string | null>(null)
   
   // Sponsor fields
   const [hasSponsor, setHasSponsor] = useState(false)
@@ -20,9 +22,50 @@ export default function AdminCreateContest() {
   const [sponsorPrizeAmount, setSponsorPrizeAmount] = useState('')
   const [sponsorLogo, setSponsorLogo] = useState<File | null>(null)
   const [sponsorLogoPreview, setSponsorLogoPreview] = useState<string | null>(null)
+  const [existingSponsorLogoUrl, setExistingSponsorLogoUrl] = useState<string | null>(null)
   
   const [loading, setLoading] = useState(false)
+  const [fetchLoading, setFetchLoading] = useState(true)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (id) {
+      fetchContest()
+    }
+  }, [id])
+
+  const fetchContest = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('contests')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error) throw error
+
+      if (data) {
+        setTitle(data.title)
+        setDescription(data.description)
+        setStartDate(data.start_date.split('T')[0])
+        setEndDate(data.end_date.split('T')[0])
+        setExistingThumbnailUrl(data.thumbnail_url)
+        setThumbnailPreview(data.thumbnail_url)
+        
+        // Load sponsor data
+        setHasSponsor(data.has_sponsor || false)
+        setSponsorName(data.sponsor_name || '')
+        setSponsorPrizeAmount(data.sponsor_prize_amount?.toString() || '')
+        setExistingSponsorLogoUrl(data.sponsor_logo_url)
+        setSponsorLogoPreview(data.sponsor_logo_url)
+      }
+    } catch (err: any) {
+      console.error('Error fetching contest:', err)
+      setError('Failed to load contest')
+    } finally {
+      setFetchLoading(false)
+    }
+  }
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -53,21 +96,18 @@ export default function AdminCreateContest() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) {
-      setError('You must be logged in to create a contest')
+      setError('You must be logged in to edit a contest')
       return
     }
 
     setLoading(true)
     setError('')
 
-    console.log('Creating contest...', { title, description, startDate, endDate, user: user.id })
-
     try {
-      let thumbnailUrl = null
+      let thumbnailUrl = existingThumbnailUrl
 
-      // Upload thumbnail if provided
+      // Upload new thumbnail if provided
       if (thumbnail) {
-        console.log('Uploading thumbnail...', thumbnail.name)
         const fileExt = thumbnail.name.split('.').pop()
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
         const filePath = `${fileName}`
@@ -76,24 +116,19 @@ export default function AdminCreateContest() {
           .from('contest-thumbnails')
           .upload(filePath, thumbnail)
 
-        if (uploadError) {
-          console.error('Upload error:', uploadError)
-          throw uploadError
-        }
+        if (uploadError) throw uploadError
 
         const { data: { publicUrl } } = supabase.storage
           .from('contest-thumbnails')
           .getPublicUrl(filePath)
 
         thumbnailUrl = publicUrl
-        console.log('Thumbnail uploaded:', publicUrl)
       }
 
-      let sponsorLogoUrl = null
+      let sponsorLogoUrl = existingSponsorLogoUrl
 
-      // Upload sponsor logo if provided
+      // Upload new sponsor logo if provided
       if (sponsorLogo && hasSponsor) {
-        console.log('Uploading sponsor logo...', sponsorLogo.name)
         const fileExt = sponsorLogo.name.split('.').pop()
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
         const filePath = `${fileName}`
@@ -102,57 +137,50 @@ export default function AdminCreateContest() {
           .from('sponsor-logos')
           .upload(filePath, sponsorLogo)
 
-        if (uploadError) {
-          console.error('Sponsor logo upload error:', uploadError)
-          throw uploadError
-        }
+        if (uploadError) throw uploadError
 
         const { data: { publicUrl } } = supabase.storage
           .from('sponsor-logos')
           .getPublicUrl(filePath)
 
         sponsorLogoUrl = publicUrl
-        console.log('Sponsor logo uploaded:', publicUrl)
       }
 
-      // Create contest
-      console.log('Inserting contest into database...')
-      const { data, error: insertError } = await supabase
+      // Update contest
+      const { error: updateError } = await supabase
         .from('contests')
-        .insert({
+        .update({
           title,
           description,
           start_date: new Date(startDate).toISOString(),
           end_date: new Date(endDate).toISOString(),
           thumbnail_url: thumbnailUrl,
-          created_by: user.id,
-          status: 'draft',
           has_sponsor: hasSponsor,
           sponsor_name: hasSponsor ? sponsorName : null,
           sponsor_prize_amount: hasSponsor && sponsorPrizeAmount ? parseFloat(sponsorPrizeAmount) : null,
           sponsor_logo_url: hasSponsor ? sponsorLogoUrl : null,
         } as any)
-        .select()
+        .eq('id', id)
 
-      if (insertError) {
-        console.error('Insert error:', insertError)
-        throw insertError
-      }
+      if (updateError) throw updateError
 
-      console.log('Contest created successfully:', data)
-      alert('Contest created successfully!')
+      alert('Contest updated successfully!')
       navigate('/admin/contests')
     } catch (err: any) {
-      console.error('Error creating contest:', err)
-      setError(err.message || 'Failed to create contest')
+      console.error('Error updating contest:', err)
+      setError(err.message || 'Failed to update contest')
     } finally {
       setLoading(false)
     }
   }
 
+  if (fetchLoading) {
+    return <div className="text-center py-12">Loading contest...</div>
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Create New Contest</h1>
+      <h1 className="text-3xl font-bold mb-6">Edit Contest</h1>
 
       {error && (
         <div className="bg-error/10 border border-error text-error px-4 py-3 rounded-lg mb-4">
@@ -331,7 +359,7 @@ export default function AdminCreateContest() {
             disabled={loading}
             className="flex-1 py-3 bg-primary hover:bg-primary-hover rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating...' : 'Create Contest'}
+            {loading ? 'Updating...' : 'Update Contest'}
           </button>
           <button
             type="button"
