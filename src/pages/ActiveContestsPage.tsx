@@ -19,11 +19,10 @@ type Contest = {
 export default function ActiveContestsPage() {
   const [contests, setContests] = useState<Contest[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'active' | 'voting'>('all')
 
   useEffect(() => {
     fetchContests()
-  }, [filter])
+  }, [])
 
   const fetchContests = async () => {
     try {
@@ -35,25 +34,19 @@ export default function ActiveContestsPage() {
 
       if (error) throw error
 
-      // Calculate status for each contest and filter
-      const contestsWithStatus = (data || []).map((contest: any) => {
-        const calculatedStatus = getContestStatus(contest.start_date, contest.end_date)
-        return {
-          ...contest,
-          status: calculatedStatus,
-          entry_count: contest.entries?.[0]?.count || 0,
-        }
-      })
+      // Calculate status for each contest and filter to only active
+      const activeContests = (data || [])
+        .map((contest: any) => {
+          const calculatedStatus = getContestStatus(contest.start_date, contest.end_date)
+          return {
+            ...contest,
+            status: calculatedStatus,
+            entry_count: contest.entries?.[0]?.count || 0,
+          }
+        })
+        .filter(c => c.status === 'active')
 
-      // Filter based on selected tab
-      let filtered = contestsWithStatus
-      if (filter === 'all') {
-        filtered = contestsWithStatus.filter(c => c.status === 'active' || c.status === 'voting')
-      } else {
-        filtered = contestsWithStatus.filter(c => c.status === filter)
-      }
-
-      setContests(filtered)
+      setContests(activeContests)
     } catch (error) {
       console.error('Error fetching contests:', error)
     } finally {
@@ -86,49 +79,12 @@ export default function ActiveContestsPage() {
         </p>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-4 mb-6 border-b border-border">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 font-medium transition-colors ${
-            filter === 'all'
-              ? 'text-primary border-b-2 border-primary'
-              : 'text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          All Active
-        </button>
-        <button
-          onClick={() => setFilter('active')}
-          className={`px-4 py-2 font-medium transition-colors ${
-            filter === 'active'
-              ? 'text-primary border-b-2 border-primary'
-              : 'text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Accepting Entries
-        </button>
-        <button
-          onClick={() => setFilter('voting')}
-          className={`px-4 py-2 font-medium transition-colors ${
-            filter === 'voting'
-              ? 'text-primary border-b-2 border-primary'
-              : 'text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Voting Phase
-        </button>
-      </div>
-
       {contests.length === 0 ? (
         <div className="text-center py-12 bg-surface rounded-lg border border-border">
           <Trophy className="w-16 h-16 mx-auto mb-4 text-text-secondary" />
           <h2 className="text-2xl font-bold mb-2">No Active Contests</h2>
           <p className="text-text-secondary">
-            {filter === 'all' 
-              ? 'Check back soon for new contests!'
-              : `No contests in ${filter} phase right now.`
-            }
+            Check back soon for new contests!
           </p>
         </div>
       ) : (
@@ -195,15 +151,9 @@ export default function ActiveContestsPage() {
 
                 {/* CTA */}
                 <div className="mt-4">
-                  {contest.status === 'active' ? (
-                    <div className="bg-primary/20 text-primary text-center py-2 rounded-lg font-semibold text-sm">
-                      Submit Your Entry →
-                    </div>
-                  ) : (
-                    <div className="bg-secondary/20 text-secondary text-center py-2 rounded-lg font-semibold text-sm">
-                      Vote Now →
-                    </div>
-                  )}
+                  <div className="bg-primary/20 text-primary text-center py-2 rounded-lg font-semibold text-sm">
+                    Submit & Vote →
+                  </div>
                 </div>
               </div>
             </Link>

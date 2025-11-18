@@ -29,14 +29,10 @@ export function formatNumber(num: number): string {
 }
 
 // Calculate contest status based on dates
-export function getContestStatus(startDate: string, endDate: string): 'draft' | 'active' | 'voting' | 'ended' {
+export function getContestStatus(startDate: string, endDate: string): 'draft' | 'active' | 'ended' {
   const now = new Date()
   const start = new Date(startDate)
   const end = new Date(endDate)
-  
-  // Calculate voting phase start (3 days before end)
-  const votingStart = new Date(end)
-  votingStart.setDate(votingStart.getDate() - 3)
   
   // Before start date
   if (now < start) {
@@ -48,46 +44,37 @@ export function getContestStatus(startDate: string, endDate: string): 'draft' | 
     return 'ended'
   }
   
-  // In voting phase (last 3 days)
-  if (now >= votingStart) {
-    return 'voting'
-  }
-  
-  // Active (accepting entries)
+  // Active (accepting entries and voting)
   return 'active'
 }
 
-// Get time remaining until phase change
+// Get time remaining until contest ends
 export function getPhaseTimeRemaining(startDate: string, endDate: string): string {
   const now = new Date()
   const start = new Date(startDate)
   const end = new Date(endDate)
-  const votingStart = new Date(end)
-  votingStart.setDate(votingStart.getDate() - 3)
   
   const status = getContestStatus(startDate, endDate)
   
-  let targetDate: Date
-  let phase: string
-  
   if (status === 'draft') {
-    targetDate = start
-    phase = 'Starts in'
-  } else if (status === 'active') {
-    targetDate = votingStart
-    phase = 'Voting starts in'
-  } else if (status === 'voting') {
-    targetDate = end
-    phase = 'Ends in'
-  } else {
-    return 'Ended'
+    const diff = start.getTime() - now.getTime()
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    
+    if (days > 0) return `Starts in ${days} day${days > 1 ? 's' : ''}`
+    if (hours > 0) return `Starts in ${hours} hour${hours > 1 ? 's' : ''}`
+    return 'Starting soon'
   }
   
-  const diff = targetDate.getTime() - now.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  if (status === 'active') {
+    const diff = end.getTime() - now.getTime()
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    
+    if (days > 0) return `Ends in ${days} day${days > 1 ? 's' : ''}`
+    if (hours > 0) return `Ends in ${hours} hour${hours > 1 ? 's' : ''}`
+    return 'Ending soon'
+  }
   
-  if (days > 0) return `${phase} ${days} day${days > 1 ? 's' : ''}`
-  if (hours > 0) return `${phase} ${hours} hour${hours > 1 ? 's' : ''}`
-  return `${phase} soon`
+  return 'Ended'
 }
