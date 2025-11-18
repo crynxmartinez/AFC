@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { Upload, Check } from 'lucide-react'
+import { awardXP } from '@/lib/xp'
 
 type PhaseFile = {
   file: File | null
@@ -170,6 +171,8 @@ export default function SubmitEntryPage() {
         submitted_at: new Date().toISOString(),
       }
 
+      let entryId = existingEntry?.id
+
       if (existingEntry) {
         // Update existing entry
         const { error: updateError } = await supabase
@@ -180,11 +183,19 @@ export default function SubmitEntryPage() {
         if (updateError) throw updateError
       } else {
         // Create new entry
-        const { error: insertError } = await supabase
+        const { data: newEntry, error: insertError } = await supabase
           .from('entries')
           .insert(entryData as any)
+          .select()
+          .single()
 
         if (insertError) throw insertError
+        entryId = newEntry?.id
+
+        // Award XP for submitting entry (only for new entries)
+        if (user.id && entryId) {
+          await awardXP(user.id, 'submit_entry', entryId, 'Submitted contest entry')
+        }
       }
 
       navigate(`/contests/${id}`)

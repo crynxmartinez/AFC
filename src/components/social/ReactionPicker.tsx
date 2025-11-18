@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import WhoReactedModal from './WhoReactedModal'
+import { awardXP } from '@/lib/xp'
 
 type ReactionType = 'like' | 'love' | 'wow' | 'sad' | 'angry' | 'celebrate'
 
@@ -162,6 +163,9 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
         entry_id: entryId,
         content: `reacted ${reactionEmoji} to your entry "${entry.title}"`,
       })
+
+      // Award XP to entry owner
+      await awardXP(entry.user_id, 'get_reaction', entryId, `Received ${reactionEmoji} reaction`)
     } catch (error) {
       console.error('Error creating notification:', error)
     }
