@@ -1,7 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, Bell, User, LogOut, Settings } from 'lucide-react'
+import { Search, User, LogOut, Settings } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useState } from 'react'
+import NotificationBell from '../notifications/NotificationBell'
 
 export default function Navbar() {
   const { user, profile, signOut } = useAuthStore()
@@ -42,13 +43,7 @@ export default function Navbar() {
               </Link>
 
               {/* Notifications */}
-              <Link
-                to="/notifications"
-                className="p-2 hover:bg-background rounded-lg transition-colors relative"
-              >
-                <Bell className="w-6 h-6" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
-              </Link>
+              <NotificationBell />
 
               {/* Profile Dropdown */}
               <div className="relative">
