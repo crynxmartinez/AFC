@@ -14,10 +14,10 @@ type Notification = {
   created_at: string
   entry_id: string | null
   contest_id: string | null
-  actor: {
+  users: {
     username: string
     avatar_url: string | null
-  }
+  } | null
 }
 
 export default function NotificationBell() {
@@ -75,7 +75,7 @@ export default function NotificationBell() {
         .from('notifications')
         .select(`
           *,
-          actor:actor_id (username, avatar_url)
+          users!notifications_actor_id_fkey (username, avatar_url)
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
@@ -235,15 +235,15 @@ export default function NotificationBell() {
                   >
                     <div className="flex gap-3">
                       {/* Actor Avatar */}
-                      {notification.actor?.avatar_url ? (
+                      {notification.users?.avatar_url ? (
                         <img
-                          src={notification.actor.avatar_url}
-                          alt={notification.actor.username}
+                          src={notification.users.avatar_url}
+                          alt={notification.users.username}
                           className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold flex-shrink-0">
-                          {notification.actor?.username?.[0]?.toUpperCase() || '?'}
+                          {notification.users?.username?.[0]?.toUpperCase() || '?'}
                         </div>
                       )}
 
@@ -253,7 +253,7 @@ export default function NotificationBell() {
                           <span className="text-lg">{getNotificationIcon(notification.type)}</span>
                           <div className="flex-1">
                             <p className="text-sm">
-                              <span className="font-semibold">@{notification.actor?.username}</span>{' '}
+                              <span className="font-semibold">@{notification.users?.username}</span>{' '}
                               {notification.content}
                             </p>
                             <p className="text-xs text-text-secondary mt-1">
