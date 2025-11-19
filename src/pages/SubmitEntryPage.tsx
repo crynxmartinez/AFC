@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
-import { Upload, Check } from 'lucide-react'
+import { Upload, Check, Save, Eye } from 'lucide-react'
 import { awardXP } from '@/lib/xp'
+import EntryPreviewModal from '@/components/entry/EntryPreviewModal'
+import ProgressStepper from '@/components/entry/ProgressStepper'
 
 type PhaseFile = {
   file: File | null
@@ -20,6 +22,8 @@ export default function SubmitEntryPage() {
   const [existingEntry, setExistingEntry] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showPreview, setShowPreview] = useState(false)
+  const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0)
   
   const [phases, setPhases] = useState<PhaseFile[]>([
     { file: null, preview: null, uploaded: false },
@@ -105,6 +109,7 @@ export default function SubmitEntryPage() {
         return
       }
 
+      setCurrentPhaseIndex(phaseIndex)
       const newPhases = [...phases]
       newPhases[phaseIndex] = {
         file,
@@ -136,8 +141,64 @@ export default function SubmitEntryPage() {
     return publicUrl
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSaveDraft = async () => {
+    if (!user || !id) return
+
+    setLoading(true)
+    setError('')
+
+    try {
+      // Upload any new phase files
+      const phaseUrls = await Promise.all(
+        phases.map(async (phase, index) => {
+          if (phase.file) {
+            return await uploadPhase(index)
+          }
+          return phase.uploaded ? phase.preview : null
+        })
+      )
+
+      const draftData = {
+        contest_id: id,
+        user_id: user.id,
+        phase_1_url: phaseUrls[0],
+        phase_2_url: phaseUrls[1],
+        phase_3_url: phaseUrls[2],
+        phase_4_url: phaseUrls[3],
+        status: 'draft',
+      }
+
+      if (existingEntry) {
+        await supabase
+          .from('entries')
+          .update(draftData as any)
+          .eq('id', existingEntry.id)
+      } else {
+        await supabase
+          .from('entries')
+          .insert(draftData as any)
+      }
+
+      alert('Draft saved successfully!')
+    } catch (err: any) {
+      setError(err.message || 'Failed to save draft')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePreview = () => {
+    // Check if at least one phase is uploaded
+    const hasAnyPhase = phases.some(p => p.file || p.uploaded)
+    if (!hasAnyPhase) {
+      setError('Please upload at least one phase to preview')
+      return
+    }
+    setShowPreview(true)
+  }
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     if (!user || !id) return
 
     // Check if at least phase 1 is uploaded
@@ -211,14 +272,22 @@ export default function SubmitEntryPage() {
   }
 
   const phaseLabels = ['Phase 1: Sketch', 'Phase 2: Line Art', 'Phase 3: Base Colors', 'Phase 4: Final']
+  const completedPhases = phases.map(p => p.file !== null || p.uploaded)
+  const previewPhases = phases.map(p => ({
+    file: p.file,
+    url: p.preview || ''
+  }))
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-2">Submit Your Entry</h1>
       <p className="text-text-secondary mb-2">Contest: {contest.title}</p>
       <p className="text-text-secondary text-sm mb-8">
         Upload your artwork in 4 phases: Sketch → Line Art → Base Colors → Final
       </p>
+
+      {/* Progress Stepper */}
+      <ProgressStepper currentPhase={currentPhaseIndex} completedPhases={completedPhases} />
 
       {error && (
         <div className="bg-error/10 border border-error text-error px-4 py-3 rounded-lg mb-4">
@@ -271,14 +340,48 @@ export default function SubmitEntryPage() {
           ))}
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full mt-6 py-3 bg-primary hover:bg-primary-hover rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Submitting...' : existingEntry ? 'Update Entry' : 'Submit for Review'}
-        </button>
+        {/* Action Buttons */}
+        <div className="mt-6 flex flex-col sm:flex-row gap-3">
+          <button
+            type="button"
+            onClick={handleSaveDraft}
+            disabled={loading}
+            className="flex-1 py-3 bg-background hover:bg-border rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <Save className="w-5 h-5" />
+            Save Draft
+          </button>
+          <button
+            type="button"
+            onClick={handlePreview}
+            disabled={loading}
+            className="flex-1 py-3 bg-background hover:bg-border rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <Eye className="w-5 h-5" />
+            Preview
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 py-3 bg-primary hover:bg-primary-hover rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Submitting...' : existingEntry ? 'Update Entry' : 'Submit for Review'}
+          </button>
+        </div>
       </form>
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <EntryPreviewModal
+          phases={previewPhases}
+          onClose={() => setShowPreview(false)}
+          onConfirm={() => {
+            setShowPreview(false)
+            handleSubmit()
+          }}
+          loading={loading}
+        />
+      )}
     </div>
   )
 }
