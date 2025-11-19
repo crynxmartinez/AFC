@@ -28,7 +28,7 @@ BEGIN
     user_email,
     user_username,
     'user',
-    0,
+    1000,  -- Starting points for new users
     0,
     0,
     1,
