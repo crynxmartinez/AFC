@@ -28,6 +28,10 @@ import AdminUsers from './pages/admin/AdminUsers'
 import AdminXPSystem from './pages/admin/AdminXPSystem'
 import AboutPage from './pages/AboutPage'
 import ContactPage from './pages/ContactPage'
+import TermsOfServicePage from './pages/TermsOfServicePage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
+import CopyrightPolicyPage from './pages/CopyrightPolicyPage'
+import DMCAPage from './pages/DMCAPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import AdminRoute from './components/auth/AdminRoute'
 
@@ -46,6 +50,10 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/copyright" element={<CopyrightPolicyPage />} />
+          <Route path="/dmca" element={<DMCAPage />} />
           <Route path="/contests/active" element={<ActiveContestsPage />} />
           <Route path="/winners" element={<WinnersPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />

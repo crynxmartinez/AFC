@@ -101,14 +101,24 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-text-secondary hover:text-primary transition-colors text-sm">
+                <Link to="/terms" className="text-text-secondary hover:text-primary transition-colors text-sm">
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-text-secondary hover:text-primary transition-colors text-sm">
+                <Link to="/privacy" className="text-text-secondary hover:text-primary transition-colors text-sm">
                   Privacy Policy
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link to="/copyright" className="text-text-secondary hover:text-primary transition-colors text-sm">
+                  Copyright Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/dmca" className="text-text-secondary hover:text-primary transition-colors text-sm">
+                  DMCA
+                </Link>
               </li>
             </ul>
           </div>
