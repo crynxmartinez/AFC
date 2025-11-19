@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/layout/Layout'
+import LandingLayout from './components/layout/LandingLayout'
 import AuthLayout from './components/layout/AuthLayout'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
@@ -45,8 +46,8 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
         </Route>
 
-        {/* Public Routes */}
-        <Route element={<Layout />}>
+        {/* Landing/Marketing Pages (No Sidebar) */}
+        <Route element={<LandingLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
@@ -54,6 +55,11 @@ function App() {
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/copyright" element={<CopyrightPolicyPage />} />
           <Route path="/dmca" element={<DMCAPage />} />
+        </Route>
+
+        {/* App Pages (With Sidebar) */}
+        <Route element={<Layout />}>
+          <Route path="/contests" element={<ActiveContestsPage />} />
           <Route path="/contests/active" element={<ActiveContestsPage />} />
           <Route path="/winners" element={<WinnersPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
