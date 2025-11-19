@@ -31,6 +31,7 @@ export default function SettingsPage() {
   const [notifyReactions, setNotifyReactions] = useState(true)
   const [notifyComments, setNotifyComments] = useState(true)
   const [notifyArtistContests, setNotifyArtistContests] = useState(true)
+  const [notifyFollows, setNotifyFollows] = useState(true)
 
   // Privacy settings
   const [profileVisibility, setProfileVisibility] = useState<'public' | 'private'>('public')
@@ -48,6 +49,7 @@ export default function SettingsPage() {
       setAvatarPreview(profile.avatar_url || null)
       setProfileVisibility(profile.profile_visibility || 'public')
       setNotifyReactions(profile.notify_reactions ?? true)
+      setNotifyFollows(profile.notify_follows ?? true)
       setNotifyComments(profile.notify_comments ?? true)
       setNotifyArtistContests(profile.notify_artist_contests ?? true)
       setShowContestsJoined(profile.show_contests_joined ?? true)
@@ -170,6 +172,7 @@ export default function SettingsPage() {
           notify_reactions: notifyReactions,
           notify_comments: notifyComments,
           notify_artist_contests: notifyArtistContests,
+          notify_follows: notifyFollows,
         } as any)
         .eq('id', user.id)
 
@@ -492,6 +495,22 @@ export default function SettingsPage() {
                 type="checkbox"
                 checked={notifyArtistContests}
                 onChange={(e) => setNotifyArtistContests(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-background peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between py-4 border-b border-border">
+            <div>
+              <h3 className="font-medium">New Followers</h3>
+              <p className="text-sm text-text-secondary">Get notified when someone follows you</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notifyFollows}
+                onChange={(e) => setNotifyFollows(e.target.checked)}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-background peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>

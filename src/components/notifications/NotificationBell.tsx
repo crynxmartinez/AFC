@@ -3,23 +3,26 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
-import { Bell, X } from 'lucide-react'
+import { Bell, X, Heart, MessageCircle, Trophy, UserPlus, Filter } from 'lucide-react'
 import { formatTimeAgo } from '@/lib/utils'
 import { usePendingReviews } from '@/hooks/usePendingReviews'
 
 type Notification = {
   id: string
-  type: 'reaction' | 'comment' | 'artist_contest' | 'reply'
+  type: 'reaction' | 'comment' | 'artist_contest' | 'reply' | 'follow'
   content: string
   read: boolean
   created_at: string
   entry_id: string | null
   contest_id: string | null
+  link: string | null
   users: {
     username: string
     avatar_url: string | null
   } | null
 }
+
+type FilterType = 'all' | 'reaction' | 'comment' | 'follow'
 
 export default function NotificationBell() {
   const { user, profile } = useAuthStore()
@@ -27,6 +30,7 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [showDropdown, setShowDropdown] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [filter, setFilter] = useState<FilterType>('all')
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { pendingCount } = usePendingReviews()
   
@@ -149,6 +153,27 @@ export default function NotificationBell() {
     }
   }
 
+  const clearAllNotifications = async () => {
+    if (!user || !confirm('Clear all notifications? This cannot be undone.')) return
+
+    setLoading(true)
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', user.id)
+
+      if (error) throw error
+
+      setNotifications([])
+      setUnreadCount(0)
+    } catch (error) {
+      console.error('Error clearing notifications:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const deleteNotification = async (notificationId: string) => {
     try {
       const { error } = await supabase
@@ -169,6 +194,9 @@ export default function NotificationBell() {
   }
 
   const getNotificationLink = (notification: Notification) => {
+    if (notification.link) {
+      return notification.link
+    }
     if (notification.entry_id) {
       return `/entries/${notification.entry_id}`
     }
@@ -181,16 +209,24 @@ export default function NotificationBell() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'reaction':
-        return '❤️'
+        return <Heart className="w-4 h-4 text-error" />
       case 'comment':
       case 'reply':
-        return '💬'
+        return <MessageCircle className="w-4 h-4 text-primary" />
       case 'artist_contest':
-        return '🎨'
+        return <Trophy className="w-4 h-4 text-warning" />
+      case 'follow':
+        return <UserPlus className="w-4 h-4 text-success" />
       default:
-        return '🔔'
+        return <Bell className="w-4 h-4" />
     }
   }
+
+  const filteredNotifications = notifications.filter(n => {
+    if (filter === 'all') return true
+    if (filter === 'comment') return n.type === 'comment' || n.type === 'reply'
+    return n.type === filter
+  })
 
   if (!user) return null
 
@@ -213,17 +249,69 @@ export default function NotificationBell() {
       {showDropdown && (
         <div className="absolute right-0 mt-2 w-96 bg-surface border border-border rounded-lg shadow-lg overflow-hidden z-50">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-border">
-            <h3 className="font-bold text-lg">Notifications</h3>
-            {unreadCount > 0 && (
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-lg">Notifications</h3>
+              <div className="flex gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    disabled={loading}
+                    className="text-sm text-primary hover:underline disabled:opacity-50"
+                  >
+                    Mark all read
+                  </button>
+                )}
+                {notifications.length > 0 && (
+                  <button
+                    onClick={clearAllNotifications}
+                    disabled={loading}
+                    className="text-sm text-error hover:underline disabled:opacity-50"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {/* Filter Tabs */}
+            <div className="flex gap-2 overflow-x-auto">
               <button
-                onClick={markAllAsRead}
-                disabled={loading}
-                className="text-sm text-primary hover:underline disabled:opacity-50"
+                onClick={() => setFilter('all')}
+                className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors ${
+                  filter === 'all' ? 'bg-primary text-white' : 'bg-background hover:bg-border'
+                }`}
               >
-                Mark all as read
+                All
               </button>
-            )}
+              <button
+                onClick={() => setFilter('reaction')}
+                className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors flex items-center gap-1 ${
+                  filter === 'reaction' ? 'bg-primary text-white' : 'bg-background hover:bg-border'
+                }`}
+              >
+                <Heart className="w-3 h-3" />
+                Reactions
+              </button>
+              <button
+                onClick={() => setFilter('comment')}
+                className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors flex items-center gap-1 ${
+                  filter === 'comment' ? 'bg-primary text-white' : 'bg-background hover:bg-border'
+                }`}
+              >
+                <MessageCircle className="w-3 h-3" />
+                Comments
+              </button>
+              <button
+                onClick={() => setFilter('follow')}
+                className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors flex items-center gap-1 ${
+                  filter === 'follow' ? 'bg-primary text-white' : 'bg-background hover:bg-border'
+                }`}
+              >
+                <UserPlus className="w-3 h-3" />
+                Follows
+              </button>
+            </div>
           </div>
 
           {/* Pending Reviews (Admin Only) */}
@@ -247,13 +335,13 @@ export default function NotificationBell() {
 
           {/* Notifications List */}
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
+            {filteredNotifications.length === 0 ? (
               <div className="text-center py-8 text-text-secondary">
                 <Bell className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No notifications yet</p>
+                <p>{notifications.length === 0 ? 'No notifications yet' : 'No notifications in this category'}</p>
               </div>
             ) : (
-              notifications.map((notification) => (
+              filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
                   className={`relative border-b border-border hover:bg-background transition-colors ${
@@ -287,7 +375,7 @@ export default function NotificationBell() {
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start gap-2">
-                          <span className="text-lg">{getNotificationIcon(notification.type)}</span>
+                          <div className="mt-0.5">{getNotificationIcon(notification.type)}</div>
                           <div className="flex-1">
                             <p className="text-sm">
                               <span className="font-semibold">@{notification.users?.username}</span>{' '}
