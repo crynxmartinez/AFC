@@ -8,6 +8,8 @@ type Entry = {
   id: string
   user_id: string
   contest_id: string
+  title: string | null
+  description: string | null
   phase_1_url: string | null
   phase_2_url: string | null
   phase_3_url: string | null
@@ -153,6 +155,15 @@ export default function EntryDetailPage() {
         </div>
 
         <div>
+          {/* Title and Description */}
+          {entry.title && (
+            <h1 className="text-3xl font-bold mb-3">{entry.title}</h1>
+          )}
+          
+          {entry.description && (
+            <p className="text-text-secondary mb-6 leading-relaxed">{entry.description}</p>
+          )}
+
           <Link
             to={`/profile/${entry.users.username}`}
             className="flex items-center gap-3 mb-4 hover:opacity-80 transition-opacity"
