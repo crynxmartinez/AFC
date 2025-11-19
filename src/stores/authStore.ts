@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       user_id: data.user.id,
       user_email: data.user.email!,
       user_username: username
-    })
+    } as any)
 
     if (profileError) throw profileError
 
