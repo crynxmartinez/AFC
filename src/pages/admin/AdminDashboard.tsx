@@ -154,7 +154,7 @@ export default function AdminDashboard() {
               recentContests.map((contest) => (
                 <Link
                   key={contest.id}
-                  to={`/admin/contests/edit/${contest.id}`}
+                  to={`/contests/${contest.id}`}
                   className="flex items-center justify-between p-3 bg-background rounded-lg hover:border-primary border border-transparent transition-colors"
                 >
                   <div>
