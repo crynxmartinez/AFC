@@ -5,7 +5,7 @@ export default function AboutPage() {
     <div className="max-w-4xl mx-auto space-y-16">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">About Art Fight Contest</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">About Arena for Creatives</h1>
         <p className="text-xl text-text-secondary">
           Empowering artists through competitive creativity
         </p>
@@ -18,7 +18,7 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold">Our Mission</h2>
         </div>
         <p className="text-lg text-text-secondary leading-relaxed">
-          Art Fight Contest is dedicated to creating a vibrant, competitive platform where artists 
+          Arena for Creatives is dedicated to creating a vibrant, competitive platform where artists 
           can showcase their talents, push their creative boundaries, and earn recognition for their work. 
           We believe that healthy competition drives growth, and our multi-phase contest system allows 
           artists to progressively refine their skills while engaging with a supportive community.
@@ -118,7 +118,7 @@ export default function AboutPage() {
         <h2 className="text-3xl font-bold mb-6">Our Story</h2>
         <div className="prose prose-lg max-w-none text-text-secondary space-y-4">
           <p>
-            Art Fight Contest was born from a simple idea: what if artists could compete in a way 
+            Arena for Creatives was born from a simple idea: what if artists could compete in a way 
             that actually helps them grow? Traditional art competitions often feel like one-shot 
             deals, but we wanted to create something different.
           </p>
@@ -129,7 +129,7 @@ export default function AboutPage() {
             their best work while learning from community feedback.
           </p>
           <p>
-            Today, Art Fight Contest is more than just a competition platform. It's a community 
+            Today, Arena for Creatives is more than just a competition platform. It's a community 
             where artists support each other, share techniques, and celebrate creativity together. 
             Every contest, every vote, and every comment contributes to a vibrant ecosystem where 
             talent is recognized and rewarded.

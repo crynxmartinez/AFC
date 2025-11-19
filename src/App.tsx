@@ -57,24 +57,20 @@ function App() {
           <Route path="/dmca" element={<DMCAPage />} />
         </Route>
 
-        {/* App Pages (With Sidebar) */}
-        <Route element={<Layout />}>
+        {/* Protected App Pages (Require Login - With Sidebar) */}
+        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path="/feed" element={<FeedPage />} />
           <Route path="/contests" element={<ActiveContestsPage />} />
           <Route path="/contests/active" element={<ActiveContestsPage />} />
+          <Route path="/contests/:id" element={<ContestDetailPage />} />
+          <Route path="/contests/:id/submit" element={<SubmitEntryPage />} />
+          <Route path="/entries/:id" element={<EntryDetailPage />} />
           <Route path="/winners" element={<WinnersPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/artists" element={<ArtistsPage />} />
-          <Route path="/contests/:id" element={<ContestDetailPage />} />
-          <Route path="/entries/:id" element={<EntryDetailPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/users/:username" element={<UserProfilePage />} />
-        </Route>
-
-        {/* Protected User Routes */}
-        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route path="/feed" element={<FeedPage />} />
-          <Route path="/contests/:id/submit" element={<SubmitEntryPage />} />
           <Route path="/points" element={<PointsPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/settings" element={<SettingsPage />} />

@@ -14,25 +14,19 @@ export default function LandingLayout() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Palette className="w-8 h-8 text-primary" />
-            <span className="text-xl font-bold">Art Fight Contest</span>
+            <span className="text-xl font-bold">Arena for Creatives</span>
           </Link>
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/contests" className="text-text-secondary hover:text-primary transition-colors">
-              Contests
-            </Link>
-            <Link to="/leaderboard" className="text-text-secondary hover:text-primary transition-colors">
-              Leaderboard
-            </Link>
-            <Link to="/artists" className="text-text-secondary hover:text-primary transition-colors">
-              Artists
-            </Link>
             <Link to="/about" className="text-text-secondary hover:text-primary transition-colors">
               About
             </Link>
             <Link to="/contact" className="text-text-secondary hover:text-primary transition-colors">
               Contact
+            </Link>
+            <Link to="/privacy" className="text-text-secondary hover:text-primary transition-colors">
+              Privacy
             </Link>
           </div>
 

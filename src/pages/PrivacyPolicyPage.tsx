@@ -239,29 +239,94 @@ export default function PrivacyPolicyPage() {
           </p>
         </section>
 
-        {/* Section 7 */}
+        {/* Section 7 - Data Retention */}
         <section className="bg-surface rounded-lg p-6 border border-border">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <span className="text-primary">7.</span> Children's Privacy
+            <span className="text-primary">7.</span> Data Retention
+          </h2>
+          
+          <h3 className="text-xl font-semibold mb-3">7.1 How Long We Keep Your Data</h3>
+          <p className="text-text-secondary mb-4">
+            We retain your personal information only as long as necessary for the purposes outlined 
+            in this Privacy Policy:
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-text-secondary mb-4">
+            <li><strong>Active Accounts:</strong> Data retained while your account is active</li>
+            <li><strong>Deleted Accounts:</strong> Most data deleted within 30 days of account deletion</li>
+            <li><strong>Artwork:</strong> Removed immediately upon deletion or account closure</li>
+            <li><strong>Comments:</strong> May be anonymized instead of deleted to preserve discussions</li>
+            <li><strong>Contest Results:</strong> Historical data kept for leaderboard integrity</li>
+            <li><strong>Legal Requirements:</strong> Some data retained longer if required by law</li>
+          </ul>
+
+          <h3 className="text-xl font-semibold mb-3">7.2 Backup and Recovery</h3>
+          <p className="text-text-secondary mb-4">
+            We maintain secure backups of our database for disaster recovery. Deleted data may 
+            persist in backups for up to 90 days before being permanently purged.
+          </p>
+
+          <h3 className="text-xl font-semibold mb-3">7.3 Inactive Accounts</h3>
+          <p className="text-text-secondary">
+            Accounts inactive for more than 3 years may be archived or deleted after email 
+            notification. You can prevent this by logging in periodically.
+          </p>
+        </section>
+
+        {/* Section 8 - Data Breach Notification */}
+        <section className="bg-surface rounded-lg p-6 border border-border">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <span className="text-primary">8.</span> Data Breach Notification
+          </h2>
+          
+          <h3 className="text-xl font-semibold mb-3">8.1 Our Commitment</h3>
+          <p className="text-text-secondary mb-4">
+            We take data security seriously and have implemented multiple layers of protection. 
+            However, no system is 100% secure.
+          </p>
+
+          <h3 className="text-xl font-semibold mb-3">8.2 In Case of a Breach</h3>
+          <p className="text-text-secondary mb-2">
+            If a data breach occurs that may affect your personal information, we will:
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-text-secondary mb-4">
+            <li>Investigate and contain the breach immediately</li>
+            <li>Notify affected users within 72 hours via email</li>
+            <li>Provide details about what data was compromised</li>
+            <li>Explain steps we're taking to prevent future breaches</li>
+            <li>Offer guidance on protecting your account</li>
+            <li>Notify relevant authorities as required by law</li>
+          </ul>
+
+          <h3 className="text-xl font-semibold mb-3">8.3 Your Actions</h3>
+          <p className="text-text-secondary">
+            If you suspect unauthorized access to your account, change your password immediately 
+            and contact us at <a href="mailto:security@arenafc.com" className="text-primary hover:underline">security@arenafc.com</a>
+          </p>
+        </section>
+
+        {/* Section 9 */}
+        <section className="bg-surface rounded-lg p-6 border border-border">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <span className="text-primary">9.</span> Children's Privacy
           </h2>
           <p className="text-text-secondary mb-4">
-            Users must be at least 13 years old to use Art Fight Contest. We do not knowingly 
+            Users must be at least 13 years old to use Arena for Creatives. We do not knowingly 
             collect information from children under 13. If we discover that a child under 13 has 
             provided personal information, we will delete it immediately.
           </p>
           <p className="text-text-secondary">
             Parents or guardians who believe their child has provided information should contact 
-            us immediately at <a href="mailto:privacy@artfightcontest.com" className="text-primary hover:underline">privacy@artfightcontest.com</a>
+            us immediately at <a href="mailto:privacy@arenafc.com" className="text-primary hover:underline">privacy@arenafc.com</a>
           </p>
         </section>
 
-        {/* Section 8 */}
+        {/* Section 10 */}
         <section className="bg-surface rounded-lg p-6 border border-border">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <span className="text-primary">8.</span> International Users
+            <span className="text-primary">10.</span> International Users
           </h2>
           <p className="text-text-secondary mb-4">
-            Art Fight Contest is operated from the Philippines. If you access the platform from 
+            Arena for Creatives is operated from the Philippines. If you access the platform from 
             outside the Philippines, your information may be transferred to and processed in the 
             Philippines.
           </p>
@@ -271,10 +336,10 @@ export default function PrivacyPolicyPage() {
           </p>
         </section>
 
-        {/* Section 9 */}
+        {/* Section 11 */}
         <section className="bg-surface rounded-lg p-6 border border-border">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <span className="text-primary">9.</span> Changes to This Policy
+            <span className="text-primary">11.</span> Changes to This Policy
           </h2>
           <p className="text-text-secondary mb-4">
             We may update this Privacy Policy from time to time. We will notify you of significant 
@@ -284,16 +349,17 @@ export default function PrivacyPolicyPage() {
             <li>Posting the new policy on this page</li>
             <li>Updating the "Last Updated" date</li>
             <li>Sending an email notification (for major changes)</li>
+            <li>Displaying a notice on the platform</li>
           </ul>
           <p className="text-text-secondary">
             Continued use of the platform after changes constitutes acceptance of the updated policy.
           </p>
         </section>
 
-        {/* Section 10 */}
+        {/* Section 12 */}
         <section className="bg-surface rounded-lg p-6 border border-border">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <span className="text-primary">10.</span> Contact Us
+            <span className="text-primary">12.</span> Contact Us
           </h2>
           <p className="text-text-secondary mb-4">
             If you have questions about this Privacy Policy or how we handle your data:

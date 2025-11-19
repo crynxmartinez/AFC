@@ -33,7 +33,7 @@ export default function TermsOfServicePage() {
             <span className="text-primary">1.</span> Acceptance of Terms
           </h2>
           <p className="text-text-secondary mb-4">
-            By accessing and using Art Fight Contest ("the Platform"), you accept and agree to be bound by 
+            By accessing and using Arena for Creatives ("the Platform"), you accept and agree to be bound by 
             these Terms of Service. These terms apply to all users, including artists, voters, and visitors.
           </p>
           <p className="text-text-secondary">
@@ -85,7 +85,7 @@ export default function TermsOfServicePage() {
 
           <h3 className="text-xl font-semibold mb-3">3.2 License Grant</h3>
           <p className="text-text-secondary mb-2">
-            By uploading content, you grant Art Fight Contest a non-exclusive, royalty-free, 
+            By uploading content, you grant Arena for Creatives a non-exclusive, royalty-free, 
             worldwide license to:
           </p>
           <ul className="list-disc list-inside space-y-2 text-text-secondary mb-4">
@@ -107,7 +107,7 @@ export default function TermsOfServicePage() {
 
           <h3 className="text-xl font-semibold mb-3">3.4 Platform Content</h3>
           <p className="text-text-secondary">
-            All Platform features, design, code, and branding are owned by Art Fight Contest. 
+            All Platform features, design, code, and branding are owned by Arena for Creatives. 
             You may not copy, modify, or distribute any Platform content without permission.
           </p>
         </section>
@@ -226,7 +226,7 @@ export default function TermsOfServicePage() {
             <span className="text-primary">8.</span> Limitation of Liability
           </h2>
           <p className="text-text-secondary">
-            To the maximum extent permitted by law, Art Fight Contest shall not be liable for any 
+            To the maximum extent permitted by law, Arena for Creatives shall not be liable for any 
             indirect, incidental, special, consequential, or punitive damages resulting from your 
             use of the Platform.
           </p>
@@ -242,7 +242,7 @@ export default function TermsOfServicePage() {
           </p>
           <div className="bg-background rounded-lg p-4">
             <p className="text-text-secondary">
-              <strong>Email:</strong> legal@artfightcontest.com<br />
+              <strong>Email:</strong> legal@arenafc.com<br />
               <strong>Contact Page:</strong> <a href="/contact" className="text-primary hover:underline">/contact</a>
             </p>
           </div>
@@ -255,7 +255,7 @@ export default function TermsOfServicePage() {
             <div>
               <h3 className="font-bold mb-2">Agreement</h3>
               <p className="text-sm text-text-secondary">
-                By using Art Fight Contest, you acknowledge that you have read, understood, and 
+                By using Arena for Creatives, you acknowledge that you have read, understood, and 
                 agree to be bound by these Terms of Service.
               </p>
             </div>
