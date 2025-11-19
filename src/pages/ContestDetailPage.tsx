@@ -89,7 +89,7 @@ export default function ContestDetailPage() {
     try {
       const { data, error } = await supabase
         .from('entries')
-        .select('id, user_id, phase_4_url')
+        .select('id, user_id, title, description, phase_4_url')
         .eq('contest_id', id)
         .eq('status', 'approved')
 

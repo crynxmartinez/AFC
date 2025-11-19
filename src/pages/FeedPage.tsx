@@ -71,7 +71,7 @@ export default function FeedPage() {
       // Get entries from followed artists
       let query = supabase
         .from('entries')
-        .select('id, phase_4_url, created_at, user_id, contest_id, status')
+        .select('id, title, description, phase_4_url, created_at, user_id, contest_id, status')
         .in('user_id', followingIds)
         .eq('status', 'approved')
 

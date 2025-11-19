@@ -104,7 +104,7 @@ export default function UserProfilePage() {
       // Fetch user's entries (ALL entries, not just approved)
       const { data: entriesData, error: entriesError } = await supabase
         .from('entries')
-        .select('id, contest_id, phase_4_url, created_at, status')
+        .select('id, contest_id, title, description, phase_4_url, created_at, status')
         .eq('user_id', userData.id)
         .order('created_at', { ascending: false })
 
