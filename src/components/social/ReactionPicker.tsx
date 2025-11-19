@@ -168,6 +168,11 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
 
       // Refresh counts
       await fetchReactions()
+      
+      // Refresh user profile to update points balance
+      const { fetchProfile } = useAuthStore.getState()
+      await fetchProfile()
+      
       onReactionChange?.()
     } catch (error) {
       console.error('Error handling reaction:', error)
