@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
-import { Bell, X, Heart, MessageCircle, Trophy, UserPlus, Filter } from 'lucide-react'
+import { Bell, X, Heart, MessageCircle, Trophy, UserPlus } from 'lucide-react'
 import { formatTimeAgo } from '@/lib/utils'
 import { usePendingReviews } from '@/hooks/usePendingReviews'
 
@@ -22,15 +22,12 @@ type Notification = {
   } | null
 }
 
-type FilterType = 'all' | 'reaction' | 'comment' | 'follow'
-
 export default function NotificationBell() {
   const { user, profile } = useAuthStore()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [showDropdown, setShowDropdown] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [filter, setFilter] = useState<FilterType>('all')
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { pendingCount } = usePendingReviews()
   
@@ -222,11 +219,7 @@ export default function NotificationBell() {
     }
   }
 
-  const filteredNotifications = notifications.filter(n => {
-    if (filter === 'all') return true
-    if (filter === 'comment') return n.type === 'comment' || n.type === 'reply'
-    return n.type === filter
-  })
+  const filteredNotifications = notifications
 
   if (!user) return null
 
@@ -272,45 +265,6 @@ export default function NotificationBell() {
                   </button>
                 )}
               </div>
-            </div>
-            
-            {/* Filter Tabs */}
-            <div className="flex gap-2 overflow-x-auto">
-              <button
-                onClick={() => setFilter('all')}
-                className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors ${
-                  filter === 'all' ? 'bg-primary text-white' : 'bg-background hover:bg-border'
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setFilter('reaction')}
-                className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors flex items-center gap-1 ${
-                  filter === 'reaction' ? 'bg-primary text-white' : 'bg-background hover:bg-border'
-                }`}
-              >
-                <Heart className="w-3 h-3" />
-                Reactions
-              </button>
-              <button
-                onClick={() => setFilter('comment')}
-                className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors flex items-center gap-1 ${
-                  filter === 'comment' ? 'bg-primary text-white' : 'bg-background hover:bg-border'
-                }`}
-              >
-                <MessageCircle className="w-3 h-3" />
-                Comments
-              </button>
-              <button
-                onClick={() => setFilter('follow')}
-                className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors flex items-center gap-1 ${
-                  filter === 'follow' ? 'bg-primary text-white' : 'bg-background hover:bg-border'
-                }`}
-              >
-                <UserPlus className="w-3 h-3" />
-                Follows
-              </button>
             </div>
           </div>
 
