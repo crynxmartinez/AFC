@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Flame, Trophy, Users, PlusCircle, LayoutDashboard, FileText, UserCog, Award, TrendingUp } from 'lucide-react'
+import { Home, Flame, Trophy, Users, PlusCircle, LayoutDashboard, FileText, UserCog, Award, TrendingUp, Rss } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { cn } from '../../lib/utils'
 import XPProgressBar from '../xp/XPProgressBar'
@@ -13,6 +13,7 @@ export default function Sidebar() {
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
+    { icon: Rss, label: 'My Feed', path: '/feed' },
     { icon: Flame, label: 'Active Contests', path: '/contests/active' },
     { icon: Trophy, label: 'Winners', path: '/winners' },
     { icon: TrendingUp, label: 'Leaderboard', path: '/leaderboard' },

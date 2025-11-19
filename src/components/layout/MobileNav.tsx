@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Flame, PlusCircle, Trophy, User } from 'lucide-react'
+import { Home, Rss, PlusCircle, Trophy, User } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { cn } from '../../lib/utils'
 
@@ -9,7 +9,7 @@ export default function MobileNav() {
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
-    { icon: Flame, label: 'Active', path: '/contests/active' },
+    { icon: Rss, label: 'Feed', path: '/feed' },
     { icon: PlusCircle, label: 'Submit', path: '/submit' },
     { icon: Trophy, label: 'Winners', path: '/winners' },
     { icon: User, label: 'Profile', path: profile ? `/users/${profile.username}` : '/login' },
