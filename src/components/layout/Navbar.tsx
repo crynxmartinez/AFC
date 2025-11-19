@@ -103,11 +103,14 @@ export default function Navbar() {
                       <button
                         onClick={async () => {
                           try {
-                            await signOut()
                             setShowDropdown(false)
-                            navigate('/')
+                            await signOut()
+                            // Force navigation and reload
+                            window.location.href = '/'
                           } catch (error) {
                             console.error('Logout error:', error)
+                            // Even if there's an error, try to redirect
+                            window.location.href = '/'
                           }
                         }}
                         className="flex items-center gap-3 px-4 py-2 hover:bg-background transition-colors w-full text-left text-error"
