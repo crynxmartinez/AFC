@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     // Listen for auth changes
     supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event)
+      console.log('Auth state changed:', event, 'Has session:', !!session)
       
       // Handle token refresh - don't refetch profile, just update user
       if (event === 'TOKEN_REFRESHED') {
@@ -51,13 +51,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return
       }
       
-      // For other events (SIGNED_IN, INITIAL_SESSION), update user and fetch profile
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      // Only fetch profile on INITIAL_SESSION (when app loads)
+      if (event === 'INITIAL_SESSION') {
+        console.log('INITIAL_SESSION: Setting user and fetching profile')
         set({ user: session?.user ?? null })
         if (session?.user) {
           await get().fetchProfile()
         } else {
           set({ profile: null })
+        }
+        return
+      }
+      
+      // For SIGNED_IN, update user and fetch profile ONLY if we don't have one
+      if (event === 'SIGNED_IN') {
+        console.log('SIGNED_IN: Updating user')
+        const currentProfile = get().profile
+        set({ user: session?.user ?? null })
+        
+        // Only fetch profile if we don't have one yet
+        if (session?.user && !currentProfile) {
+          console.log('SIGNED_IN: No profile found, fetching...')
+          await get().fetchProfile()
         }
       }
     })

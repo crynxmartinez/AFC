@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom'
 import { Sparkles, Trophy, Palette } from 'lucide-react'
+import { useAuthStore } from '@/stores/authStore'
 
 export default function HeroSection() {
+  const { user } = useAuthStore()
+  
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-background to-secondary/20 rounded-2xl p-8 md:p-12 mb-12">
       {/* Animated Background Elements */}
@@ -33,11 +36,11 @@ export default function HeroSection() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link
-            to="/signup"
+            to={user ? "/contests" : "/signup"}
             className="px-8 py-4 bg-primary hover:bg-primary-hover text-white rounded-lg font-semibold text-lg transition-colors flex items-center gap-2 shadow-lg shadow-primary/20"
           >
             <Trophy className="w-5 h-5" />
-            Start Competing
+            {user ? "View Contests" : "Start Competing"}
           </Link>
           <Link
             to="/contests"
