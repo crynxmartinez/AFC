@@ -226,32 +226,36 @@ export default function CommentSection({ entryId }: Props) {
               }}
               className="mt-3"
             >
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
                 <input
                   type="text"
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder="Write a reply..."
-                  className="flex-1 px-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary"
+                  className="w-full px-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary"
                   disabled={submitting}
+                  autoFocus
                 />
-                <button
-                  type="submit"
-                  disabled={submitting || !replyText.trim()}
-                  className="px-4 py-2 bg-primary hover:bg-primary-hover disabled:bg-primary/50 disabled:cursor-not-allowed rounded-lg transition-colors"
-                >
-                  <Send className="w-5 h-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setReplyingTo(null)
-                    setReplyText('')
-                  }}
-                  className="px-4 py-2 bg-background hover:bg-border rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
+                <div className="flex gap-2 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReplyingTo(null)
+                      setReplyText('')
+                    }}
+                    className="px-4 py-2 text-sm bg-background hover:bg-border rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting || !replyText.trim()}
+                    className="px-4 py-2 text-sm bg-primary hover:bg-primary-hover disabled:bg-primary/50 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    Reply
+                  </button>
+                </div>
               </div>
             </form>
           )}
