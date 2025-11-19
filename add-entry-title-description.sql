@@ -9,6 +9,12 @@ ADD COLUMN IF NOT EXISTS title TEXT;
 ALTER TABLE entries 
 ADD COLUMN IF NOT EXISTS description TEXT;
 
+-- Update existing entries without titles to have a default title
+-- This ensures the constraint can be added
+UPDATE entries 
+SET title = 'Untitled Entry #' || id::text
+WHERE title IS NULL OR TRIM(title) = '';
+
 -- Add constraint to ensure title is not empty when status is not draft
 -- (Artists can save drafts without title, but must add title before submitting)
 ALTER TABLE entries 
