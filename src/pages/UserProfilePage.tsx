@@ -327,11 +327,11 @@ export default function UserProfilePage() {
             <div className="flex items-center justify-center md:justify-start gap-4 text-sm mb-4">
               <div className="flex items-center gap-1">
                 <Users className="w-4 h-4 text-text-secondary" />
-                <span className="font-semibold">{formatNumber(stats.followersCount)}</span>
+                <span className="font-semibold">{formatNumber(stats.followers)}</span>
                 <span className="text-text-secondary">Followers</span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="font-semibold">{formatNumber(stats.followingCount)}</span>
+                <span className="font-semibold">{formatNumber(stats.following)}</span>
                 <span className="text-text-secondary">Following</span>
               </div>
             </div>
