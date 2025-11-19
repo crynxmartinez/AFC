@@ -56,13 +56,20 @@ export default function SearchPage() {
 
       // Search users
       if (filter === 'all' || filter === 'users') {
-        const { data: users } = await supabase
+        // Search by username OR display_name
+        const searchPattern = `%${query.toLowerCase()}%`
+        const { data: users, error: usersError } = await supabase
           .from('users')
           .select('id, username, display_name, avatar_url, level')
-          .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
+          .or(`username.ilike.${searchPattern},display_name.ilike.${searchPattern}`)
           .limit(10)
 
+        if (usersError) {
+          console.error('Error searching users:', usersError)
+        }
+
         if (users) {
+          console.log('Found users:', users)
           searchResults.push(
             ...users.map((u) => ({
               type: 'user' as const,
