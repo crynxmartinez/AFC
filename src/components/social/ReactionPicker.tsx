@@ -97,12 +97,10 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
         if (deleteError) throw deleteError
 
         // Refund 1 point to user
-        const { error: refundError } = await supabase
-          .from('users')
-          .update({ points_balance: supabase.raw('points_balance + 1') })
-          .eq('id', user.id)
-
-        if (refundError) throw refundError
+        await supabase.rpc('add_points', {
+          user_id_param: user.id,
+          amount: 1
+        })
 
         setUserReaction(null)
       } else if (userReaction) {
@@ -133,12 +131,16 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
         }
 
         // Deduct 1 point from user
-        const { error: deductError } = await supabase
-          .from('users')
-          .update({ points_balance: supabase.raw('points_balance - 1') })
-          .eq('id', user.id)
+        const { data: deductResult } = await supabase.rpc('deduct_points', {
+          user_id_param: user.id,
+          amount: 1
+        })
 
-        if (deductError) throw deductError
+        if (!deductResult) {
+          alert('Failed to deduct points. Please try again.')
+          setLoading(false)
+          return
+        }
 
         // Add reaction
         const { error: insertError } = await supabase
@@ -151,10 +153,10 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
 
         if (insertError) {
           // Refund point if reaction insert fails
-          await supabase
-            .from('users')
-            .update({ points_balance: supabase.raw('points_balance + 1') })
-            .eq('id', user.id)
+          await supabase.rpc('add_points', {
+            user_id_param: user.id,
+            amount: 1
+          })
           throw insertError
         }
 
