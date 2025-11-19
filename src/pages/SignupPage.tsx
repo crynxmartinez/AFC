@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { ArrowLeft } from 'lucide-react'
 
 export default function SignupPage() {
   const navigate = useNavigate()
@@ -45,6 +46,15 @@ export default function SignupPage() {
 
   return (
     <div className="bg-surface rounded-lg p-8 shadow-lg">
+      {/* Back to Home Button */}
+      <Link 
+        to="/" 
+        className="inline-flex items-center gap-2 text-text-secondary hover:text-primary transition-colors mb-6"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span className="text-sm font-medium">Back to Home</span>
+      </Link>
+
       <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
       
       {error && (
