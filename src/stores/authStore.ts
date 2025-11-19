@@ -35,7 +35,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     // Listen for auth changes
-    supabase.auth.onAuthStateChange(async (_event, session) => {
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event)
+      
+      // Handle token refresh
+      if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed successfully')
+      }
+      
+      // Handle signed out
+      if (event === 'SIGNED_OUT') {
+        set({ user: null, profile: null })
+        return
+      }
+      
       set({ user: session?.user ?? null })
       if (session?.user) {
         await get().fetchProfile()
@@ -43,6 +56,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ profile: null })
       }
     })
+
+    // Set up periodic session refresh (every 5 minutes)
+    setInterval(async () => {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      if (error) {
+        console.error('Session refresh error:', error)
+        // If session is invalid, sign out
+        if (error.message.includes('refresh_token_not_found') || error.message.includes('invalid')) {
+          await get().signOut()
+        }
+      } else if (session) {
+        // Refresh the session
+        await supabase.auth.refreshSession()
+      }
+    }, 5 * 60 * 1000) // 5 minutes
   },
 
   signUp: async (email: string, password: string, username: string) => {
