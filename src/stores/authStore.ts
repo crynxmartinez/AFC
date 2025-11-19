@@ -54,19 +54,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) throw error
     if (!data.user) throw new Error('No user returned')
 
-    // Create user profile
-    const { error: profileError } = await supabase
-      .from('users')
-      .insert({
-        id: data.user.id,
-        email: data.user.email!,
-        username,
-        role: 'user',
-        points_balance: 0,
-        total_spent: 0,
-        xp: 0,
-        level: 1,
-      } as any)
+    // Create user profile using database function (bypasses RLS)
+    const { error: profileError } = await supabase.rpc('create_user_profile', {
+      user_id: data.user.id,
+      user_email: data.user.email!,
+      user_username: username
+    })
 
     if (profileError) throw profileError
 
