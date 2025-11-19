@@ -11,17 +11,6 @@ type Contest = {
   end_date: string
 }
 
-type Transaction = {
-  id: string
-  user_id: string
-  amount: number
-  points: number
-  created_at: string
-  users: {
-    username: string
-  }
-}
-
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -30,7 +19,6 @@ export default function AdminDashboard() {
     pendingReviews: 0
   })
   const [recentContests, setRecentContests] = useState<Contest[]>([])
-  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -50,51 +38,36 @@ export default function AdminDashboard() {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'active')
 
-      // Fetch total revenue from transactions
-      const { data: transactionsData } = await supabase
-        .from('point_transactions')
-        .select('amount')
-        .eq('type', 'purchase')
-
-      const totalRevenue = transactionsData?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0
-
-      // Fetch pending reviews
-      const { count: reviewsCount } = await supabase
-        .from('contest_entries')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending')
-
-      // Fetch recent contests
+      // Fetch recent contests (without entry_count if it doesn't exist)
       const { data: contests } = await supabase
         .from('contests')
-        .select('id, title, status, entry_count, end_date')
+        .select('id, title, status, end_date, created_at')
         .order('created_at', { ascending: false })
         .limit(5)
 
-      // Fetch recent transactions
-      const { data: transactions } = await supabase
-        .from('point_transactions')
-        .select(`
-          id,
-          user_id,
-          amount,
-          points,
-          created_at,
-          users:user_id (username)
-        `)
-        .eq('type', 'purchase')
-        .order('created_at', { ascending: false })
-        .limit(5)
+      // Count entries for each contest manually
+      const contestsWithCounts = await Promise.all(
+        (contests || []).map(async (contest: any) => {
+          const { count } = await supabase
+            .from('entries')
+            .select('*', { count: 'exact', head: true })
+            .eq('contest_id', contest.id)
+          
+          return {
+            ...contest,
+            entry_count: count || 0
+          }
+        })
+      )
 
       setStats({
         totalUsers: usersCount || 0,
         activeContests: contestsCount || 0,
-        totalRevenue,
-        pendingReviews: reviewsCount || 0
+        totalRevenue: 0, // No point_transactions table yet
+        pendingReviews: 0 // No contest_entries table yet
       })
 
-      setRecentContests(contests || [])
-      setRecentTransactions(transactions || [])
+      setRecentContests(contestsWithCounts)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -139,26 +112,25 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-surface rounded-lg p-6 border border-border">
+        <div className="bg-surface rounded-lg p-6 border border-border opacity-50">
           <div className="flex items-center justify-between mb-2">
             <div className="text-text-secondary text-sm">Total Revenue</div>
             <DollarSign className="w-5 h-5 text-primary" />
           </div>
-          <div className="text-3xl font-bold">₱{stats.totalRevenue.toLocaleString()}</div>
-          <div className="text-success text-sm mt-2 flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" />
-            From point purchases
+          <div className="text-3xl font-bold">₱0</div>
+          <div className="text-text-secondary text-sm mt-2">
+            Coming soon
           </div>
         </div>
 
-        <div className="bg-surface rounded-lg p-6 border border-border">
+        <div className="bg-surface rounded-lg p-6 border border-border opacity-50">
           <div className="flex items-center justify-between mb-2">
             <div className="text-text-secondary text-sm">Pending Reviews</div>
             <AlertCircle className="w-5 h-5 text-warning" />
           </div>
-          <div className="text-3xl font-bold">{stats.pendingReviews}</div>
-          <div className="text-warning text-sm mt-2">
-            {stats.pendingReviews > 0 ? 'Needs attention' : 'All caught up!'}
+          <div className="text-3xl font-bold">0</div>
+          <div className="text-text-secondary text-sm mt-2">
+            Coming soon
           </div>
         </div>
       </div>
@@ -205,33 +177,13 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Transactions */}
-        <div className="bg-surface rounded-lg p-6 border border-border">
+        <div className="bg-surface rounded-lg p-6 border border-border opacity-50">
           <h2 className="text-xl font-bold mb-4">Recent Transactions</h2>
           <div className="space-y-3">
-            {recentTransactions.length === 0 ? (
-              <div className="text-center py-8 text-text-secondary">
-                No transactions yet
-              </div>
-            ) : (
-              recentTransactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="flex items-center justify-between p-3 bg-background rounded-lg"
-                >
-                  <div>
-                    <div className="font-semibold">
-                      @{transaction.users?.username || 'Unknown'}
-                    </div>
-                    <div className="text-sm text-text-secondary">
-                      Purchased {transaction.points} points
-                    </div>
-                  </div>
-                  <div className="text-sm font-semibold text-success">
-                    ₱{transaction.amount.toLocaleString()}
-                  </div>
-                </div>
-              ))
-            )}
+            <div className="text-center py-8 text-text-secondary">
+              <p className="mb-2">Point transactions coming soon</p>
+              <p className="text-sm">This feature requires the point_transactions table</p>
+            </div>
           </div>
         </div>
       </div>
