@@ -211,8 +211,8 @@ export default function ContactPage() {
             <div className="space-y-3 text-sm">
               <div>
                 <p className="text-text-secondary mb-1">Email</p>
-                <a href="mailto:support@artfightcontest.com" className="text-primary hover:underline">
-                  support@artfightcontest.com
+                <a href="mailto:support@arenafc.com" className="text-primary hover:underline">
+                  support@arenafc.com
                 </a>
               </div>
               <div>

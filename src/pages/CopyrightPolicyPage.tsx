@@ -19,7 +19,7 @@ export default function CopyrightPolicyPage() {
           <div>
             <h3 className="font-bold mb-2">Artists Own Their Work</h3>
             <p className="text-sm text-text-secondary">
-              Art Fight Contest respects intellectual property rights. All artwork submitted remains 
+              Arena for Creatives respects intellectual property rights. All artwork submitted remains 
               the property of the original creator. We take copyright infringement seriously.
             </p>
           </div>
@@ -37,13 +37,13 @@ export default function CopyrightPolicyPage() {
           <div className="bg-success/10 border border-success/30 rounded-lg p-4 mb-4">
             <p className="text-text-secondary font-medium">
               <strong className="text-success">You retain full copyright</strong> to all artwork you create 
-              and submit to Art Fight Contest. We do not claim ownership of your creative work.
+              and submit to Arena for Creatives. We do not claim ownership of your creative work.
             </p>
           </div>
 
           <h3 className="text-xl font-semibold mb-3">1.2 License You Grant Us</h3>
           <p className="text-text-secondary mb-2">
-            By submitting artwork, you grant Art Fight Contest a limited, non-exclusive, 
+            By submitting artwork, you grant Arena for Creatives a limited, non-exclusive, 
             royalty-free license to:
           </p>
           <ul className="list-disc list-inside space-y-2 text-text-secondary mb-4">
@@ -60,7 +60,7 @@ export default function CopyrightPolicyPage() {
 
           <h3 className="text-xl font-semibold mb-3 mt-6">1.3 Platform Content</h3>
           <p className="text-text-secondary">
-            All platform features, design, code, logos, and branding are owned by Art Fight Contest 
+            All platform features, design, code, logos, and branding are owned by Arena for Creatives 
             and protected by copyright law. You may not copy, modify, or distribute platform content 
             without permission.
           </p>
@@ -278,7 +278,7 @@ export default function CopyrightPolicyPage() {
 
           <h3 className="text-xl font-semibold mb-3">7.2 Platform Usage</h3>
           <p className="text-text-secondary mb-4">
-            Art Fight Contest will NOT:
+            Arena for Creatives will NOT:
           </p>
           <ul className="list-disc list-inside space-y-2 text-text-secondary">
             <li>Sell your artwork</li>
@@ -298,8 +298,8 @@ export default function CopyrightPolicyPage() {
           </p>
           <div className="bg-background rounded-lg p-4">
             <p className="text-text-secondary">
-              <strong>Copyright Inquiries:</strong> copyright@artfightcontest.com<br />
-              <strong>DMCA Notices:</strong> dmca@artfightcontest.com<br />
+              <strong>Copyright Inquiries:</strong> copyright@arenafc.com<br />
+              <strong>DMCA Notices:</strong> dmca@arenafc.com<br />
               <strong>DMCA Form:</strong> <a href="/dmca" className="text-primary hover:underline">/dmca</a><br />
               <strong>General Contact:</strong> <a href="/contact" className="text-primary hover:underline">/contact</a>
             </p>
@@ -313,7 +313,7 @@ export default function CopyrightPolicyPage() {
             <div>
               <h3 className="font-bold mb-2">Our Commitment</h3>
               <p className="text-sm text-text-secondary">
-                Art Fight Contest is committed to protecting the intellectual property rights of all 
+                Arena for Creatives is committed to protecting the intellectual property rights of all 
                 artists. We take copyright seriously and will act swiftly to address any infringement. 
                 Together, we can maintain a fair and respectful creative community.
               </p>

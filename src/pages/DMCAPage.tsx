@@ -33,7 +33,7 @@ export default function DMCAPage() {
             <span className="text-primary">1.</span> DMCA Compliance
           </h2>
           <p className="text-text-secondary mb-4">
-            Art Fight Contest complies with the Digital Millennium Copyright Act (DMCA). We respect 
+            Arena for Creatives complies with the Digital Millennium Copyright Act (DMCA). We respect 
             the intellectual property rights of others and expect our users to do the same.
           </p>
           <p className="text-text-secondary">
@@ -108,7 +108,7 @@ export default function DMCAPage() {
               <strong>DMCA Agent Contact:</strong>
             </p>
             <div className="space-y-2 text-text-secondary text-sm">
-              <p><strong>Email:</strong> dmca@artfightcontest.com</p>
+              <p><strong>Email:</strong> dmca@arenafc.com</p>
               <p><strong>Subject Line:</strong> "DMCA Takedown Notice"</p>
               <p><strong>Response Time:</strong> 24-48 hours</p>
             </div>
@@ -261,7 +261,7 @@ export default function DMCAPage() {
           <div className="bg-background rounded-lg p-4 mb-4">
             <h4 className="font-bold mb-3">DMCA Agent:</h4>
             <div className="space-y-2 text-text-secondary">
-              <p><strong>Email:</strong> dmca@artfightcontest.com</p>
+              <p><strong>Email:</strong> dmca@arenafc.com</p>
               <p><strong>Subject:</strong> "DMCA Takedown Notice" or "DMCA Counter-Notice"</p>
               <p><strong>Response Time:</strong> 24-48 hours</p>
             </div>
@@ -270,7 +270,7 @@ export default function DMCAPage() {
           <div className="bg-background rounded-lg p-4">
             <h4 className="font-bold mb-3">Other Copyright Inquiries:</h4>
             <div className="space-y-2 text-text-secondary">
-              <p><strong>General Copyright:</strong> copyright@artfightcontest.com</p>
+              <p><strong>General Copyright:</strong> copyright@arenafc.com</p>
               <p><strong>Contact Form:</strong> <a href="/contact" className="text-primary hover:underline">/contact</a></p>
               <p><strong>Copyright Policy:</strong> <a href="/copyright" className="text-primary hover:underline">/copyright</a></p>
             </div>
@@ -315,7 +315,7 @@ export default function DMCAPage() {
             <div>
               <h3 className="font-bold mb-2">Our Commitment</h3>
               <p className="text-sm text-text-secondary">
-                Art Fight Contest takes copyright infringement seriously. We will respond promptly 
+                Arena for Creatives takes copyright infringement seriously. We will respond promptly 
                 to valid DMCA notices and work to maintain a platform that respects intellectual 
                 property rights. If you have questions about this policy, please contact us.
               </p>

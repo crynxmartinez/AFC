@@ -43,7 +43,7 @@ export default function FeaturesSection() {
   return (
     <div className="py-16">
       <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Join Art Fight Contest?</h2>
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Join Arena for Creatives?</h2>
         <p className="text-text-secondary text-lg max-w-2xl mx-auto">
           Everything you need to showcase your talent, compete with the best, and grow as an artist.
         </p>

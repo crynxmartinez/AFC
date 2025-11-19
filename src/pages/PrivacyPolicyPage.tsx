@@ -366,7 +366,7 @@ export default function PrivacyPolicyPage() {
           </p>
           <div className="bg-background rounded-lg p-4">
             <p className="text-text-secondary">
-              <strong>Privacy Email:</strong> privacy@artfightcontest.com<br />
+              <strong>Privacy Email:</strong> privacy@arenafc.com<br />
               <strong>General Contact:</strong> <a href="/contact" className="text-primary hover:underline">/contact</a><br />
               <strong>Data Requests:</strong> Email us to access, update, or delete your data
             </p>
@@ -389,7 +389,7 @@ export default function PrivacyPolicyPage() {
             <li>Right to withdraw consent</li>
           </ul>
           <p className="text-sm text-text-secondary mt-3">
-            To exercise these rights, contact us at privacy@artfightcontest.com
+            To exercise these rights, contact us at privacy@arenafc.com
           </p>
         </section>
       </div>

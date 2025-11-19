@@ -12,7 +12,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
               <Palette className="w-8 h-8 text-primary" />
-              <span className="text-xl font-bold">Art Fight Contest</span>
+              <span className="text-xl font-bold">Arena for Creatives</span>
             </Link>
             <p className="text-text-secondary text-sm mb-4">
               A competitive platform for artists to showcase their skills, compete for prizes, and grow their creative abilities.
@@ -160,7 +160,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-text-secondary text-sm">
-            © {currentYear} Art Fight Contest. All rights reserved.
+            © {currentYear} Arena for Creatives. All rights reserved.
           </p>
           <p className="text-text-secondary text-sm">
             Built with ❤️ for the artist community

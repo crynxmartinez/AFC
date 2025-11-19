@@ -10,8 +10,8 @@ type FAQItem = {
 const faqs: FAQItem[] = [
   {
     category: 'General',
-    question: 'What is Art Fight Contest?',
-    answer: 'Art Fight Contest is a competitive platform where artists submit artwork across multiple phases, compete for prizes, and grow their skills. Each contest has 4 phases where you refine and improve your artwork based on community feedback and votes.'
+    question: 'What is Arena for Creatives?',
+    answer: 'Arena for Creatives is a competitive platform where artists submit artwork across multiple phases, compete for prizes, and grow their skills. Each contest has 4 phases where you refine and improve your artwork based on community feedback and votes.'
   },
   {
     category: 'General',
@@ -78,7 +78,7 @@ export default function FAQAccordion() {
           <h2 className="text-3xl md:text-4xl font-bold">Frequently Asked Questions</h2>
         </div>
         <p className="text-text-secondary text-lg">
-          Everything you need to know about Art Fight Contest
+          Everything you need to know about Arena for Creatives
         </p>
       </div>
 
