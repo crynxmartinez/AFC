@@ -562,7 +562,10 @@ export default function UserProfilePage() {
                   </div>
                   
                   <div className="p-4">
-                    <h3 className="font-semibold mb-1 line-clamp-1">{entry.contests.title}</h3>
+                    {entry.title && (
+                      <h3 className="font-bold mb-1 line-clamp-1">{entry.title}</h3>
+                    )}
+                    <p className="text-sm text-text-secondary mb-2 line-clamp-1">{entry.contests.title}</p>
                     <div className="flex items-center justify-between text-sm text-text-secondary">
                       <span>{formatDate(entry.created_at)}</span>
                       {entry.total_votes !== undefined && (

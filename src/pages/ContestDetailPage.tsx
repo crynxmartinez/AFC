@@ -42,6 +42,8 @@ type Winner = {
 type Entry = {
   id: string
   user_id: string
+  title: string | null
+  description: string | null
   phase_4_url: string | null
   vote_count: number
   users: {
@@ -392,12 +394,15 @@ export default function ContestDetailPage() {
             >
               <div className="aspect-square bg-background flex items-center justify-center">
                 {entry.phase_4_url ? (
-                  <img src={entry.phase_4_url} alt="Entry" className="w-full h-full object-cover" />
+                  <img src={entry.phase_4_url} alt={entry.title || "Entry"} className="w-full h-full object-cover" />
                 ) : (
                   <p className="text-text-secondary">No final artwork yet</p>
                 )}
               </div>
               <div className="p-4">
+                {entry.title && (
+                  <h3 className="font-bold mb-2 line-clamp-1">{entry.title}</h3>
+                )}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {entry.users.avatar_url && (
@@ -407,7 +412,7 @@ export default function ContestDetailPage() {
                         className="w-6 h-6 rounded-full"
                       />
                     )}
-                    <span className="font-semibold">@{entry.users.username}</span>
+                    <span className="font-semibold text-sm">@{entry.users.username}</span>
                   </div>
                   <span className="text-sm text-text-secondary">
                     🔥 {formatNumber(entry.vote_count)} votes

@@ -7,6 +7,8 @@ import { formatTimeAgo } from '@/lib/utils'
 
 type FeedEntry = {
   id: string
+  title: string | null
+  description: string | null
   phase_4_url: string
   created_at: string
   user_id: string
@@ -241,10 +243,28 @@ export default function FeedPage() {
               <Link to={`/entries/${entry.id}`}>
                 <img
                   src={entry.phase_4_url}
-                  alt="Entry"
+                  alt={entry.title || "Entry"}
                   className="w-full aspect-video object-cover hover:opacity-90 transition-opacity"
                 />
               </Link>
+
+              {/* Title and Description */}
+              {(entry.title || entry.description) && (
+                <div className="px-4 pt-4">
+                  {entry.title && (
+                    <h3 className="font-bold text-lg mb-1">
+                      <Link to={`/entries/${entry.id}`} className="hover:text-primary transition-colors">
+                        {entry.title}
+                      </Link>
+                    </h3>
+                  )}
+                  {entry.description && (
+                    <p className="text-text-secondary text-sm line-clamp-2">
+                      {entry.description}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Stats */}
               <div className="p-4 flex items-center gap-4 text-text-secondary">
