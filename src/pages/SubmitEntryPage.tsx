@@ -31,6 +31,9 @@ export default function SubmitEntryPage() {
     { file: null, preview: null, uploaded: false },
     { file: null, preview: null, uploaded: false },
   ])
+  
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
 
   useEffect(() => {
     if (id && user) {
@@ -75,6 +78,11 @@ export default function SubmitEntryPage() {
         const entryData = data as any
         console.log('Found existing entry:', entryData)
         setExistingEntry(entryData)
+        
+        // Load title and description
+        if (entryData.title) setTitle(entryData.title)
+        if (entryData.description) setDescription(entryData.description)
+        
         // Load existing phase images
         const newPhases = [...phases]
         if (entryData.phase_1_url) {
@@ -161,6 +169,8 @@ export default function SubmitEntryPage() {
       const draftData = {
         contest_id: id,
         user_id: user.id,
+        title: title || null,
+        description: description || null,
         phase_1_url: phaseUrls[0],
         phase_2_url: phaseUrls[1],
         phase_3_url: phaseUrls[2],
@@ -201,6 +211,12 @@ export default function SubmitEntryPage() {
     if (e) e.preventDefault()
     if (!user || !id) return
 
+    // Check if title is provided
+    if (!title.trim()) {
+      setError('Please provide a title for your entry')
+      return
+    }
+
     // Check if at least phase 1 is uploaded
     if (!phases[0].file && !phases[0].uploaded) {
       setError('Please upload at least Phase 1 (Sketch)')
@@ -224,6 +240,8 @@ export default function SubmitEntryPage() {
       const entryData = {
         contest_id: id,
         user_id: user.id,
+        title: title.trim(),
+        description: description.trim() || null,
         phase_1_url: phaseUrls[0],
         phase_2_url: phaseUrls[1],
         phase_3_url: phaseUrls[2],
@@ -305,6 +323,40 @@ export default function SubmitEntryPage() {
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-lg p-6">
         <div className="space-y-6">
+          {/* Title and Description */}
+          <div className="space-y-4 pb-6 border-b border-border">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Entry Title <span className="text-error">*</span>
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Give your artwork a title..."
+                maxLength={100}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
+              />
+              <p className="text-xs text-text-secondary mt-1">{title.length}/100 characters</p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Description (Optional)
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Tell us about your creative process, inspiration, or techniques used..."
+                maxLength={500}
+                rows={4}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary resize-none"
+              />
+              <p className="text-xs text-text-secondary mt-1">{description.length}/500 characters</p>
+            </div>
+          </div>
+
+          {/* Phase Uploads */}
           {phases.map((phase, i) => (
             <div key={i}>
               <label className="block text-sm font-medium mb-2 flex items-center gap-2">

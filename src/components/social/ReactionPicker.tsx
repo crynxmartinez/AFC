@@ -184,10 +184,10 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
 
   const createReactionNotification = async (reactionType: ReactionType) => {
     try {
-      // Get entry owner
+      // Get entry owner and title
       const { data: entry } = await supabase
         .from('entries')
-        .select('user_id, contest_id')
+        .select('user_id, title')
         .eq('id', entryId)
         .single()
 
@@ -204,12 +204,13 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
 
       // Create notification
       const reactionEmoji = REACTIONS.find(r => r.type === reactionType)?.emoji || '👍'
+      const entryTitle = entry.title || 'your entry'
       await supabase.from('notifications').insert({
         user_id: entry.user_id,
         type: 'reaction',
         actor_id: user?.id,
         entry_id: entryId,
-        content: `reacted ${reactionEmoji} to your entry`,
+        content: `reacted ${reactionEmoji} to "${entryTitle}"`,
       })
 
       // Award XP to entry owner
