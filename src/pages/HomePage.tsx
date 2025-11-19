@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
+import HeroSection from '@/components/home/HeroSection'
+import FeaturesSection from '@/components/home/FeaturesSection'
+import StatsSection from '@/components/home/StatsSection'
+import HowItWorksSection from '@/components/home/HowItWorksSection'
+import FAQAccordion from '@/components/home/FAQAccordion'
+import { ArrowRight } from 'lucide-react'
 
 type Contest = {
   id: string
@@ -74,27 +80,51 @@ export default function HomePage() {
     return 'Ending soon'
   }
 
-  if (loading) {
-    return <div className="text-center py-12">Loading contests...</div>
-  }
-
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Welcome to Arena for Creatives</h1>
-        <p className="text-text-secondary text-lg">
-          Where Filipino digital artists compete, showcase, and shine
-        </p>
-      </div>
+    <div className="space-y-16">
+      {/* Hero Section */}
+      <HeroSection />
 
-      {contests.length === 0 ? (
-        <div className="text-center py-12 bg-surface rounded-lg border border-border">
-          <h2 className="text-2xl font-bold mb-2">No Active Contests</h2>
-          <p className="text-text-secondary">Check back soon for new contests!</p>
+      {/* Features Section */}
+      <FeaturesSection />
+
+      {/* Stats Section */}
+      <StatsSection />
+
+      {/* How It Works */}
+      <HowItWorksSection />
+
+      {/* Active Contests Section */}
+      <div className="py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-2">Active Contests</h2>
+            <p className="text-text-secondary text-lg">
+              Jump into the action and start competing today
+            </p>
+          </div>
+          <Link
+            to="/contests"
+            className="hidden md:flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors"
+          >
+            View All
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {contests.map((contest) => (
+
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          </div>
+        ) : contests.length === 0 ? (
+          <div className="text-center py-12 bg-surface rounded-lg border border-border">
+            <h3 className="text-2xl font-bold mb-2">No Active Contests</h3>
+            <p className="text-text-secondary">Check back soon for new contests!</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {contests.slice(0, 6).map((contest) => (
             <Link
               key={contest.id}
               to={`/contests/${contest.id}`}
@@ -162,8 +192,26 @@ export default function HomePage() {
               </div>
             </Link>
           ))}
-        </div>
-      )}
+            </div>
+            
+            {/* View All Button for Mobile */}
+            <div className="mt-8 text-center md:hidden">
+              <Link
+                to="/contests"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors"
+              >
+                View All Contests
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* FAQ Section */}
+      <div id="faq" className="py-8">
+        <FAQAccordion />
+      </div>
     </div>
   )
 }

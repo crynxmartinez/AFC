@@ -26,6 +26,8 @@ import AdminFinalizeContest from './pages/admin/AdminFinalizeContest'
 import AdminReviews from './pages/admin/AdminReviews'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminXPSystem from './pages/admin/AdminXPSystem'
+import AboutPage from './pages/AboutPage'
+import ContactPage from './pages/ContactPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import AdminRoute from './components/auth/AdminRoute'
 
@@ -42,6 +44,8 @@ function App() {
         {/* Public Routes */}
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/contests/active" element={<ActiveContestsPage />} />
           <Route path="/winners" element={<WinnersPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
