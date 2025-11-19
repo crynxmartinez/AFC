@@ -187,7 +187,7 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
       // Get entry owner
       const { data: entry } = await supabase
         .from('entries')
-        .select('user_id, title')
+        .select('user_id, contest_id')
         .eq('id', entryId)
         .single()
 
@@ -209,7 +209,7 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
         type: 'reaction',
         actor_id: user?.id,
         entry_id: entryId,
-        content: `reacted ${reactionEmoji} to your entry "${entry.title}"`,
+        content: `reacted ${reactionEmoji} to your entry`,
       })
 
       // Award XP to entry owner
