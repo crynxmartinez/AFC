@@ -3,14 +3,17 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { formatDate, formatNumber } from '@/lib/utils'
-import { Trophy, Award, Calendar, MapPin, Link as LinkIcon, Instagram, Twitter, ExternalLink, Users } from 'lucide-react'
+import { Trophy, Award, Calendar, MapPin, Link as LinkIcon, Instagram, Twitter, ExternalLink, Users, Briefcase, Globe, Tag } from 'lucide-react'
 import FollowButton from '@/components/social/FollowButton'
+import ProfileStats from '@/components/profile/ProfileStats'
+import Achievements from '@/components/profile/Achievements'
 
 type UserProfile = {
   id: string
   username: string
   display_name: string | null
   avatar_url: string | null
+  cover_photo_url: string | null
   bio: string | null
   xp: number
   level: number
@@ -19,6 +22,12 @@ type UserProfile = {
   instagram_url: string | null
   twitter_url: string | null
   portfolio_url: string | null
+  location: string | null
+  website: string | null
+  skills: string[] | null
+  specialties: string[] | null
+  years_experience: number | null
+  available_for_work: boolean
 }
 
 type Entry = {
@@ -59,17 +68,20 @@ export default function UserProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [entries, setEntries] = useState<Entry[]>([])
   const [badges, setBadges] = useState<Badge[]>([])
+  const [achievements, setAchievements] = useState<any[]>([])
   const [winners, setWinners] = useState<Winner[]>([])
   const [stats, setStats] = useState({
     totalEntries: 0,
-    contestsWon: 0,
-    totalReactions: 0,
-    totalPrizeMoney: 0,
-    followersCount: 0,
-    followingCount: 0,
+    totalWins: 0,
+    totalVotes: 0,
+    winRate: 0,
+    followers: 0,
+    following: 0,
+    avgVotes: 0,
+    bestRank: undefined as number | undefined
   })
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'portfolio' | 'badges' | 'wins'>('portfolio')
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'achievements' | 'wins'>('portfolio')
 
   useEffect(() => {
     if (username) {
@@ -162,10 +174,19 @@ export default function UserProfilePage() {
         .from('user_badges')
         .select('id, badge_name, badge_icon, earned_at')
         .eq('user_id', userData.id)
-        .order('earned_at', { ascending: false })
+        .order('earned_at', { ascending: false})
 
       if (badgesError) throw badgesError
       setBadges(badgesData || [])
+
+      // Fetch user's achievements
+      const { data: achievementsData } = await supabase
+        .from('user_achievements')
+        .select('*')
+        .eq('user_id', userData.id)
+        .order('earned_at', { ascending: false })
+      
+      setAchievements(achievementsData || [])
 
       // Fetch user's contest wins
       const { data: winnersData, error: winnersError } = await supabase
@@ -219,13 +240,19 @@ export default function UserProfilePage() {
         .select('*', { count: 'exact', head: true })
         .eq('follower_id', userData.id)
 
+      // Calculate win rate and avg votes
+      const winRate = totalEntries > 0 ? (contestsWon / totalEntries) * 100 : 0
+      const avgVotes = totalEntries > 0 ? totalReactions / totalEntries : 0
+
       setStats({
         totalEntries,
-        contestsWon,
-        totalPrizeMoney,
-        totalReactions,
-        followersCount: followersCount || 0,
-        followingCount: followingCount || 0,
+        totalWins: contestsWon,
+        totalVotes: totalReactions,
+        winRate,
+        followers: followersCount || 0,
+        following: followingCount || 0,
+        avgVotes,
+        bestRank: undefined
       })
     } catch (error) {
       console.error('Error fetching profile:', error)
@@ -249,6 +276,17 @@ export default function UserProfilePage() {
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* Cover Photo */}
+      {profile.cover_photo_url && (
+        <div className="h-48 md:h-64 rounded-lg overflow-hidden mb-6">
+          <img
+            src={profile.cover_photo_url}
+            alt="Cover"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
       {/* Profile Header */}
       <div className="bg-surface rounded-lg p-4 md:p-8 mb-6">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
@@ -346,45 +384,86 @@ export default function UserProfilePage() {
                   Portfolio
                 </a>
               )}
+              {profile.website && (
+                <a
+                  href={profile.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2 bg-background hover:bg-border rounded-lg text-sm transition-colors"
+                >
+                  <Globe className="w-4 h-4" />
+                  Website
+                </a>
+              )}
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-text-secondary">
-              <Calendar className="w-4 h-4" />
-              <span>Joined {formatDate(profile.created_at)}</span>
+            {/* Additional Info */}
+            <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-text-secondary mb-4">
+              {profile.location && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  <span>{profile.location}</span>
+                </div>
+              )}
+              {profile.years_experience && (
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-4 h-4" />
+                  <span>{profile.years_experience} years experience</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span>Joined {formatDate(profile.created_at)}</span>
+              </div>
             </div>
+
+            {/* Skills & Specialties */}
+            {(profile.skills?.length || profile.specialties?.length) && (
+              <div className="mt-4">
+                {profile.skills && profile.skills.length > 0 && (
+                  <div className="mb-2">
+                    <div className="flex flex-wrap gap-2">
+                      {profile.skills.map((skill, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium flex items-center gap-1"
+                        >
+                          <Tag className="w-3 h-3" />
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {profile.specialties && profile.specialties.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {profile.specialties.map((specialty, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-background border border-border rounded-full text-xs"
+                      >
+                        {specialty}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {profile.available_for_work && (
+              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-success/10 text-success rounded-lg text-sm font-medium">
+                <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                Available for Work
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-border">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-primary mb-1">{profile.level}</div>
-            <div className="text-sm text-text-secondary">Level</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-primary mb-1">{formatNumber(profile.xp)}</div>
-            <div className="text-sm text-text-secondary">Total XP</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-primary mb-1">{stats.totalEntries}</div>
-            <div className="text-sm text-text-secondary">Entries</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-primary mb-1">{stats.contestsWon}</div>
-            <div className="text-sm text-text-secondary">Wins</div>
-          </div>
-        </div>
+      </div>
 
-        {/* Prize Money Display */}
-        {stats.totalPrizeMoney > 0 && (
-          <div className="mt-4 p-4 bg-primary/10 border border-primary/30 rounded-lg text-center">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <Trophy className="w-5 h-5 text-primary" />
-              <span className="text-2xl font-bold text-primary">{formatNumber(stats.totalPrizeMoney)} pts</span>
-            </div>
-            <div className="text-sm text-text-secondary">Total Prize Money Won</div>
-          </div>
-        )}
+      {/* Profile Stats Cards */}
+      <div className="mb-6">
+        <ProfileStats stats={stats} />
       </div>
 
       {/* Tabs */}
@@ -400,14 +479,14 @@ export default function UserProfilePage() {
           Portfolio ({entries.length})
         </button>
         <button
-          onClick={() => setActiveTab('badges')}
+          onClick={() => setActiveTab('achievements')}
           className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === 'badges'
+            activeTab === 'achievements'
               ? 'text-primary border-b-2 border-primary'
               : 'text-text-secondary hover:text-text-primary'
           }`}
         >
-          Badges ({badges.length})
+          Achievements ({achievements.length})
         </button>
         <button
           onClick={() => setActiveTab('wins')}
@@ -495,6 +574,10 @@ export default function UserProfilePage() {
               ))}
             </div>
           )}
+        </div>
+      ) : activeTab === 'achievements' ? (
+        <div>
+          <Achievements achievements={achievements} />
         </div>
       ) : activeTab === 'badges' ? (
         <div>
