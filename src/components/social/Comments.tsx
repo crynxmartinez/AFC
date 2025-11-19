@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { formatDate } from '@/lib/utils'
-import { MessageCircle, Send, Reply, Trash2 } from 'lucide-react'
+import { MessageCircle, Send, Reply, Trash2, Heart, Edit2, ArrowUp, ArrowDown } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 type Comment = {
@@ -13,6 +13,9 @@ type Comment = {
   parent_comment_id: string | null
   comment_text: string
   created_at: string
+  edited_at?: string | null
+  likes_count?: number
+  is_liked?: boolean
   users: {
     username: string
     avatar_url: string | null
@@ -30,6 +33,9 @@ export default function CommentSection({ entryId }: Props) {
   const [newComment, setNewComment] = useState('')
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
+  const [editingComment, setEditingComment] = useState<string | null>(null)
+  const [editText, setEditText] = useState('')
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'likes'>('newest')
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
@@ -164,6 +170,71 @@ export default function CommentSection({ entryId }: Props) {
     }
   }
 
+  const handleEditComment = async (commentId: string) => {
+    if (!editText.trim()) return
+
+    setSubmitting(true)
+    try {
+      const { error } = await supabase
+        .from('entry_comments')
+        .update({
+          comment_text: editText.trim(),
+          edited_at: new Date().toISOString()
+        })
+        .eq('id', commentId)
+
+      if (error) throw error
+
+      setEditingComment(null)
+      setEditText('')
+      await fetchComments()
+    } catch (error) {
+      console.error('Error editing comment:', error)
+      alert('Failed to edit comment.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleLikeComment = async (commentId: string, isLiked: boolean) => {
+    if (!user) return
+
+    try {
+      if (isLiked) {
+        // Unlike
+        await supabase
+          .from('comment_likes')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('user_id', user.id)
+      } else {
+        // Like
+        await supabase
+          .from('comment_likes')
+          .insert({
+            comment_id: commentId,
+            user_id: user.id
+          })
+      }
+
+      await fetchComments()
+    } catch (error) {
+      console.error('Error liking comment:', error)
+    }
+  }
+
+  const sortComments = (comments: Comment[]) => {
+    const sorted = [...comments]
+    if (sortBy === 'newest') {
+      sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    } else if (sortBy === 'oldest') {
+      sorted.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    } else if (sortBy === 'likes') {
+      sorted.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
+    }
+    return sorted
+  }
+
   const renderComment = (comment: Comment, isReply = false) => (
     <div
       key={comment.id}
@@ -193,10 +264,55 @@ export default function CommentSection({ entryId }: Props) {
             </Link>
             <span className="text-xs text-text-secondary">
               {formatDate(comment.created_at)}
+              {comment.edited_at && ' (edited)'}
             </span>
           </div>
-          <p className="text-text-primary whitespace-pre-wrap">{comment.comment_text}</p>
+          
+          {/* Comment Text or Edit Form */}
+          {editingComment === comment.id ? (
+            <div className="mt-2">
+              <input
+                type="text"
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                className="w-full px-3 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary"
+                autoFocus
+              />
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={() => {
+                    setEditingComment(null)
+                    setEditText('')
+                  }}
+                  className="px-3 py-1 text-sm bg-background hover:bg-border rounded transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleEditComment(comment.id)}
+                  disabled={submitting}
+                  className="px-3 py-1 text-sm bg-primary hover:bg-primary-hover text-white rounded transition-colors disabled:opacity-50"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-text-primary whitespace-pre-wrap">{comment.comment_text}</p>
+          )}
+
           <div className="flex items-center gap-4 mt-2">
+            {/* Like Button */}
+            <button
+              onClick={() => handleLikeComment(comment.id, comment.is_liked || false)}
+              className={`flex items-center gap-1 text-sm transition-colors ${
+                comment.is_liked ? 'text-error' : 'text-text-secondary hover:text-error'
+              }`}
+            >
+              <Heart className={`w-4 h-4 ${comment.is_liked ? 'fill-current' : ''}`} />
+              {comment.likes_count || 0}
+            </button>
+
             {!isReply && (
               <button
                 onClick={() => setReplyingTo(comment.id)}
@@ -206,14 +322,27 @@ export default function CommentSection({ entryId }: Props) {
                 Reply
               </button>
             )}
-            {user?.id === comment.user_id && (
-              <button
-                onClick={() => handleDeleteComment(comment.id)}
-                className="flex items-center gap-1 text-sm text-error hover:text-error/80 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button>
+            
+            {user?.id === comment.user_id && editingComment !== comment.id && (
+              <>
+                <button
+                  onClick={() => {
+                    setEditingComment(comment.id)
+                    setEditText(comment.comment_text)
+                  }}
+                  className="flex items-center gap-1 text-sm text-text-secondary hover:text-primary transition-colors"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeleteComment(comment.id)}
+                  className="flex items-center gap-1 text-sm text-error hover:text-error/80 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </button>
+              </>
             )}
           </div>
 
@@ -271,13 +400,31 @@ export default function CommentSection({ entryId }: Props) {
     </div>
   )
 
+  const sortedComments = sortComments(comments)
+
   return (
     <div className="bg-surface rounded-lg p-6">
-      <div className="flex items-center gap-2 mb-6">
-        <MessageCircle className="w-6 h-6 text-primary" />
-        <h2 className="text-2xl font-bold">
-          Comments ({comments.reduce((sum, c) => sum + 1 + (c.replies?.length || 0), 0)})
-        </h2>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <MessageCircle className="w-6 h-6 text-primary" />
+          <h2 className="text-2xl font-bold">
+            Comments ({comments.reduce((sum, c) => sum + 1 + (c.replies?.length || 0), 0)})
+          </h2>
+        </div>
+        
+        {/* Sort Dropdown */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-text-secondary">Sort by:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="px-3 py-1 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary"
+          >
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="likes">Most Liked</option>
+          </select>
+        </div>
       </div>
 
       {/* Comment Form */}
@@ -341,7 +488,7 @@ export default function CommentSection({ entryId }: Props) {
           <p className="text-text-secondary">No comments yet. Be the first to comment!</p>
         </div>
       ) : (
-        <div>{comments.map((comment) => renderComment(comment))}</div>
+        <div>{sortedComments.map((comment) => renderComment(comment))}</div>
       )}
     </div>
   )
