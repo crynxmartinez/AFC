@@ -41,7 +41,7 @@ export default function Sidebar() {
               <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="text-lg font-bold text-text-primary">Arena for Creatives</span>
+          <span className="text-lg font-bold text-text-primary">AFC</span>
         </Link>
 
         {/* Main Navigation */}

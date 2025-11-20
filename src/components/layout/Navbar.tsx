@@ -13,13 +13,8 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-surface border-b border-border z-50">
       <div className="h-full max-w-7xl mx-auto px-4 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="text-2xl font-bold text-primary">
-          AFC
-        </Link>
-
         {/* Search Bar (Desktop) */}
-        <div className="hidden md:flex flex-1 max-w-md mx-8">
+        <div className="hidden md:flex flex-1 max-w-md">
           <button
             onClick={() => navigate('/search')}
             className="relative w-full text-left"
