@@ -11,6 +11,7 @@ type FeedEntry = {
   description: string | null
   phase_4_url: string
   created_at: string
+  last_activity_at: string
   user_id: string
   contest_id: string
   status: string
@@ -69,7 +70,7 @@ export default function FeedPage() {
       // Following: Show only followed users' entries
       let query = supabase
         .from('entries')
-        .select('id, title, description, phase_4_url, created_at, user_id, contest_id, status')
+        .select('id, title, description, phase_4_url, created_at, last_activity_at, user_id, contest_id, status')
         .eq('status', 'approved')
 
       // Apply time range filter to ALL tabs
@@ -87,8 +88,10 @@ export default function FeedPage() {
         query = query.in('user_id', followingIds)
       }
 
+      // Sort by last_activity_at for Latest, created_at for others
+      const sortField = filter === 'latest' ? 'last_activity_at' : 'created_at'
       const { data: entriesData, error } = await query
-        .order('created_at', { ascending: false })
+        .order(sortField, { ascending: false })
         .limit(50)
 
       if (error) throw error
