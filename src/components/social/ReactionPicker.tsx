@@ -5,15 +5,17 @@ import { useAuthStore } from '@/stores/authStore'
 import WhoReactedModal from './WhoReactedModal'
 import { awardXP } from '@/lib/xp'
 
-type ReactionType = 'like' | 'love' | 'wow' | 'sad' | 'angry' | 'celebrate'
+type ReactionType = 'like' | 'love' | 'haha' | 'fire' | 'wow' | 'sad' | 'cry' | 'angry'
 
 const REACTIONS = [
   { type: 'like' as ReactionType, emoji: '👍', label: 'Like' },
   { type: 'love' as ReactionType, emoji: '❤️', label: 'Love' },
+  { type: 'haha' as ReactionType, emoji: '😂', label: 'Haha' },
+  { type: 'fire' as ReactionType, emoji: '🔥', label: 'Fire' },
   { type: 'wow' as ReactionType, emoji: '😮', label: 'Wow' },
   { type: 'sad' as ReactionType, emoji: '😢', label: 'Sad' },
+  { type: 'cry' as ReactionType, emoji: '😭', label: 'Cry' },
   { type: 'angry' as ReactionType, emoji: '😡', label: 'Angry' },
-  { type: 'celebrate' as ReactionType, emoji: '🎉', label: 'Celebrate' },
 ]
 
 type Props = {

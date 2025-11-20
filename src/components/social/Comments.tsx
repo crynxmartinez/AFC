@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { formatDate } from '@/lib/utils'
-import { MessageCircle, Send, Reply, Trash2, Heart, Edit2, ArrowUp, ArrowDown } from 'lucide-react'
+import { MessageCircle, Send, Reply, Trash2, Edit2, ArrowUp, ArrowDown } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import CommentReactionPicker from './CommentReactionPicker'
 
 type Comment = {
   id: string
@@ -14,8 +15,8 @@ type Comment = {
   comment_text: string
   created_at: string
   edited_at?: string | null
-  likes_count?: number
-  is_liked?: boolean
+  reaction_counts?: Record<string, number>
+  user_reaction?: string | null
   users: {
     username: string
     avatar_url: string | null
@@ -65,16 +66,16 @@ export default function CommentSection({ entryId }: Props) {
             .eq('id', comment.user_id)
             .single()
 
-          // Check if current user liked this comment
-          let isLiked = false
+          // Check user's reaction on this comment
+          let userReaction = null
           if (user) {
-            const { data: likeData } = await supabase
-              .from('comment_likes')
-              .select('*')
+            const { data: reactionData } = await supabase
+              .from('comment_reactions')
+              .select('reaction_type')
               .eq('comment_id', comment.id)
               .eq('user_id', user.id)
-              .single()
-            isLiked = !!likeData
+              .maybeSingle()
+            userReaction = reactionData?.reaction_type || null
           }
 
           // Fetch replies
@@ -93,26 +94,26 @@ export default function CommentSection({ entryId }: Props) {
                 .eq('id', reply.user_id)
                 .single()
               
-              // Check if current user liked this reply
-              let replyIsLiked = false
+              // Check user's reaction on this reply
+              let replyUserReaction = null
               if (user) {
-                const { data: replyLikeData } = await supabase
-                  .from('comment_likes')
-                  .select('*')
+                const { data: replyReactionData } = await supabase
+                  .from('comment_reactions')
+                  .select('reaction_type')
                   .eq('comment_id', reply.id)
                   .eq('user_id', user.id)
-                  .single()
-                replyIsLiked = !!replyLikeData
+                  .maybeSingle()
+                replyUserReaction = replyReactionData?.reaction_type || null
               }
               
-              return { ...reply, users: replyUserData, is_liked: replyIsLiked }
+              return { ...reply, users: replyUserData, user_reaction: replyUserReaction }
             })
           )
 
           return {
             ...comment,
             users: userData,
-            is_liked: isLiked,
+            user_reaction: userReaction,
             replies: repliesWithUsers,
           }
         })
@@ -222,32 +223,6 @@ export default function CommentSection({ entryId }: Props) {
     }
   }
 
-  const handleLikeComment = async (commentId: string, isLiked: boolean) => {
-    if (!user) return
-
-    try {
-      if (isLiked) {
-        // Unlike
-        await supabase
-          .from('comment_likes')
-          .delete()
-          .eq('comment_id', commentId)
-          .eq('user_id', user.id)
-      } else {
-        // Like
-        await supabase
-          .from('comment_likes')
-          .insert({
-            comment_id: commentId,
-            user_id: user.id
-          })
-      }
-
-      await fetchComments()
-    } catch (error) {
-      console.error('Error liking comment:', error)
-    }
-  }
 
   const sortComments = (comments: Comment[]) => {
     const sorted = [...comments]
@@ -328,16 +303,13 @@ export default function CommentSection({ entryId }: Props) {
           )}
 
           <div className="flex items-center gap-4 mt-2">
-            {/* Like Button */}
-            <button
-              onClick={() => handleLikeComment(comment.id, comment.is_liked || false)}
-              className={`flex items-center gap-1 text-sm transition-colors ${
-                comment.is_liked ? 'text-error' : 'text-text-secondary hover:text-error'
-              }`}
-            >
-              <Heart className={`w-4 h-4 ${comment.is_liked ? 'fill-current' : ''}`} />
-              {comment.likes_count || 0}
-            </button>
+            {/* Reaction Picker */}
+            <CommentReactionPicker
+              commentId={comment.id}
+              initialReaction={comment.user_reaction}
+              reactionCounts={comment.reaction_counts || {}}
+              onReactionChange={fetchComments}
+            />
 
             {!isReply && (
               <button
