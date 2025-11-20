@@ -63,25 +63,22 @@ export default function FeedPage() {
 
       const followingIds = followingData?.map((f: any) => f.following_id) || []
 
-      // For Popular: Show ALL entries from active contests (not just followed)
-      // For Latest/Week: Show only followed users' entries
+      // Latest & Popular: Show ALL entries (global)
+      // This Week: Show only followed users' entries
       let query = supabase
         .from('entries')
         .select('id, title, description, phase_4_url, created_at, user_id, contest_id, status')
         .eq('status', 'approved')
 
-      // Filter by followed users for Latest and This Week
-      if (filter !== 'popular') {
+      // Only filter by followed users for "This Week"
+      if (filter === 'week') {
         if (followingIds.length === 0) {
           setEntries([])
           setLoading(false)
           return
         }
         query = query.in('user_id', followingIds)
-      }
-
-      // Apply filters
-      if (filter === 'week') {
+        
         const weekAgo = new Date()
         weekAgo.setDate(weekAgo.getDate() - 7)
         query = query.gte('created_at', weekAgo.toISOString())
@@ -144,7 +141,10 @@ export default function FeedPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">My Feed</h1>
         <p className="text-text-secondary">
-          Latest entries from {followingCount} {followingCount === 1 ? 'artist' : 'artists'} you follow
+          {filter === 'week' 
+            ? `Latest entries from ${followingCount} ${followingCount === 1 ? 'artist' : 'artists'} you follow`
+            : 'Discover the latest artwork from active contests'
+          }
         </p>
       </div>
 
@@ -199,11 +199,13 @@ export default function FeedPage() {
           <UserPlus className="w-16 h-16 mx-auto mb-4 text-text-secondary" />
           <h3 className="text-xl font-bold mb-2">No entries yet</h3>
           <p className="text-text-secondary mb-4">
-            {followingCount === 0
+            {filter === 'week' && followingCount === 0
               ? "You're not following any artists yet"
-              : 'Artists you follow haven\'t submitted any entries'}
+              : filter === 'week'
+              ? 'Artists you follow haven\'t submitted any entries this week'
+              : 'No entries found in active contests'}
           </p>
-          {followingCount === 0 && (
+          {filter === 'week' && followingCount === 0 && (
             <Link
               to="/artists"
               className="inline-block px-6 py-3 bg-primary hover:bg-primary-hover rounded-lg transition-colors"
