@@ -20,6 +20,7 @@ type FeedEntry = {
   }
   contests: {
     title: string
+    status: string
   }
   vote_count: number
   comment_count: number
@@ -60,20 +61,24 @@ export default function FeedPage() {
         .select('following_id')
         .eq('follower_id', user.id)
 
-      if (!followingData || followingData.length === 0) {
-        setEntries([])
-        setLoading(false)
-        return
-      }
+      const followingIds = followingData?.map((f: any) => f.following_id) || []
 
-      const followingIds = followingData.map((f: any) => f.following_id)
-
-      // Get entries from followed artists
+      // For Popular: Show ALL entries from active contests (not just followed)
+      // For Latest/Week: Show only followed users' entries
       let query = supabase
         .from('entries')
         .select('id, title, description, phase_4_url, created_at, user_id, contest_id, status')
-        .in('user_id', followingIds)
         .eq('status', 'approved')
+
+      // Filter by followed users for Latest and This Week
+      if (filter !== 'popular') {
+        if (followingIds.length === 0) {
+          setEntries([])
+          setLoading(false)
+          return
+        }
+        query = query.in('user_id', followingIds)
+      }
 
       // Apply filters
       if (filter === 'week') {
@@ -93,7 +98,7 @@ export default function FeedPage() {
         (entriesData || []).map(async (entry: any) => {
           const [{ data: userData }, { data: contestData }, { count: voteCount }, { count: commentCount }] = await Promise.all([
             supabase.from('users').select('username, avatar_url').eq('id', entry.user_id).single(),
-            supabase.from('contests').select('title').eq('id', entry.contest_id).single(),
+            supabase.from('contests').select('title, status').eq('id', entry.contest_id).single(),
             supabase.from('reactions').select('*', { count: 'exact', head: true }).eq('entry_id', entry.id),
             supabase.from('entry_comments').select('*', { count: 'exact', head: true }).eq('entry_id', entry.id)
           ])
@@ -108,9 +113,12 @@ export default function FeedPage() {
         })
       )
 
-      // Sort by popularity if needed
+      // For Popular: Filter only active contests and sort by votes
       if (filter === 'popular') {
-        entriesWithData.sort((a, b) => b.vote_count - a.vote_count)
+        const activeEntries = entriesWithData.filter(e => e.contests?.status === 'active')
+        activeEntries.sort((a, b) => b.vote_count - a.vote_count)
+        setEntries(activeEntries)
+        return
       }
 
       setEntries(entriesWithData)
