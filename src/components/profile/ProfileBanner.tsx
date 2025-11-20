@@ -113,7 +113,7 @@ export default function ProfileBanner({ coverPhotoUrl, userId, isOwnProfile, onU
   }
 
   return (
-    <div className="relative w-full h-64 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 overflow-hidden">
+    <div className="relative w-full h-64 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 overflow-hidden group">
       {/* Cover Photo */}
       {coverPhotoUrl ? (
         <img
@@ -125,31 +125,33 @@ export default function ProfileBanner({ coverPhotoUrl, userId, isOwnProfile, onU
         <div className="w-full h-full bg-gradient-to-br from-primary/30 via-primary/20 to-secondary/30" />
       )}
 
-      {/* Upload/Remove Buttons (only for own profile) */}
+      {/* Change Cover Button (only for own profile, hidden until hover) */}
       {isOwnProfile && (
-        <div className="absolute top-4 right-4 flex gap-2">
-          {coverPhotoUrl && (
-            <button
-              onClick={() => setShowRemoveConfirm(true)}
-              disabled={uploading}
-              className="px-4 py-2 bg-error hover:bg-error/90 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-            >
-              <X className="w-4 h-4" />
-              Remove
-            </button>
-          )}
-          
-          <label className="px-4 py-2 bg-surface/90 hover:bg-surface text-text-primary rounded-lg transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50">
-            <Camera className="w-4 h-4" />
-            {uploading ? 'Uploading...' : coverPhotoUrl ? 'Change Cover' : 'Add Cover'}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleUpload}
-              disabled={uploading}
-              className="hidden"
-            />
-          </label>
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+          <div className="flex items-center gap-3">
+            <label className="px-6 py-3 bg-surface/95 hover:bg-surface text-text-primary rounded-lg transition-colors cursor-pointer flex items-center gap-2 shadow-lg">
+              <Camera className="w-5 h-5" />
+              {uploading ? 'Uploading...' : coverPhotoUrl ? 'Change Cover Photo' : 'Add Cover Photo'}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleUpload}
+                disabled={uploading}
+                className="hidden"
+              />
+            </label>
+            
+            {coverPhotoUrl && (
+              <button
+                onClick={() => setShowRemoveConfirm(true)}
+                disabled={uploading}
+                className="px-4 py-3 bg-error/90 hover:bg-error text-white rounded-lg transition-colors flex items-center gap-2 shadow-lg disabled:opacity-50"
+                title="Remove cover photo"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
         </div>
       )}
 
