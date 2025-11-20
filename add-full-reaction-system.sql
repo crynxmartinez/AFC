@@ -30,7 +30,17 @@ ALTER TABLE entry_comments
 ADD COLUMN IF NOT EXISTS reaction_counts JSONB DEFAULT '{}'::jsonb;
 
 -- Step 3: Update reactions table (for entries) to support new types
--- Check if reaction_type column has the right constraint
+-- First, migrate old reaction types to new ones
+UPDATE reactions
+SET reaction_type = 'fire'
+WHERE reaction_type = 'celebrate';
+
+-- Update any other old types if they exist
+UPDATE reactions
+SET reaction_type = 'like'
+WHERE reaction_type NOT IN ('like', 'love', 'haha', 'fire', 'wow', 'sad', 'cry', 'angry');
+
+-- Now drop old constraint and add new one
 ALTER TABLE reactions DROP CONSTRAINT IF EXISTS reactions_reaction_type_check;
 
 -- Add new reaction types
