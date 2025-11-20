@@ -66,11 +66,16 @@ export default function FeedPage() {
       const followingIds = followingData?.map((f: any) => f.following_id) || []
 
       // Latest & Popular: Show ALL entries (global)
-      // This Week: Show only followed users' entries
+      // Following: Show only followed users' entries
       let query = supabase
         .from('entries')
         .select('id, title, description, phase_4_url, created_at, user_id, contest_id, status')
         .eq('status', 'approved')
+
+      // Apply time range filter to ALL tabs
+      const timeAgo = new Date()
+      timeAgo.setDate(timeAgo.getDate() - timeRange)
+      query = query.gte('created_at', timeAgo.toISOString())
 
       // Only filter by followed users for "Following"
       if (filter === 'following') {
@@ -80,11 +85,6 @@ export default function FeedPage() {
           return
         }
         query = query.in('user_id', followingIds)
-        
-        // Apply time range filter
-        const timeAgo = new Date()
-        timeAgo.setDate(timeAgo.getDate() - timeRange)
-        query = query.gte('created_at', timeAgo.toISOString())
       }
 
       const { data: entriesData, error } = await query
@@ -192,51 +192,49 @@ export default function FeedPage() {
           </button>
         </div>
 
-        {/* Time Range Filters (only for Following) */}
-        {filter === 'following' && (
-          <div className="flex gap-2 sm:ml-auto">
-            <button
-              onClick={() => setTimeRange(7)}
-              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-                timeRange === 7
-                  ? 'bg-primary text-white'
-                  : 'bg-surface hover:bg-background'
-              }`}
-            >
-              7 days
-            </button>
-            <button
-              onClick={() => setTimeRange(30)}
-              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-                timeRange === 30
-                  ? 'bg-primary text-white'
-                  : 'bg-surface hover:bg-background'
-              }`}
-            >
-              30 days
-            </button>
-            <button
-              onClick={() => setTimeRange(90)}
-              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-                timeRange === 90
-                  ? 'bg-primary text-white'
-                  : 'bg-surface hover:bg-background'
-              }`}
-            >
-              90 days
-            </button>
-            <button
-              onClick={() => setTimeRange(365)}
-              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-                timeRange === 365
-                  ? 'bg-primary text-white'
-                  : 'bg-surface hover:bg-background'
-              }`}
-            >
-              1 year
-            </button>
-          </div>
-        )}
+        {/* Time Range Filters (for all tabs) */}
+        <div className="flex gap-2 sm:ml-auto">
+          <button
+            onClick={() => setTimeRange(7)}
+            className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+              timeRange === 7
+                ? 'bg-primary text-white'
+                : 'bg-surface hover:bg-background'
+            }`}
+          >
+            7 days
+          </button>
+          <button
+            onClick={() => setTimeRange(30)}
+            className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+              timeRange === 30
+                ? 'bg-primary text-white'
+                : 'bg-surface hover:bg-background'
+            }`}
+          >
+            30 days
+          </button>
+          <button
+            onClick={() => setTimeRange(90)}
+            className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+              timeRange === 90
+                ? 'bg-primary text-white'
+                : 'bg-surface hover:bg-background'
+            }`}
+          >
+            90 days
+          </button>
+          <button
+            onClick={() => setTimeRange(365)}
+            className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+              timeRange === 365
+                ? 'bg-primary text-white'
+                : 'bg-surface hover:bg-background'
+            }`}
+          >
+            1 year
+          </button>
+        </div>
       </div>
 
       {/* Loading State */}
