@@ -26,13 +26,15 @@ type FeedEntry = {
   comment_count: number
 }
 
-type FilterType = 'latest' | 'popular' | 'week'
+type FilterType = 'latest' | 'popular' | 'following'
+type TimeRange = 7 | 30 | 90 | 365
 
 export default function FeedPage() {
   const { user } = useAuthStore()
   const [entries, setEntries] = useState<FeedEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<FilterType>('latest')
+  const [timeRange, setTimeRange] = useState<TimeRange>(7)
   const [followingCount, setFollowingCount] = useState(0)
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export default function FeedPage() {
       fetchFeed()
       fetchFollowingCount()
     }
-  }, [user, filter])
+  }, [user, filter, timeRange])
 
   const fetchFollowingCount = async () => {
     if (!user) return
@@ -70,8 +72,8 @@ export default function FeedPage() {
         .select('id, title, description, phase_4_url, created_at, user_id, contest_id, status')
         .eq('status', 'approved')
 
-      // Only filter by followed users for "This Week"
-      if (filter === 'week') {
+      // Only filter by followed users for "Following"
+      if (filter === 'following') {
         if (followingIds.length === 0) {
           setEntries([])
           setLoading(false)
@@ -79,9 +81,10 @@ export default function FeedPage() {
         }
         query = query.in('user_id', followingIds)
         
-        const weekAgo = new Date()
-        weekAgo.setDate(weekAgo.getDate() - 7)
-        query = query.gte('created_at', weekAgo.toISOString())
+        // Apply time range filter
+        const timeAgo = new Date()
+        timeAgo.setDate(timeAgo.getDate() - timeRange)
+        query = query.gte('created_at', timeAgo.toISOString())
       }
 
       const { data: entriesData, error } = await query
@@ -141,48 +144,99 @@ export default function FeedPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">My Feed</h1>
         <p className="text-text-secondary">
-          {filter === 'week' 
-            ? `Latest entries from ${followingCount} ${followingCount === 1 ? 'artist' : 'artists'} you follow`
-            : 'Discover the latest artwork from active contests'
+          {filter === 'latest'
+            ? 'Discover the latest artwork from active contests'
+            : filter === 'popular'
+            ? 'Discover the most popular art from active contests'
+            : `Latest entries from ${followingCount} ${followingCount === 1 ? 'artist' : 'artists'} you follow`
           }
         </p>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setFilter('latest')}
-          className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-            filter === 'latest'
-              ? 'bg-primary text-white'
-              : 'bg-surface hover:bg-background'
-          }`}
-        >
-          <Clock className="w-4 h-4" />
-          Latest
-        </button>
-        <button
-          onClick={() => setFilter('popular')}
-          className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-            filter === 'popular'
-              ? 'bg-primary text-white'
-              : 'bg-surface hover:bg-background'
-          }`}
-        >
-          <TrendingUp className="w-4 h-4" />
-          Popular
-        </button>
-        <button
-          onClick={() => setFilter('week')}
-          className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-            filter === 'week'
-              ? 'bg-primary text-white'
-              : 'bg-surface hover:bg-background'
-          }`}
-        >
-          <Clock className="w-4 h-4" />
-          This Week
-        </button>
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        {/* Feed Type Filters */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setFilter('latest')}
+            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+              filter === 'latest'
+                ? 'bg-primary text-white'
+                : 'bg-surface hover:bg-background'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            Latest
+          </button>
+          <button
+            onClick={() => setFilter('popular')}
+            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+              filter === 'popular'
+                ? 'bg-primary text-white'
+                : 'bg-surface hover:bg-background'
+            }`}
+          >
+            <TrendingUp className="w-4 h-4" />
+            Popular
+          </button>
+          <button
+            onClick={() => setFilter('following')}
+            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+              filter === 'following'
+                ? 'bg-primary text-white'
+                : 'bg-surface hover:bg-background'
+            }`}
+          >
+            <UserPlus className="w-4 h-4" />
+            Followed Users
+          </button>
+        </div>
+
+        {/* Time Range Filters (only for Following) */}
+        {filter === 'following' && (
+          <div className="flex gap-2 sm:ml-auto">
+            <button
+              onClick={() => setTimeRange(7)}
+              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                timeRange === 7
+                  ? 'bg-primary text-white'
+                  : 'bg-surface hover:bg-background'
+              }`}
+            >
+              7 days
+            </button>
+            <button
+              onClick={() => setTimeRange(30)}
+              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                timeRange === 30
+                  ? 'bg-primary text-white'
+                  : 'bg-surface hover:bg-background'
+              }`}
+            >
+              30 days
+            </button>
+            <button
+              onClick={() => setTimeRange(90)}
+              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                timeRange === 90
+                  ? 'bg-primary text-white'
+                  : 'bg-surface hover:bg-background'
+              }`}
+            >
+              90 days
+            </button>
+            <button
+              onClick={() => setTimeRange(365)}
+              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                timeRange === 365
+                  ? 'bg-primary text-white'
+                  : 'bg-surface hover:bg-background'
+              }`}
+            >
+              1 year
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Loading State */}
@@ -199,13 +253,13 @@ export default function FeedPage() {
           <UserPlus className="w-16 h-16 mx-auto mb-4 text-text-secondary" />
           <h3 className="text-xl font-bold mb-2">No entries yet</h3>
           <p className="text-text-secondary mb-4">
-            {filter === 'week' && followingCount === 0
+            {filter === 'following' && followingCount === 0
               ? "You're not following any artists yet"
-              : filter === 'week'
-              ? 'Artists you follow haven\'t submitted any entries this week'
+              : filter === 'following'
+              ? `Artists you follow haven't submitted any entries in the last ${timeRange} days`
               : 'No entries found in active contests'}
           </p>
-          {filter === 'week' && followingCount === 0 && (
+          {filter === 'following' && followingCount === 0 && (
             <Link
               to="/artists"
               className="inline-block px-6 py-3 bg-primary hover:bg-primary-hover rounded-lg transition-colors"
