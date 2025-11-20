@@ -12,17 +12,34 @@ export default function ConfirmEmail() {
   useEffect(() => {
     const confirmEmail = async () => {
       try {
-        const token = searchParams.get('token')
-        const type = searchParams.get('type')
+        // Check if we have hash params (from email link)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const accessToken = hashParams.get('access_token')
+        const type = hashParams.get('type')
 
-        if (!token || type !== 'signup') {
+        // Also check query params
+        const token = searchParams.get('token')
+        const queryType = searchParams.get('type')
+
+        // If we have access token in hash, user is already verified
+        if (accessToken && type === 'signup') {
+          setStatus('success')
+          setMessage('Your email has been verified successfully!')
+          
+          // Redirect to login after 3 seconds
+          setTimeout(() => {
+            navigate('/login')
+          }, 3000)
+          return
+        }
+
+        // Otherwise, try to verify with token
+        if (!token || queryType !== 'signup') {
           setStatus('error')
           setMessage('Invalid verification link')
           return
         }
 
-        // Supabase automatically handles email confirmation
-        // when the user clicks the link
         const { error } = await supabase.auth.verifyOtp({
           token_hash: token,
           type: 'email'
