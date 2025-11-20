@@ -73,10 +73,12 @@ export default function FeedPage() {
         .select('id, title, description, phase_4_url, created_at, last_activity_at, user_id, contest_id, status')
         .eq('status', 'approved')
 
-      // Apply time range filter to ALL tabs
-      const timeAgo = new Date()
-      timeAgo.setDate(timeAgo.getDate() - timeRange)
-      query = query.gte('created_at', timeAgo.toISOString())
+      // Apply time range filter ONLY to Popular and Following (NOT Latest)
+      if (filter !== 'latest') {
+        const timeAgo = new Date()
+        timeAgo.setDate(timeAgo.getDate() - timeRange)
+        query = query.gte('created_at', timeAgo.toISOString())
+      }
 
       // Only filter by followed users for "Following"
       if (filter === 'following') {
@@ -195,49 +197,51 @@ export default function FeedPage() {
           </button>
         </div>
 
-        {/* Time Range Filters (for all tabs) */}
-        <div className="flex gap-2 sm:ml-auto">
-          <button
-            onClick={() => setTimeRange(7)}
-            className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-              timeRange === 7
-                ? 'bg-primary text-white'
-                : 'bg-surface hover:bg-background'
-            }`}
-          >
-            7 days
-          </button>
-          <button
-            onClick={() => setTimeRange(30)}
-            className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-              timeRange === 30
-                ? 'bg-primary text-white'
-                : 'bg-surface hover:bg-background'
-            }`}
-          >
-            30 days
-          </button>
-          <button
-            onClick={() => setTimeRange(90)}
-            className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-              timeRange === 90
-                ? 'bg-primary text-white'
-                : 'bg-surface hover:bg-background'
-            }`}
-          >
-            90 days
-          </button>
-          <button
-            onClick={() => setTimeRange(365)}
-            className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-              timeRange === 365
-                ? 'bg-primary text-white'
-                : 'bg-surface hover:bg-background'
-            }`}
-          >
-            1 year
-          </button>
-        </div>
+        {/* Time Range Filters (only for Popular and Following) */}
+        {filter !== 'latest' && (
+          <div className="flex gap-2 sm:ml-auto">
+            <button
+              onClick={() => setTimeRange(7)}
+              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                timeRange === 7
+                  ? 'bg-primary text-white'
+                  : 'bg-surface hover:bg-background'
+              }`}
+            >
+              7 days
+            </button>
+            <button
+              onClick={() => setTimeRange(30)}
+              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                timeRange === 30
+                  ? 'bg-primary text-white'
+                  : 'bg-surface hover:bg-background'
+              }`}
+            >
+              30 days
+            </button>
+            <button
+              onClick={() => setTimeRange(90)}
+              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                timeRange === 90
+                  ? 'bg-primary text-white'
+                  : 'bg-surface hover:bg-background'
+              }`}
+            >
+              90 days
+            </button>
+            <button
+              onClick={() => setTimeRange(365)}
+              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                timeRange === 365
+                  ? 'bg-primary text-white'
+                  : 'bg-surface hover:bg-background'
+              }`}
+            >
+              1 year
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Loading State */}
