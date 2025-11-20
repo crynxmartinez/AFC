@@ -289,19 +289,19 @@ export default function UserProfilePage() {
           onUpdate={fetchProfile}
         />
         
-        {/* Profile Header - Side by side layout */}
-        <div className="relative px-4 md:px-8 pb-4 md:pb-8 pt-6">
+        {/* Profile Header - Facebook style with 1/3 overlap */}
+        <div className="relative px-4 md:px-8 pb-4 md:pb-8">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            {/* Avatar */}
-            <div className="relative flex-shrink-0">
+            {/* Avatar - Overlaps banner by 1/3 */}
+            <div className="relative flex-shrink-0 -mt-16 md:-mt-20">
               {profile.avatar_url ? (
                 <img
                   src={profile.avatar_url}
                   alt={profile.username}
-                  className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-surface shadow-lg"
+                  className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-surface shadow-xl"
                 />
               ) : (
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-primary/20 flex items-center justify-center border-4 border-surface shadow-lg">
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-primary/20 flex items-center justify-center border-4 border-surface shadow-xl">
                   <span className="text-4xl md:text-5xl font-bold text-primary">
                     {profile.username.charAt(0).toUpperCase()}
                   </span>
