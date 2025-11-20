@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/authStore'
 import Footer from './Footer'
 
 export default function LandingLayout() {
-  const { user } = useAuthStore()
+  const { user, profile } = useAuthStore()
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -32,7 +32,7 @@ export default function LandingLayout() {
 
           {/* Auth Buttons */}
           <div className="flex items-center gap-3">
-            {user ? (
+            {user && profile ? (
               <>
                 <Link
                   to="/feed"
@@ -41,7 +41,7 @@ export default function LandingLayout() {
                   Dashboard
                 </Link>
                 <Link
-                  to={`/users/${user.user_metadata?.username}`}
+                  to={`/users/${profile.username}`}
                   className="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors"
                 >
                   Profile
