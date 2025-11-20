@@ -290,7 +290,7 @@ export default function UserProfilePage() {
         />
         
         {/* Profile Header - Avatar overlaps banner */}
-        <div className="relative -mt-16 px-4 md:px-8 pb-4 md:pb-8">
+        <div className="relative -mt-12 px-4 md:px-8 pb-4 md:pb-8 pt-4">
           <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
@@ -314,7 +314,7 @@ export default function UserProfilePage() {
             </div>
 
           {/* Profile Info */}
-          <div className="flex-1 text-center md:text-left">
+          <div className="flex-1 text-center md:text-left mt-4 md:mt-0">
             <div className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-3 mb-2">
               <h1 className="text-2xl md:text-3xl font-bold">{profile.display_name || profile.username}</h1>
               {profile.profile_title && (
