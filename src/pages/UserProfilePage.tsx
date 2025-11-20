@@ -289,87 +289,67 @@ export default function UserProfilePage() {
           onUpdate={fetchProfile}
         />
         
-        {/* Profile Content Container */}
-        <div className="px-4 md:px-8 pb-6">
-          {/* Avatar Section - Overlaps banner */}
-          <div className="relative -mt-20 mb-4">
-            <div className="relative inline-block">
+        {/* Profile Header - Side by side layout */}
+        <div className="relative px-4 md:px-8 pb-4 md:pb-8 pt-6">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            {/* Avatar */}
+            <div className="relative flex-shrink-0">
               {profile.avatar_url ? (
                 <img
                   src={profile.avatar_url}
                   alt={profile.username}
-                  className="w-32 h-32 md:w-36 md:h-36 rounded-full object-cover border-4 border-surface shadow-xl"
+                  className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-surface shadow-lg"
                 />
               ) : (
-                <div className="w-32 h-32 md:w-36 md:h-36 rounded-full bg-primary/20 flex items-center justify-center border-4 border-surface shadow-xl">
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-primary/20 flex items-center justify-center border-4 border-surface shadow-lg">
                   <span className="text-4xl md:text-5xl font-bold text-primary">
                     {profile.username.charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
               {/* Level Badge */}
-              <div className="absolute bottom-0 right-0 bg-primary text-white rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center font-bold border-4 border-surface text-sm md:text-base shadow-lg">
+              <div className="absolute -bottom-2 -right-2 bg-primary text-white rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center font-bold border-4 border-surface text-base md:text-lg shadow-lg">
                 {profile.level}
               </div>
             </div>
-          </div>
 
-          {/* Profile Info Section */}
-          <div className="space-y-4">
-            {/* Name and Title */}
-            <div>
-              <div className="flex flex-wrap items-center gap-3 mb-1">
-                <h1 className="text-2xl md:text-3xl font-bold text-text-primary">
-                  {profile.display_name || profile.username}
-                </h1>
+            {/* Profile Info */}
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-3 mb-2">
+                <h1 className="text-2xl md:text-3xl font-bold">{profile.display_name || profile.username}</h1>
                 {profile.profile_title && (
-                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs md:text-sm font-semibold border border-primary/20">
+                  <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm font-semibold">
                     {profile.profile_title}
                   </span>
                 )}
               </div>
-              <p className="text-base text-text-secondary">@{profile.username}</p>
-            </div>
+              <p className="text-text-secondary mb-1">@{profile.username}</p>
 
-            {/* Bio */}
-            {profile.bio && (
-              <p className="text-text-primary leading-relaxed">{profile.bio}</p>
-            )}
-
-            {/* Meta Info Row */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-text-secondary">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="w-4 h-4" />
-                <span>Joined {formatDate(profile.created_at)}</span>
-              </div>
-              {profile.location && (
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4" />
-                  <span>{profile.location}</span>
+              {/* Follower/Following Stats */}
+              <div className="flex items-center justify-center md:justify-start gap-4 text-sm mb-4">
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4 text-text-secondary" />
+                  <span className="font-semibold">{formatNumber(stats.followers)}</span>
+                  <span className="text-text-secondary">Followers</span>
                 </div>
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold">{formatNumber(stats.following)}</span>
+                  <span className="text-text-secondary">Following</span>
+                </div>
+              </div>
+
+              {/* Follow Button */}
+              <div className="mb-4">
+                <FollowButton 
+                  userId={profile.id} 
+                  username={profile.username}
+                  onFollowChange={fetchProfile}
+                />
+              </div>
+
+              {profile.bio && (
+                <p className="text-text-secondary mt-4 mb-4">{profile.bio}</p>
               )}
-            </div>
-
-            {/* Follower/Following Stats */}
-            <div className="flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-text-primary">{formatNumber(stats.followers)}</span>
-                <span className="text-text-secondary">Followers</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-text-primary">{formatNumber(stats.following)}</span>
-                <span className="text-text-secondary">Following</span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3 pt-2">
-              <FollowButton 
-                userId={profile.id} 
-                username={profile.username}
-                onFollowChange={fetchProfile}
-              />
-            </div>
 
             {/* Social Links */}
             <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-4">
@@ -459,6 +439,7 @@ export default function UserProfilePage() {
                 Available for Work
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
