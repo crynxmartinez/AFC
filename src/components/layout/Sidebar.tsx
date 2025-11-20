@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Flame, Trophy, Users, PlusCircle, LayoutDashboard, FileText, UserCog, Award, TrendingUp, Rss } from 'lucide-react'
+import { Home, Flame, Trophy, Users, PlusCircle, LayoutDashboard, FileText, UserCog, Award, TrendingUp, Rss, Search } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { cn } from '../../lib/utils'
 import XPProgressBar from '../xp/XPProgressBar'
@@ -30,22 +30,33 @@ export default function Sidebar() {
   ]
 
   return (
-    <aside className="hidden md:block fixed left-0 top-16 bottom-0 w-64 bg-surface border-r border-border overflow-y-auto scrollbar-hide">
-      <div className="p-4 space-y-6">
+    <aside className="hidden md:block fixed left-0 top-0 bottom-0 w-64 bg-surface border-r border-border overflow-y-auto scrollbar-hide">
+      <div className="p-4 space-y-4">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3 px-4 py-2">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-            <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white">
+        <Link to="/" className="flex items-center gap-3 px-2 py-3">
+          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+            <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6 text-white">
               <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor" />
               <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="text-lg font-bold text-text-primary">AFC</span>
+          <span className="text-xl font-bold text-text-primary">AFC</span>
         </Link>
 
+        {/* Search Bar */}
+        <button
+          onClick={() => {}}
+          className="w-full text-left"
+        >
+          <div className="w-full bg-background border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-text-secondary hover:border-primary transition-colors relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+            Search contests, artists...
+          </div>
+        </button>
+
         {/* Main Navigation */}
-        <nav className="space-y-1">
+        <nav className="space-y-1 pt-2">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = location.pathname === item.path
