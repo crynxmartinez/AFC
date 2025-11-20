@@ -1,3 +1,9 @@
+/* 
+  NOTE: VS Code CSS linter warnings for @tailwind and @apply are expected.
+  These are valid Tailwind CSS directives. Warnings can be safely ignored.
+  To disable warnings: File > Preferences > Settings > search "css.validate" > uncheck
+*/
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
