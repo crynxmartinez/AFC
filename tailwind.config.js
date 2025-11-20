@@ -8,11 +8,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0a0a0a',
-        surface: '#1a1a1a',
-        border: '#2a2a2a',
-        'text-primary': '#ffffff',
-        'text-secondary': '#a3a3a3',
+        background: 'rgb(var(--background) / <alpha-value>)',
+        surface: 'rgb(var(--surface) / <alpha-value>)',
+        border: 'rgb(var(--border) / <alpha-value>)',
+        'text-primary': 'rgb(var(--text-primary) / <alpha-value>)',
+        'text-secondary': 'rgb(var(--text-secondary) / <alpha-value>)',
         primary: {
           DEFAULT: '#ff6b35',
           hover: '#ff8555',

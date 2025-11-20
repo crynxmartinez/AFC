@@ -3,6 +3,7 @@ import { Search, User, LogOut, Settings } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useState } from 'react'
 import NotificationBell from '../notifications/NotificationBell'
+import ThemeToggle from '../ThemeToggle'
 
 export default function Navbar() {
   const { user, profile, signOut } = useAuthStore()
@@ -45,6 +46,9 @@ export default function Navbar() {
 
               {/* Notifications */}
               <NotificationBell />
+
+              {/* Theme Toggle */}
+              <ThemeToggle />
 
               {/* Profile Dropdown */}
               <div className="relative">
