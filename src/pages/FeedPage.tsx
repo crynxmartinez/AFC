@@ -303,7 +303,11 @@ export default function FeedPage() {
                     @{entry.users.username}
                   </Link>
                   <p className="text-sm text-text-secondary">
-                    Submitted to <Link to={`/contests/${entry.contest_id}`} className="hover:text-primary">{entry.contests.title}</Link> • {formatTimeAgo(entry.created_at)}
+                    Submitted to <Link to={`/contests/${entry.contest_id}`} className="hover:text-primary">{entry.contests.title}</Link> • 
+                    {filter === 'latest' && entry.last_activity_at !== entry.created_at
+                      ? `Active ${formatTimeAgo(entry.last_activity_at)}`
+                      : formatTimeAgo(entry.created_at)
+                    }
                   </p>
                 </div>
               </div>
