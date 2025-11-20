@@ -165,7 +165,7 @@ export default function EntryDetailPage() {
           )}
 
           <Link
-            to={`/profile/${entry.users.username}`}
+            to={`/users/${entry.users.username}`}
             className="flex items-center gap-3 mb-4 hover:opacity-80 transition-opacity"
           >
             {entry.users.avatar_url ? (

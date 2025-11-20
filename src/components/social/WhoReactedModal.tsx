@@ -151,7 +151,7 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
               {reactions.map((reaction) => (
                 <div key={reaction.id} className="p-4 flex items-center gap-3 hover:bg-background transition-colors">
                   {/* Avatar */}
-                  <Link to={`/profile/${reaction.users.username}`} className="flex-shrink-0">
+                  <Link to={`/users/${reaction.users.username}`} className="flex-shrink-0">
                     {reaction.users.avatar_url ? (
                       <img
                         src={reaction.users.avatar_url}
@@ -168,7 +168,7 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
                   {/* Username & Reaction */}
                   <div className="flex-1 min-w-0">
                     <Link
-                      to={`/profile/${reaction.users.username}`}
+                      to={`/users/${reaction.users.username}`}
                       className="font-semibold hover:text-primary transition-colors block truncate"
                     >
                       @{reaction.users.username}

@@ -307,7 +307,7 @@ export default function WinnersPage() {
                           </Link>
                           
                           <Link
-                            to={`/profile/${winner.artist.username}`}
+                            to={`/users/${winner.artist.username}`}
                             className="flex items-center gap-2 mb-3 hover:text-primary transition-colors"
                           >
                             {winner.artist.avatar_url ? (
