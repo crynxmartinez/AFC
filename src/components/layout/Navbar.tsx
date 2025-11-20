@@ -12,9 +12,23 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-surface border-b border-border z-50">
-      <div className="h-full max-w-7xl mx-auto px-4 flex items-center justify-between">
-        {/* Search Bar (Desktop) */}
-        <div className="hidden md:flex flex-1 max-w-md">
+      <div className="h-full flex items-center">
+        {/* Logo Section - Aligned with Sidebar (256px width) */}
+        <div className="hidden md:flex items-center gap-3 w-64 px-6 border-r border-border">
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+            <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-white">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor" />
+              <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span className="text-xl font-bold text-text-primary">AFC</span>
+        </div>
+
+        {/* Right Side Content */}
+        <div className="flex-1 flex items-center justify-between px-4">
+          {/* Search Bar (Desktop) */}
+          <div className="hidden md:flex flex-1 max-w-md">
           <button
             onClick={() => navigate('/search')}
             className="relative w-full text-left"
@@ -138,6 +152,7 @@ export default function Navbar() {
               </Link>
             </div>
           )}
+        </div>
         </div>
       </div>
     </nav>
