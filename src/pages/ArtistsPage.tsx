@@ -10,6 +10,7 @@ type Artist = {
   username: string
   display_name: string | null
   avatar_url: string | null
+  cover_photo_url: string | null
   xp: number
   level: number
   profile_title: string | null
@@ -39,7 +40,7 @@ export default function ArtistsPage() {
       // Fetch users
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select('id, username, display_name, avatar_url, xp, level, profile_title, created_at')
+        .select('id, username, display_name, avatar_url, cover_photo_url, xp, level, profile_title, created_at')
         .order(orderColumn, { ascending: sortBy === 'newest' ? false : false })
         .limit(50)
 
@@ -192,47 +193,45 @@ export default function ArtistsPage() {
               to={`/users/${artist.username}`}
               className="bg-surface rounded-lg overflow-hidden border border-border hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/20 group"
             >
-              {/* Latest Entry Preview or Placeholder */}
-              <div className="aspect-square bg-background relative overflow-hidden">
-                {artist.latest_entry_image ? (
+              {/* Cover Photo Banner */}
+              <div className="h-32 bg-gradient-to-br from-primary/30 via-primary/20 to-secondary/30 relative overflow-hidden">
+                {artist.cover_photo_url ? (
                   <img
-                    src={artist.latest_entry_image}
-                    alt={`${artist.username}'s work`}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    src={artist.cover_photo_url}
+                    alt={`${artist.username}'s cover`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Image className="w-16 h-16 text-text-secondary" />
-                  </div>
+                  <div className="w-full h-full bg-gradient-to-br from-primary/30 via-primary/20 to-secondary/30" />
                 )}
-                
-                {/* Overlay with Avatar */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-4">
-                  <div className="flex items-center gap-3 w-full">
-                    <div className="relative flex-shrink-0">
-                      {artist.avatar_url ? (
-                        <img
-                          src={artist.avatar_url}
-                          alt={artist.username}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-white"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center border-2 border-white">
-                          <span className="text-lg font-bold text-white">
-                            {artist.username.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                      <div className="absolute -bottom-1 -right-1 bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold border-2 border-surface">
-                        {artist.level}
+              </div>
+
+              {/* Profile Section - Avatar overlaps banner */}
+              <div className="relative px-4 pb-4 -mt-8">
+                <div className="flex items-end gap-3">
+                  <div className="relative flex-shrink-0">
+                    {artist.avatar_url ? (
+                      <img
+                        src={artist.avatar_url}
+                        alt={artist.username}
+                        className="w-16 h-16 rounded-full object-cover border-4 border-surface shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center border-4 border-surface shadow-lg">
+                        <span className="text-xl font-bold text-primary">
+                          {artist.username.charAt(0).toUpperCase()}
+                        </span>
                       </div>
+                    )}
+                    <div className="absolute -bottom-1 -right-1 bg-primary text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold border-2 border-surface shadow-lg">
+                      {artist.level}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-white truncate">
-                        {artist.display_name || artist.username}
-                      </h3>
-                      <p className="text-xs text-gray-300">@{artist.username}</p>
-                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0 mb-1">
+                    <h3 className="font-bold text-text-primary truncate">
+                      {artist.display_name || artist.username}
+                    </h3>
+                    <p className="text-xs text-text-secondary">@{artist.username}</p>
                   </div>
                 </div>
               </div>

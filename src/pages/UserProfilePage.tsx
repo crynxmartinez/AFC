@@ -7,6 +7,8 @@ import { Trophy, Award, Calendar, MapPin, Link as LinkIcon, Instagram, Twitter, 
 import FollowButton from '@/components/social/FollowButton'
 import ProfileStats from '@/components/profile/ProfileStats'
 import Achievements from '@/components/profile/Achievements'
+import ProfileBanner from '@/components/profile/ProfileBanner'
+import { useAuthStore } from '@/stores/authStore'
 
 type UserProfile = {
   id: string
@@ -65,6 +67,7 @@ type Badge = {
 
 export default function UserProfilePage() {
   const { username } = useParams()
+  const { user } = useAuthStore()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [entries, setEntries] = useState<Entry[]>([])
   const [badges, setBadges] = useState<Badge[]>([])
@@ -277,39 +280,38 @@ export default function UserProfilePage() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Cover Photo */}
-      {profile.cover_photo_url && (
-        <div className="h-48 md:h-64 rounded-lg overflow-hidden mb-6">
-          <img
-            src={profile.cover_photo_url}
-            alt="Cover"
-            className="w-full h-full object-cover"
-          />
-        </div>
-      )}
-
-      {/* Profile Header */}
-      <div className="bg-surface rounded-lg p-4 md:p-8 mb-6">
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-          {/* Avatar */}
-          <div className="relative flex-shrink-0">
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.username}
-                className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-primary"
-              />
-            ) : (
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-primary/20 flex items-center justify-center border-4 border-primary">
-                <span className="text-3xl md:text-4xl font-bold text-primary">
-                  {profile.username.charAt(0).toUpperCase()}
-                </span>
+      {/* Profile Banner */}
+      <div className="bg-surface rounded-lg overflow-hidden mb-6">
+        <ProfileBanner
+          coverPhotoUrl={profile.cover_photo_url}
+          userId={profile.id}
+          isOwnProfile={user?.id === profile.id}
+          onUpdate={fetchProfile}
+        />
+        
+        {/* Profile Header - Avatar overlaps banner */}
+        <div className="relative -mt-16 px-4 md:px-8 pb-4 md:pb-8">
+          <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
+            {/* Avatar */}
+            <div className="relative flex-shrink-0">
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.username}
+                  className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-surface shadow-lg"
+                />
+              ) : (
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-primary/20 flex items-center justify-center border-4 border-surface shadow-lg">
+                  <span className="text-4xl md:text-5xl font-bold text-primary">
+                    {profile.username.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              {/* Level Badge */}
+              <div className="absolute -bottom-2 -right-2 bg-primary text-white rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center font-bold border-4 border-surface text-base md:text-lg shadow-lg">
+                {profile.level}
               </div>
-            )}
-            {/* Level Badge */}
-            <div className="absolute -bottom-2 -right-2 bg-primary text-white rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center font-bold border-4 border-surface text-sm md:text-base">
-              {profile.level}
             </div>
-          </div>
 
           {/* Profile Info */}
           <div className="flex-1 text-center md:text-left">
@@ -458,7 +460,7 @@ export default function UserProfilePage() {
             )}
           </div>
         </div>
-
+        </div>
       </div>
 
       {/* Profile Stats Cards */}
