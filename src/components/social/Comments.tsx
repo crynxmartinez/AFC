@@ -65,6 +65,18 @@ export default function CommentSection({ entryId }: Props) {
             .eq('id', comment.user_id)
             .single()
 
+          // Check if current user liked this comment
+          let isLiked = false
+          if (user) {
+            const { data: likeData } = await supabase
+              .from('comment_likes')
+              .select('*')
+              .eq('comment_id', comment.id)
+              .eq('user_id', user.id)
+              .single()
+            isLiked = !!likeData
+          }
+
           // Fetch replies
           const { data: repliesData } = await supabase
             .from('entry_comments')
@@ -80,13 +92,27 @@ export default function CommentSection({ entryId }: Props) {
                 .select('username, avatar_url')
                 .eq('id', reply.user_id)
                 .single()
-              return { ...reply, users: replyUserData }
+              
+              // Check if current user liked this reply
+              let replyIsLiked = false
+              if (user) {
+                const { data: replyLikeData } = await supabase
+                  .from('comment_likes')
+                  .select('*')
+                  .eq('comment_id', reply.id)
+                  .eq('user_id', user.id)
+                  .single()
+                replyIsLiked = !!replyLikeData
+              }
+              
+              return { ...reply, users: replyUserData, is_liked: replyIsLiked }
             })
           )
 
           return {
             ...comment,
             users: userData,
+            is_liked: isLiked,
             replies: repliesWithUsers,
           }
         })
