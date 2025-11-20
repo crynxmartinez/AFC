@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+import { ArrowLeft, Eye, EyeOff, Mail } from 'lucide-react'
 
 export default function SignupPage() {
-  const navigate = useNavigate()
   const { signUp } = useAuthStore()
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
@@ -14,6 +14,8 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,12 +40,57 @@ export default function SignupPage() {
 
     try {
       await signUp(email, password, username)
-      navigate('/')
+      // Show verification message instead of navigating
+      setRegisteredEmail(email)
+      setShowVerificationMessage(true)
     } catch (err: any) {
       setError(err.message || 'Failed to sign up')
-    } finally {
       setLoading(false)
     }
+  }
+
+  const handleResendVerification = async () => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: registeredEmail
+      })
+      if (error) throw error
+      alert('Verification email sent! Check your inbox.')
+    } catch (err: any) {
+      alert(err.message || 'Failed to resend email')
+    }
+  }
+
+  // Show verification message after successful signup
+  if (showVerificationMessage) {
+    return (
+      <div className="bg-surface rounded-lg p-8 shadow-lg text-center">
+        <Mail className="w-16 h-16 mx-auto mb-4 text-primary" />
+        <h2 className="text-2xl font-bold mb-4">Check Your Email</h2>
+        <p className="text-text-secondary mb-2">
+          We sent a verification link to:
+        </p>
+        <p className="font-semibold text-primary mb-6">{registeredEmail}</p>
+        <p className="text-sm text-text-secondary mb-6">
+          Click the link in the email to verify your account and start competing!
+        </p>
+        <div className="space-y-3">
+          <button
+            onClick={handleResendVerification}
+            className="w-full px-6 py-2 bg-surface hover:bg-background border border-border rounded-lg transition-colors"
+          >
+            Resend Verification Email
+          </button>
+          <Link
+            to="/login"
+            className="block w-full px-6 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"
+          >
+            Go to Login
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (

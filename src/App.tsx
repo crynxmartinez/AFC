@@ -5,6 +5,7 @@ import AuthLayout from './components/layout/AuthLayout'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
+import ConfirmEmail from './pages/auth/ConfirmEmail'
 import ProfilePage from './pages/ProfilePage'
 import ContestDetailPage from './pages/ContestDetailPage'
 import EntryDetailPage from './pages/EntryDetailPage'
@@ -45,6 +46,9 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
         </Route>
+
+        {/* Email Confirmation (No Layout) */}
+        <Route path="/auth/confirm" element={<ConfirmEmail />} />
 
         {/* Landing/Marketing Pages (No Sidebar) */}
         <Route element={<LandingLayout />}>

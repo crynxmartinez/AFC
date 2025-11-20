@@ -82,6 +82,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          username: username
+        },
+        emailRedirectTo: `${window.location.origin}/auth/confirm`
+      }
     })
 
     if (error) throw error
@@ -96,8 +102,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     if (profileError) throw profileError
 
-    set({ user: data.user })
-    await get().fetchProfile()
+    // Don't set user or fetch profile yet - wait for email verification
+    // set({ user: data.user })
+    // await get().fetchProfile()
   },
 
   signIn: async (email: string, password: string) => {
