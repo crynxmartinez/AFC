@@ -1,0 +1,28 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Specifically allow social media crawlers
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: PinterestBot
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+# Sitemap
+Sitemap: https://afc-kappa.vercel.app/sitemap.xml
