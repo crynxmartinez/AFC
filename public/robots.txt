@@ -2,6 +2,10 @@
 User-agent: *
 Allow: /
 
+# Specifically allow Prerender.io
+User-agent: Prerender
+Allow: /
+
 # Specifically allow social media crawlers
 User-agent: facebookexternalhit
 Allow: /
