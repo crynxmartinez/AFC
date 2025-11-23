@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { supabase } from '@/lib/supabase'
 import ReactionPicker from '@/components/social/ReactionPicker'
 import Comments from '@/components/social/Comments'
@@ -114,9 +115,38 @@ export default function EntryDetailPage() {
     { num: 4, label: 'Final', url: entry.phase_4_url },
   ]
 
+  const entryUrl = `${window.location.origin}/entries/${entry.id}`
+  const entryTitle = entry.title || `Entry by ${entry.users.display_name || entry.users.username}`
+  const entryDescription = entry.description || `Check out this amazing artwork in ${entry.contests.title}!`
+  const entryImage = entry.phase_4_url || entry.phase_3_url || entry.phase_2_url || entry.phase_1_url || ''
+
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="grid md:grid-cols-2 gap-8">
+    <>
+      <Helmet>
+        {/* Basic Meta Tags */}
+        <title>{entryTitle} - Arena for Creatives</title>
+        <meta name="description" content={entryDescription} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={entryUrl} />
+        <meta property="og:title" content={entryTitle} />
+        <meta property="og:description" content={entryDescription} />
+        <meta property="og:image" content={entryImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="Arena for Creatives" />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content={entryUrl} />
+        <meta name="twitter:title" content={entryTitle} />
+        <meta name="twitter:description" content={entryDescription} />
+        <meta name="twitter:image" content={entryImage} />
+      </Helmet>
+
+      <div className="max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8">
         <div>
           <div className="aspect-square bg-surface rounded-lg border border-border flex items-center justify-center mb-4 overflow-hidden">
             {getPhaseUrl(selectedPhase) ? (
@@ -260,6 +290,7 @@ export default function EntryDetailPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
