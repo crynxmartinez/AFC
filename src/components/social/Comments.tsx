@@ -26,9 +26,10 @@ type Comment = {
 
 type Props = {
   entryId: string
+  onCommentCountChange?: (count: number) => void
 }
 
-export default function CommentSection({ entryId }: Props) {
+export default function CommentSection({ entryId, onCommentCountChange }: Props) {
   const { user } = useAuthStore()
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
@@ -120,6 +121,10 @@ export default function CommentSection({ entryId }: Props) {
       )
 
       setComments(commentsWithReplies)
+      
+      // Calculate total comment count (including replies)
+      const totalCount = commentsWithReplies.reduce((sum, c) => sum + 1 + (c.replies?.length || 0), 0)
+      onCommentCountChange?.(totalCount)
     } catch (error) {
       console.error('Error fetching comments:', error)
     } finally {

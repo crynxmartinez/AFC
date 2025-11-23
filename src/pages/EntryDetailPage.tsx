@@ -37,6 +37,7 @@ export default function EntryDetailPage() {
   const [entry, setEntry] = useState<Entry | null>(null)
   const [selectedPhase, setSelectedPhase] = useState(4)
   const [loading, setLoading] = useState(true)
+  const [commentCount, setCommentCount] = useState(0)
 
   useEffect(() => {
     if (id) {
@@ -218,7 +219,7 @@ export default function EntryDetailPage() {
             </div>
             <div className="flex items-center gap-1.5">
               <MessageCircle className="w-4 h-4" />
-              <span>{entry.comment_count || 0} comments</span>
+              <span>{commentCount} comments</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Share2 className="w-4 h-4" />
@@ -227,12 +228,10 @@ export default function EntryDetailPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex flex-wrap items-center gap-3 mb-6">
+          <div className="flex items-start gap-3 mb-6">
             {/* Reaction Picker */}
             {entry.status === 'approved' && (
-              <div>
-                <ReactionPicker entryId={entry.id} />
-              </div>
+              <ReactionPicker entryId={entry.id} />
             )}
             
             {/* Share Button */}
@@ -257,7 +256,7 @@ export default function EntryDetailPage() {
 
           {/* Comments Section */}
           <div>
-            <Comments entryId={entry.id} />
+            <Comments entryId={entry.id} onCommentCountChange={setCommentCount} />
           </div>
         </div>
       </div>
