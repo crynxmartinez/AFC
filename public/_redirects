@@ -1,0 +1,3 @@
+# Serve entry pages with meta tags for crawlers
+/entries/*  /.netlify/functions/entry-meta  200  Bot
+/entries/*  /index.html  200
