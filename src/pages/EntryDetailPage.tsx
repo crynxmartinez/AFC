@@ -58,13 +58,17 @@ export default function EntryDetailPage() {
       const entryRaw = data as any
       
       // Fetch related data separately
-      const [{ data: userData }, { data: contestData }] = await Promise.all([
+      const [{ data: userData }, { data: contestData }, { count: reactionCount }, { count: commentCount }] = await Promise.all([
         supabase.from('users').select('username, display_name, avatar_url, level').eq('id', entryRaw.user_id).single(),
-        supabase.from('contests').select('title').eq('id', entryRaw.contest_id).single()
+        supabase.from('contests').select('title').eq('id', entryRaw.contest_id).single(),
+        supabase.from('reactions').select('*', { count: 'exact', head: true }).eq('entry_id', id),
+        supabase.from('comments').select('*', { count: 'exact', head: true }).eq('entry_id', id)
       ])
       
       const entryData = {
         ...entryRaw,
+        vote_count: reactionCount || 0,
+        comment_count: commentCount || 0,
         users: userData,
         contests: contestData
       }
@@ -223,10 +227,12 @@ export default function EntryDetailPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex flex-wrap items-center gap-3 mb-6">
             {/* Reaction Picker */}
             {entry.status === 'approved' && (
-              <ReactionPicker entryId={entry.id} />
+              <div>
+                <ReactionPicker entryId={entry.id} />
+              </div>
             )}
             
             {/* Share Button */}
