@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import ReactionPicker from '@/components/social/ReactionPicker'
 import Comments from '@/components/social/Comments'
+import ShareButton from '@/components/social/ShareButton'
+import { Eye, Heart, MessageCircle, Share2 } from 'lucide-react'
 
 type Entry = {
   id: string
@@ -15,10 +17,13 @@ type Entry = {
   phase_3_url: string | null
   phase_4_url: string | null
   vote_count: number
+  share_count: number
+  comment_count: number
   final_rank: number | null
   status: string
   users: {
     username: string
+    display_name: string | null
     avatar_url: string | null
     level: number
   }
@@ -54,7 +59,7 @@ export default function EntryDetailPage() {
       
       // Fetch related data separately
       const [{ data: userData }, { data: contestData }] = await Promise.all([
-        supabase.from('users').select('username, avatar_url, level').eq('id', entryRaw.user_id).single(),
+        supabase.from('users').select('username, display_name, avatar_url, level').eq('id', entryRaw.user_id).single(),
         supabase.from('contests').select('title').eq('id', entryRaw.contest_id).single()
       ])
       
@@ -201,12 +206,38 @@ export default function EntryDetailPage() {
             {entry.status.replace('_', ' ').toUpperCase()}
           </span>
 
-          {/* Reaction Picker */}
-          {entry.status === 'approved' && (
-            <div className="mb-6">
-              <ReactionPicker entryId={entry.id} />
+          {/* Stats Bar */}
+          <div className="flex items-center gap-4 text-sm text-text-secondary mb-6 pb-4 border-b border-border">
+            <div className="flex items-center gap-1.5">
+              <Heart className="w-4 h-4" />
+              <span>{entry.vote_count} votes</span>
             </div>
-          )}
+            <div className="flex items-center gap-1.5">
+              <MessageCircle className="w-4 h-4" />
+              <span>{entry.comment_count || 0} comments</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Share2 className="w-4 h-4" />
+              <span>{entry.share_count || 0} shares</span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 mb-6">
+            {/* Reaction Picker */}
+            {entry.status === 'approved' && (
+              <ReactionPicker entryId={entry.id} />
+            )}
+            
+            {/* Share Button */}
+            <ShareButton 
+              entry={entry}
+              variant="button"
+              showCount={false}
+              shareCount={entry.share_count || 0}
+              onShareComplete={fetchEntry}
+            />
+          </div>
 
           {/* Stats */}
           <div className="bg-surface rounded-lg p-4 mb-6">
