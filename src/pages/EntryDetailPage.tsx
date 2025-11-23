@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import ReactionPicker from '@/components/social/ReactionPicker'
 import Comments from '@/components/social/Comments'
 import ShareButton from '@/components/social/ShareButton'
-import { Eye, Heart, MessageCircle, Share2 } from 'lucide-react'
+import { Heart, MessageCircle, Share2 } from 'lucide-react'
 
 type Entry = {
   id: string
