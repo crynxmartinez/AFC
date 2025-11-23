@@ -20,7 +20,7 @@
           "value": ".*(bot|crawler|spider|crawling|facebookexternalhit|twitterbot|linkedinbot|whatsapp|pinterest|slackbot|telegram).*"
         }
       ],
-      "destination": "https://service.prerender.io/https://afc-kappa.vercel.app/:path*"
+      "destination": "/api/prerender?url=https://afc-kappa.vercel.app/:path*"
     },
     {
       "source": "/(.*)",
