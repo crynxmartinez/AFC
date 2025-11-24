@@ -4,11 +4,14 @@ import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { formatDate, getContestStatus, getPhaseTimeRemaining } from '@/lib/utils'
 import { Clock, Users, Trophy } from 'lucide-react'
+import type { ContestCategory } from '@/types/contest'
+import CategoryBadge from '@/components/contests/CategoryBadge'
 
 type Contest = {
   id: string
   title: string
   description: string
+  category: ContestCategory
   thumbnail_url: string | null
   start_date: string
   end_date: string
@@ -133,6 +136,11 @@ export default function ActiveContestsPage() {
               {/* Content */}
               <div className="p-4">
                 <h3 className="font-bold text-xl mb-2 line-clamp-1">{contest.title}</h3>
+                
+                {/* Category Badge */}
+                <div className="mb-3">
+                  <CategoryBadge category={contest.category || 'art'} size="sm" />
+                </div>
                 
                 {/* Sponsor Badge */}
                 {contest.has_sponsor && contest.sponsor_name && (
