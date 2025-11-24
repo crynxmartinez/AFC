@@ -261,7 +261,7 @@ export default function EntryDetailPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-start justify-between gap-3 mb-6">
             {/* Reaction Picker */}
             {entry.status === 'approved' && (
               <ReactionPicker entryId={entry.id} />
