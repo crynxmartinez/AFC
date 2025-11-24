@@ -30,6 +30,21 @@
   </head>
   <body>
     <div id="root"></div>
+    
+    <!-- Prerender.io detection script -->
+    <script>
+      window.prerenderReady = false;
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Signal when app is ready -->
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          window.prerenderReady = true;
+        }, 1000);
+      });
+    </script>
   </body>
 </html>

@@ -25,17 +25,6 @@
   ],
   "rewrites": [
     {
-      "source": "/:path(.*)",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(bot|crawler|spider|crawling|facebookexternalhit|twitterbot|linkedinbot|whatsapp|pinterest|slackbot|telegram).*"
-        }
-      ],
-      "destination": "/api/prerender?url=https://afc-kappa.vercel.app/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
