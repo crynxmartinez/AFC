@@ -3,12 +3,15 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
+import type { ContestCategory } from '@/types/contest'
+import { CATEGORY_LABELS, CATEGORY_DESCRIPTIONS, getPhaseCount } from '@/constants/phases'
 
 export default function AdminCreateContest() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [category, setCategory] = useState<ContestCategory>('art')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [thumbnail, setThumbnail] = useState<File | null>(null)
@@ -122,6 +125,7 @@ export default function AdminCreateContest() {
         .insert({
           title,
           description,
+          category,
           start_date: new Date(startDate).toISOString(),
           end_date: new Date(endDate).toISOString(),
           thumbnail_url: thumbnailUrl,
@@ -189,6 +193,32 @@ export default function AdminCreateContest() {
             className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
             placeholder="Describe the contest theme, rules, and prizes..."
           />
+        </div>
+
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium mb-2">
+            Contest Category
+          </label>
+          <select
+            id="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value as ContestCategory)}
+            required
+            className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
+          >
+            {(Object.keys(CATEGORY_LABELS) as ContestCategory[]).map((cat) => (
+              <option key={cat} value={cat}>
+                {CATEGORY_LABELS[cat]} ({getPhaseCount(cat)} phases)
+              </option>
+            ))}
+          </select>
+          <p className="mt-2 text-sm text-text-secondary">
+            {CATEGORY_DESCRIPTIONS[category]}
+          </p>
+          <div className="mt-2 text-xs text-text-secondary bg-surface/50 rounded p-2">
+            <strong>Phases for {CATEGORY_LABELS[category]}:</strong>
+            <span className="ml-2">{getPhaseCount(category)} submission phases required</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
