@@ -6,6 +6,8 @@ import ReactionPicker from '@/components/social/ReactionPicker'
 import Comments from '@/components/social/Comments'
 import ShareButton from '@/components/social/ShareButton'
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
+import type { ContestCategory } from '@/types/contest'
+import { getPhasesForCategory } from '@/constants/phases'
 
 type Entry = {
   id: string
@@ -30,6 +32,7 @@ type Entry = {
   }
   contests: {
     title: string
+    category: ContestCategory
   }
 }
 
@@ -62,7 +65,7 @@ export default function EntryDetailPage() {
       // Fetch related data separately
       const [{ data: userData }, { data: contestData }, { count: reactionCount }, { count: commentCount }] = await Promise.all([
         supabase.from('users').select('username, display_name, avatar_url, level').eq('id', entryRaw.user_id).single(),
-        supabase.from('contests').select('title').eq('id', entryRaw.contest_id).single(),
+        supabase.from('contests').select('title, category').eq('id', entryRaw.contest_id).single(),
         supabase.from('reactions').select('*', { count: 'exact', head: true }).eq('entry_id', id),
         supabase.from('comments').select('*', { count: 'exact', head: true }).eq('entry_id', id)
       ])
@@ -108,12 +111,16 @@ export default function EntryDetailPage() {
     return <div className="text-center py-12">Entry not found</div>
   }
 
-  const phases = [
-    { num: 1, label: 'Sketch', url: entry.phase_1_url },
-    { num: 2, label: 'Line Art', url: entry.phase_2_url },
-    { num: 3, label: 'Base Colors', url: entry.phase_3_url },
-    { num: 4, label: 'Final', url: entry.phase_4_url },
-  ]
+  // Get phase configurations based on contest category
+  const category = (entry.contests.category || 'art') as ContestCategory
+  const phaseConfigs = getPhasesForCategory(category)
+  
+  // Build phases array with actual URLs
+  const phases = phaseConfigs.map((config) => ({
+    num: config.number,
+    label: config.name,
+    url: getPhaseUrl(config.number)
+  })).filter(phase => phase.url) // Only show phases that have been uploaded
 
   const entryUrl = `${window.location.origin}/entries/${entry.id}`
   const entryTitle = entry.title || `Entry by ${entry.users.display_name || entry.users.username}`
