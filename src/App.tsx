@@ -3,6 +3,7 @@ import Layout from './components/layout/Layout'
 import LandingLayout from './components/layout/LandingLayout'
 import AuthLayout from './components/layout/AuthLayout'
 import ToastContainer from './components/ui/ToastContainer'
+import SoftLaunchModal from './components/modals/SoftLaunchModal'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
@@ -42,6 +43,7 @@ function App() {
   return (
     <Router>
       <ToastContainer />
+      <SoftLaunchModal />
       <Routes>
         {/* Auth Routes */}
         <Route element={<AuthLayout />}>
