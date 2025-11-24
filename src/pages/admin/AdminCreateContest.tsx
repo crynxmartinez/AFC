@@ -3,12 +3,14 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
+import { useToastStore } from '@/stores/toastStore'
 import type { ContestCategory } from '@/types/contest'
 import { CATEGORY_LABELS, CATEGORY_DESCRIPTIONS, getPhaseCount } from '@/constants/phases'
 
 export default function AdminCreateContest() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const { success, error: showError } = useToastStore()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState<ContestCategory>('art')
@@ -144,7 +146,7 @@ export default function AdminCreateContest() {
       }
 
       console.log('Contest created successfully:', data)
-      alert('Contest created successfully!')
+      success('Contest created successfully!')
       navigate('/admin/contests')
     } catch (err: any) {
       console.error('Error creating contest:', err)
@@ -232,7 +234,7 @@ export default function AdminCreateContest() {
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               required
-              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
+              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-text [color-scheme:dark]"
             />
           </div>
           <div>
@@ -245,7 +247,7 @@ export default function AdminCreateContest() {
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               required
-              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
+              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-text [color-scheme:dark]"
             />
           </div>
         </div>

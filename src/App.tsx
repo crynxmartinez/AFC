@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Layout from './components/layout/Layout'
 import LandingLayout from './components/layout/LandingLayout'
 import AuthLayout from './components/layout/AuthLayout'
+import ToastContainer from './components/ui/ToastContainer'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
@@ -40,6 +41,7 @@ import AdminRoute from './components/auth/AdminRoute'
 function App() {
   return (
     <Router>
+      <ToastContainer />
       <Routes>
         {/* Auth Routes */}
         <Route element={<AuthLayout />}>
