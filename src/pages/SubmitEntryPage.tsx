@@ -7,6 +7,8 @@ import { Upload, Check, Save, Eye } from 'lucide-react'
 import { awardXP } from '@/lib/xp'
 import EntryPreviewModal from '@/components/entry/EntryPreviewModal'
 import ProgressStepper from '@/components/entry/ProgressStepper'
+import type { ContestCategory } from '@/types/contest'
+import { getPhasesForCategory } from '@/constants/phases'
 
 type PhaseFile = {
   file: File | null
@@ -25,12 +27,8 @@ export default function SubmitEntryPage() {
   const [showPreview, setShowPreview] = useState(false)
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0)
   
-  const [phases, setPhases] = useState<PhaseFile[]>([
-    { file: null, preview: null, uploaded: false },
-    { file: null, preview: null, uploaded: false },
-    { file: null, preview: null, uploaded: false },
-    { file: null, preview: null, uploaded: false },
-  ])
+  const [phases, setPhases] = useState<PhaseFile[]>([])
+  const [phaseConfigs, setPhaseConfigs] = useState<any[]>([])
   
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -53,6 +51,19 @@ export default function SubmitEntryPage() {
 
       if (error) throw error
       setContest(data)
+      
+      // Initialize phases based on contest category
+      const category = (data.category || 'art') as ContestCategory
+      const configs = getPhasesForCategory(category)
+      setPhaseConfigs(configs)
+      
+      // Initialize phase files array
+      const initialPhases = configs.map(() => ({
+        file: null,
+        preview: null,
+        uploaded: false
+      }))
+      setPhases(initialPhases)
     } catch (error) {
       console.error('Error fetching contest:', error)
     }
@@ -289,7 +300,7 @@ export default function SubmitEntryPage() {
     return <div className="text-center py-12">Loading...</div>
   }
 
-  const phaseLabels = ['Phase 1: Sketch', 'Phase 2: Line Art', 'Phase 3: Base Colors', 'Phase 4: Final']
+  const phaseLabels = phaseConfigs.map((config, i) => `Phase ${i + 1}: ${config.name}`)
   const completedPhases = phases.map(p => p.file !== null || p.uploaded)
   const previewPhases = phases.map(p => ({
     file: p.file,
@@ -301,7 +312,7 @@ export default function SubmitEntryPage() {
       <h1 className="text-3xl font-bold mb-2">Submit Your Entry</h1>
       <p className="text-text-secondary mb-2">Contest: {contest.title}</p>
       <p className="text-text-secondary text-sm mb-8">
-        Upload your artwork in 4 phases: Sketch → Line Art → Base Colors → Final
+        Upload your entry in {phaseConfigs.length} phases: {phaseConfigs.map(c => c.name).join(' → ')}
       </p>
 
       {/* Progress Stepper */}
@@ -362,8 +373,11 @@ export default function SubmitEntryPage() {
               <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                 {phaseLabels[i]}
                 {phase.uploaded && <Check className="w-4 h-4 text-success" />}
-                {i === 0 && <span className="text-error">*</span>}
+                {phaseConfigs[i]?.required && <span className="text-error">*</span>}
               </label>
+              {phaseConfigs[i]?.description && (
+                <p className="text-xs text-text-secondary mb-2">{phaseConfigs[i].description}</p>
+              )}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
