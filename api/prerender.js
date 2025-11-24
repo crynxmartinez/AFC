@@ -7,17 +7,19 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Prerender token not configured' })
   }
 
-  // Get the original URL
-  const protocol = req.headers['x-forwarded-proto'] || 'https'
-  const host = req.headers['x-forwarded-host'] || req.headers.host
-  const path = req.url || '/'
-  const originalUrl = `${protocol}://${host}${path}`
+  // Get the URL from query parameter (passed by Vercel rewrite)
+  const targetUrl = req.query.url
+  
+  if (!targetUrl) {
+    console.error('No URL provided')
+    return res.status(400).json({ error: 'URL parameter required' })
+  }
 
-  console.log('Prerendering:', originalUrl)
+  console.log('Prerendering:', targetUrl)
 
   try {
     // Call Prerender.io service
-    const prerenderUrl = `https://service.prerender.io/${originalUrl}`
+    const prerenderUrl = `https://service.prerender.io/${targetUrl}`
     
     const response = await fetch(prerenderUrl, {
       headers: {
