@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { formatDate } from '@/lib/utils'
+import { formatDate, getContestStatus } from '@/lib/utils'
 
 type Contest = {
   id: string
@@ -36,7 +36,7 @@ export default function AdminContests() {
 
       if (error) throw error
 
-      // Get entry counts separately
+      // Get entry counts and calculate actual status based on dates
       const contestsWithCounts = await Promise.all(
         (data || []).map(async (contest: any) => {
           const { count } = await supabase
@@ -44,8 +44,16 @@ export default function AdminContests() {
             .select('*', { count: 'exact', head: true })
             .eq('contest_id', contest.id)
 
+          // Calculate actual status based on dates
+          const calculatedStatus = getContestStatus(contest.start_date, contest.end_date)
+          
+          // If database status is 'voting', keep it (manual override)
+          // Otherwise use calculated status
+          const actualStatus = contest.status === 'voting' ? 'voting' : calculatedStatus
+
           return {
             ...contest,
+            status: actualStatus,
             entry_count: count || 0,
           }
         })

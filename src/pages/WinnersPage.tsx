@@ -40,11 +40,12 @@ export default function WinnersPage() {
 
   const fetchWinners = async () => {
     try {
-      // Fetch ended contests
+      // Fetch ended contests (where end_date is in the past)
+      const now = new Date().toISOString()
       const { data: contestsData, error: contestsError } = await supabase
         .from('contests')
         .select('*')
-        .eq('status', 'ended')
+        .lt('end_date', now) // end_date < now (contest has ended)
         .order('end_date', { ascending: false })
 
       if (contestsError) throw contestsError
@@ -55,7 +56,7 @@ export default function WinnersPage() {
           // Get all approved entries for this contest
           const { data: entriesData, error: entriesError } = await supabase
             .from('entries')
-            .select('id, title, artwork_url, user_id')
+            .select('id, title, phase_4_url, phase_3_url, phase_2_url, phase_1_url, user_id')
             .eq('contest_id', contest.id)
             .eq('status', 'approved')
 
@@ -91,8 +92,9 @@ export default function WinnersPage() {
 
           const winners = sortedEntries.map((entry, index) => ({
             id: entry.id,
-            title: entry.title,
-            artwork_url: entry.artwork_url,
+            title: entry.title || 'Untitled',
+            // Use the highest available phase URL as the artwork
+            artwork_url: entry.phase_4_url || entry.phase_3_url || entry.phase_2_url || entry.phase_1_url || '',
             artist: {
               username: entry.users?.username || 'Unknown',
               avatar_url: entry.users?.avatar_url || null,
