@@ -147,14 +147,17 @@ export default function AdminFinalizeContest() {
     )
   }
 
-  if (contest.status !== 'ended') {
+  // Check by DATE instead of status
+  const contestEnded = new Date(contest.end_date) < new Date()
+  
+  if (!contestEnded) {
     return (
       <div className="max-w-4xl mx-auto">
         <div className="bg-warning/20 border border-warning rounded-lg p-6 text-center">
           <AlertCircle className="w-12 h-12 text-warning mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">Contest Not Ended</h2>
           <p className="text-text-secondary mb-4">
-            This contest must be in "ended" status before you can finalize winners.
+            This contest's end date ({new Date(contest.end_date).toLocaleDateString()}) has not passed yet.
           </p>
           <Link
             to="/admin/contests"
@@ -189,10 +192,14 @@ export default function AdminFinalizeContest() {
     )
   }
 
-  const prize1st = Math.floor(contest.prize_pool * 0.5)
-  const prize2nd = Math.floor(contest.prize_pool * 0.2)
-  const prize3rd = Math.floor(contest.prize_pool * 0.1)
-  const systemCut = contest.prize_pool - prize1st - prize2nd - prize3rd
+  // Calculate prize pool from top 3 entries' reactions
+  const totalReactions = topEntries.reduce((sum, entry) => sum + entry.vote_count, 0)
+  const prizePool = totalReactions
+  
+  const prize1st = Math.floor(prizePool * 0.5)
+  const prize2nd = Math.floor(prizePool * 0.2)
+  const prize3rd = Math.floor(prizePool * 0.1)
+  const remaining = prizePool - prize1st - prize2nd - prize3rd
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -210,7 +217,7 @@ export default function AdminFinalizeContest() {
         <div className="flex items-center gap-6 text-sm">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-primary" />
-            <span className="font-semibold">Prize Pool: {contest.prize_pool} pts</span>
+            <span className="font-semibold">Prize Pool: {prizePool} pts (from {totalReactions} reactions)</span>
           </div>
           <div className="text-text-secondary">
             Status: <span className="text-error font-semibold">Ended</span>
@@ -237,8 +244,8 @@ export default function AdminFinalizeContest() {
             <div className="text-sm text-text-secondary">3rd Place (10%)</div>
           </div>
           <div className="bg-background border border-border rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-text-secondary">{systemCut} pts</div>
-            <div className="text-sm text-text-secondary">System (20%)</div>
+            <div className="text-2xl font-bold text-text-secondary">{remaining} pts</div>
+            <div className="text-sm text-text-secondary">Remaining (20%)</div>
           </div>
         </div>
       </div>
