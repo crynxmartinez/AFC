@@ -1,7 +1,8 @@
 // @ts-nocheck
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
+import { useToastStore } from '@/stores/toastStore'
 import WhoReactedModal from './WhoReactedModal'
 import { awardXP } from '@/lib/xp'
 
@@ -31,6 +32,7 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
   const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({})
   const [totalReactions, setTotalReactions] = useState(0)
   const [loading, setLoading] = useState(false)
+  const toast = useToastStore()
   const pickerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -80,7 +82,7 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
 
   const handleReaction = async (reactionType: ReactionType) => {
     if (!user) {
-      alert('Please login to react')
+      toast.warning('Please login to react')
       return
     }
 
@@ -127,7 +129,7 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
         if (userError) throw userError
 
         if (!userData || userData.points_balance < 1) {
-          alert('You need at least 1 point to vote! Earn points by participating in contests.')
+          toast.warning('You need at least 1 point to vote!')
           setLoading(false)
           return
         }
@@ -139,7 +141,7 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
         })
 
         if (!deductResult) {
-          alert('Failed to deduct points. Please try again.')
+          toast.error('Failed to deduct points')
           setLoading(false)
           return
         }
@@ -178,7 +180,7 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
       onReactionChange?.()
     } catch (error) {
       console.error('Error handling reaction:', error)
-      alert('Failed to react. Please try again.')
+      toast.error('Failed to react. Please try again.')
     } finally {
       setLoading(false)
     }

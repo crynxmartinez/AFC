@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { useToastStore } from '@/stores/toastStore'
 import { useAuthStore } from '@/stores/authStore'
 
 export default function AdminEditContest() {
@@ -25,6 +26,7 @@ export default function AdminEditContest() {
   const [existingSponsorLogoUrl, setExistingSponsorLogoUrl] = useState<string | null>(null)
   
   const [loading, setLoading] = useState(false)
+  const toast = useToastStore()
   const [fetchLoading, setFetchLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -164,7 +166,7 @@ export default function AdminEditContest() {
 
       if (updateError) throw updateError
 
-      alert('Contest updated successfully!')
+      toast.success('Contest updated successfully!')
       navigate('/admin/contests')
     } catch (err: any) {
       console.error('Error updating contest:', err)

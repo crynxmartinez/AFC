@@ -1,6 +1,7 @@
 // @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useToastStore } from '@/stores/toastStore'
 import { formatDate } from '@/lib/utils'
 
 type User = {
@@ -17,6 +18,7 @@ type User = {
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const toast = useToastStore()
 
   useEffect(() => {
     fetchUsers()
@@ -49,9 +51,9 @@ export default function AdminUsers() {
       
       // Refresh users list
       fetchUsers()
-      alert(`User role updated to ${newRole}`)
+      toast.success(`User role updated to ${newRole}`)
     } catch (error: any) {
-      alert('Failed to update role: ' + error.message)
+      toast.error('Failed to update role: ' + error.message)
     }
   }
 

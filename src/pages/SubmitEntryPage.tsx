@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { Upload, Check, Save, Eye } from 'lucide-react'
+import { useToastStore } from '@/stores/toastStore'
 import { awardXP } from '@/lib/xp'
 import EntryPreviewModal from '@/components/entry/EntryPreviewModal'
 import ProgressStepper from '@/components/entry/ProgressStepper'
@@ -32,6 +33,7 @@ export default function SubmitEntryPage() {
   
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const toast = useToastStore()
 
   useEffect(() => {
     if (id && user) {
@@ -200,7 +202,7 @@ export default function SubmitEntryPage() {
           .insert(draftData as any)
       }
 
-      alert('Draft saved successfully!')
+      toast.success('Draft saved successfully!')
     } catch (err: any) {
       setError(err.message || 'Failed to save draft')
     } finally {

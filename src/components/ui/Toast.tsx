@@ -49,19 +49,20 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
   return (
     <div
       className={`
-        fixed top-4 right-4 z-50
         flex items-center gap-3 
         px-4 py-3 rounded-lg border-2
-        shadow-lg backdrop-blur-sm
-        animate-in slide-in-from-top-5 duration-300
+        shadow-lg backdrop-blur-sm bg-surface/95
+        animate-in min-w-[280px] max-w-[400px]
         ${getStyles()}
       `}
+      role="alert"
     >
-      {getIcon()}
-      <p className="font-medium">{message}</p>
+      <div className="flex-shrink-0">{getIcon()}</div>
+      <p className="font-medium flex-1">{message}</p>
       <button
         onClick={onClose}
-        className="ml-2 hover:opacity-70 transition-opacity"
+        className="flex-shrink-0 ml-2 hover:opacity-70 transition-opacity"
+        aria-label="Close notification"
       >
         <X className="w-4 h-4" />
       </button>

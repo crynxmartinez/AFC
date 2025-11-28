@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { formatNumber } from '@/lib/utils'
-import { Trophy, Award, TrendingUp, Crown, Medal, DollarSign, Target, BarChart3 } from 'lucide-react'
+import { Trophy, Award, TrendingUp, Crown, Medal } from 'lucide-react'
 
 type LeaderboardUser = {
   id: string
@@ -179,7 +179,7 @@ export default function LeaderboardPage() {
               : 'bg-surface hover:bg-border'
           }`}
         >
-          <DollarSign className="w-5 h-5" />
+          <Trophy className="w-5 h-5" />
           Top Earners
         </button>
         <button
@@ -227,7 +227,7 @@ export default function LeaderboardPage() {
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[1].level}</p>
               {category === 'xp' && <p className="text-lg font-bold text-primary">{formatNumber(topUsers[1].xp)} XP</p>}
-              {category === 'earners' && <p className="text-lg font-bold text-success">${formatNumber(topUsers[1].total_prize_money || 0)}</p>}
+              {category === 'earners' && <p className="text-lg font-bold text-success">{formatNumber(topUsers[1].total_prize_money || 0)} pts</p>}
               {category === 'winners' && <p className="text-lg font-bold text-warning">{topUsers[1].total_wins} Wins</p>}
             </Link>
           </div>
@@ -262,7 +262,7 @@ export default function LeaderboardPage() {
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[0].level}</p>
               {category === 'xp' && <p className="text-xl font-bold text-primary">{formatNumber(topUsers[0].xp)} XP</p>}
-              {category === 'earners' && <p className="text-xl font-bold text-success">${formatNumber(topUsers[0].total_prize_money || 0)}</p>}
+              {category === 'earners' && <p className="text-xl font-bold text-success">{formatNumber(topUsers[0].total_prize_money || 0)} pts</p>}
               {category === 'winners' && <p className="text-xl font-bold text-warning">{topUsers[0].total_wins} Wins</p>}
             </Link>
           </div>
@@ -296,7 +296,7 @@ export default function LeaderboardPage() {
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[2].level}</p>
               {category === 'xp' && <p className="text-lg font-bold text-primary">{formatNumber(topUsers[2].xp)} XP</p>}
-              {category === 'earners' && <p className="text-lg font-bold text-success">${formatNumber(topUsers[2].total_prize_money || 0)}</p>}
+              {category === 'earners' && <p className="text-lg font-bold text-success">{formatNumber(topUsers[2].total_prize_money || 0)} pts</p>}
               {category === 'winners' && <p className="text-lg font-bold text-warning">{topUsers[2].total_wins} Wins</p>}
             </Link>
           </div>
@@ -374,8 +374,8 @@ export default function LeaderboardPage() {
                 {category === 'earners' && (
                   <>
                     <div className="text-center">
-                      <div className="font-bold text-success">${formatNumber(user.total_prize_money || 0)}</div>
-                      <div className="text-text-secondary text-xs">Prize Money</div>
+                      <div className="font-bold text-success">{formatNumber(user.total_prize_money || 0)} pts</div>
+                      <div className="text-text-secondary text-xs">Prize Points</div>
                     </div>
                     <div className="text-center">
                       <div className="font-bold">{user.total_wins}</div>

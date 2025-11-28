@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
 import { Trophy, Medal, Award, Share2, ExternalLink } from 'lucide-react'
+import { useToastStore } from '@/stores/toastStore'
 
 type Winner = {
   id: string
@@ -33,6 +34,7 @@ type Contest = {
 export default function WinnersPage() {
   const [contests, setContests] = useState<Contest[]>([])
   const [loading, setLoading] = useState(true)
+  const toast = useToastStore()
 
   useEffect(() => {
     fetchWinners()
@@ -132,7 +134,7 @@ export default function WinnersPage() {
         break
       case 'copy':
         navigator.clipboard.writeText(url)
-        alert('Link copied to clipboard!')
+        toast.success('Link copied to clipboard!')
         return
     }
 

@@ -18,7 +18,7 @@ export default function Sidebar() {
     { icon: Trophy, label: 'Winners', path: '/winners' },
     { icon: TrendingUp, label: 'Leaderboard', path: '/leaderboard' },
     { icon: Users, label: 'Artists', path: '/artists' },
-    { icon: PlusCircle, label: 'Submit Entry', path: '/submit' },
+    { icon: PlusCircle, label: 'Submit Entry', path: '/contests/active' },
   ]
 
   const adminItems = [

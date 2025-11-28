@@ -10,7 +10,7 @@ export default function MobileNav() {
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: Rss, label: 'Feed', path: '/feed' },
-    { icon: PlusCircle, label: 'Submit', path: '/submit' },
+    { icon: PlusCircle, label: 'Contests', path: '/contests/active' },
     { icon: Trophy, label: 'Winners', path: '/winners' },
     { icon: User, label: 'Profile', path: profile ? `/users/${profile.username}` : '/login' },
   ]

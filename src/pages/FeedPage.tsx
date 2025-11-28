@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
-import { Heart, MessageCircle, TrendingUp, Clock, UserPlus } from 'lucide-react'
+import { Heart, MessageCircle, TrendingUp, Clock, UserPlus, Trophy, Sparkles } from 'lucide-react'
 import { formatTimeAgo } from '@/lib/utils'
 
 type FeedEntry = {
@@ -30,6 +30,19 @@ type FeedEntry = {
 type FilterType = 'latest' | 'popular' | 'following'
 type TimeRange = 7 | 30 | 90 | 365
 
+type WinnerAnnouncement = {
+  contest_id: string
+  contest_title: string
+  finalized_at: string
+  winners: {
+    placement: number
+    username: string
+    avatar_url: string | null
+    prize_amount: number
+    entry_image: string | null
+  }[]
+}
+
 export default function FeedPage() {
   const { user } = useAuthStore()
   const [entries, setEntries] = useState<FeedEntry[]>([])
@@ -37,13 +50,18 @@ export default function FeedPage() {
   const [filter, setFilter] = useState<FilterType>('latest')
   const [timeRange, setTimeRange] = useState<TimeRange>(7)
   const [followingCount, setFollowingCount] = useState(0)
+  const [announcements, setAnnouncements] = useState<WinnerAnnouncement[]>([])
+
+  // Use user.id as dependency to prevent refetch on auth state changes
+  const userId = user?.id
 
   useEffect(() => {
-    if (user) {
+    if (userId) {
       fetchFeed()
       fetchFollowingCount()
+      fetchWinnerAnnouncements()
     }
-  }, [user, filter, timeRange])
+  }, [userId, filter, timeRange])
 
   const fetchFollowingCount = async () => {
     if (!user) return
@@ -52,6 +70,60 @@ export default function FeedPage() {
       .select('*', { count: 'exact', head: true })
       .eq('follower_id', user.id)
     setFollowingCount(count || 0)
+  }
+
+  const fetchWinnerAnnouncements = async () => {
+    try {
+      // Get recently finalized contests (last 7 days)
+      const sevenDaysAgo = new Date()
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      
+      const { data: contests } = await supabase
+        .from('contests')
+        .select('id, title, finalized_at')
+        .eq('prize_pool_distributed', true)
+        .gte('finalized_at', sevenDaysAgo.toISOString())
+        .order('finalized_at', { ascending: false })
+        .limit(3)
+
+      if (!contests || contests.length === 0) {
+        setAnnouncements([])
+        return
+      }
+
+      // Get winners for each contest
+      const announcementsData = await Promise.all(
+        (contests as any[]).map(async (contest) => {
+          const { data: winners } = await supabase
+            .from('contest_winners')
+            .select(`
+              placement,
+              prize_amount,
+              users:user_id (username, avatar_url),
+              entries:entry_id (phase_4_url)
+            `)
+            .eq('contest_id', contest.id)
+            .order('placement', { ascending: true })
+
+          return {
+            contest_id: contest.id,
+            contest_title: contest.title,
+            finalized_at: contest.finalized_at,
+            winners: (winners || []).map((w: any) => ({
+              placement: w.placement,
+              username: w.users?.username || 'Unknown',
+              avatar_url: w.users?.avatar_url,
+              prize_amount: w.prize_amount,
+              entry_image: w.entries?.phase_4_url
+            }))
+          }
+        })
+      )
+
+      setAnnouncements(announcementsData)
+    } catch (error) {
+      console.error('Error fetching announcements:', error)
+    }
   }
 
   const fetchFeed = async () => {
@@ -244,6 +316,107 @@ export default function FeedPage() {
         )}
       </div>
 
+      {/* Winner Announcements */}
+      {filter === 'latest' && announcements.length > 0 && (
+        <div className="max-w-2xl mx-auto mb-8 space-y-4">
+          {announcements.map((announcement) => (
+            <div
+              key={announcement.contest_id}
+              className="bg-gradient-to-r from-primary/20 via-warning/10 to-primary/20 rounded-xl border-2 border-primary/50 overflow-hidden"
+            >
+              {/* Header */}
+              <div className="p-4 flex items-center gap-3 border-b border-primary/30">
+                <div className="w-12 h-12 rounded-full bg-primary/30 flex items-center justify-center">
+                  <Trophy className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-warning" />
+                    <span className="font-bold text-primary">Contest Winners Announced!</span>
+                  </div>
+                  <p className="text-sm text-text-secondary">
+                    <Link to={`/contests/${announcement.contest_id}`} className="hover:text-primary font-semibold">
+                      {announcement.contest_title}
+                    </Link>
+                    {' • '}{formatTimeAgo(announcement.finalized_at)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Winners */}
+              <div className="p-4">
+                <div className="grid grid-cols-3 gap-4">
+                  {announcement.winners.map((winner) => (
+                    <Link
+                      key={winner.placement}
+                      to={`/users/${winner.username}`}
+                      className="flex flex-col items-center group"
+                    >
+                      {/* Entry Image */}
+                      {winner.entry_image && (
+                        <div className="w-full aspect-square rounded-lg overflow-hidden mb-3 border-2 border-transparent group-hover:border-primary transition-colors">
+                          <img
+                            src={winner.entry_image}
+                            alt={`${winner.username}'s entry`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      
+
+                      {/* Placement Badge */}
+                      <div className={`text-2xl mb-1 ${
+                        winner.placement === 1 ? 'animate-bounce' : ''
+                      }`}>
+                        {winner.placement === 1 ? '🥇' : winner.placement === 2 ? '🥈' : '🥉'}
+                      </div>
+                      
+
+                      {/* Avatar & Name */}
+                      <div className="flex items-center gap-2 mb-1">
+                        {winner.avatar_url ? (
+                          <img
+                            src={winner.avatar_url}
+                            alt={winner.username}
+                            className="w-6 h-6 rounded-full"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-bold">
+                            {winner.username.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="font-semibold text-sm group-hover:text-primary transition-colors">
+                          @{winner.username}
+                        </span>
+                      </div>
+                      
+
+                      {/* Prize */}
+                      <div className={`text-sm font-bold ${
+                        winner.placement === 1 ? 'text-yellow-500' :
+                        winner.placement === 2 ? 'text-gray-400' : 'text-amber-600'
+                      }`}>
+                        +{winner.prize_amount} pts
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* View Contest Link */}
+              <div className="px-4 pb-4">
+                <Link
+                  to={`/contests/${announcement.contest_id}`}
+                  className="block w-full py-2 text-center bg-primary/20 hover:bg-primary/30 rounded-lg text-primary font-semibold transition-colors"
+                >
+                  View Contest Results →
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Loading State */}
       {loading && (
         <div className="text-center py-12">
@@ -277,7 +450,7 @@ export default function FeedPage() {
 
       {/* Feed Entries */}
       {!loading && entries.length > 0 && (
-        <div className="space-y-6">
+        <div className="max-w-2xl mx-auto space-y-6">
           {entries.map((entry) => (
             <div key={entry.id} className="bg-surface rounded-lg border border-border overflow-hidden hover:border-primary transition-colors">
               {/* Artist Info */}
@@ -313,12 +486,14 @@ export default function FeedPage() {
               </div>
 
               {/* Entry Image */}
-              <Link to={`/entries/${entry.id}`}>
-                <img
-                  src={entry.phase_4_url}
-                  alt={entry.title || "Entry"}
-                  className="w-full aspect-video object-cover hover:opacity-90 transition-opacity"
-                />
+              <Link to={`/entries/${entry.id}`} className="block">
+                <div className="flex justify-center bg-black/20">
+                  <img
+                    src={entry.phase_4_url}
+                    alt={entry.title || "Entry"}
+                    className="max-h-[500px] w-auto max-w-full object-contain hover:opacity-90 transition-opacity"
+                  />
+                </div>
               </Link>
 
               {/* Title and Description */}

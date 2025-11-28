@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { supabase } from '../lib/supabase'
+import { useToastStore } from '../stores/toastStore'
 import { ArrowLeft, Eye, EyeOff, Mail } from 'lucide-react'
 
 export default function SignupPage() {
@@ -16,6 +17,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [showVerificationMessage, setShowVerificationMessage] = useState(false)
   const [registeredEmail, setRegisteredEmail] = useState('')
+  const toast = useToastStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,9 +58,9 @@ export default function SignupPage() {
         email: registeredEmail
       })
       if (error) throw error
-      alert('Verification email sent! Check your inbox.')
+      toast.success('Verification email sent! Check your inbox.')
     } catch (err: any) {
-      alert(err.message || 'Failed to resend email')
+      toast.error(err.message || 'Failed to resend email')
     }
   }
 

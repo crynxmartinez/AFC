@@ -9,6 +9,7 @@ interface AuthState {
   user: User | null
   profile: UserProfile | null
   loading: boolean
+  initialized: boolean
   signUp: (email: string, password: string, username: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
@@ -16,12 +17,22 @@ interface AuthState {
   initialize: () => Promise<void>
 }
 
+// Track if we've already set up the auth listener to prevent duplicates
+let authListenerSetup = false
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   profile: null,
   loading: true,
+  initialized: false,
 
   initialize: async () => {
+    // Prevent multiple initializations
+    if (get().initialized || authListenerSetup) {
+      return
+    }
+    authListenerSetup = true
+
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
@@ -31,50 +42,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       console.error('Initialize error:', error)
     } finally {
-      set({ loading: false })
+      set({ loading: false, initialized: true })
     }
 
-    // Listen for auth changes
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, 'Has session:', !!session)
-      
-      // Handle token refresh - don't refetch profile, just update user
-      if (event === 'TOKEN_REFRESHED') {
-        console.log('Token refreshed successfully')
-        set({ user: session?.user ?? null })
-        return
-      }
-      
-      // Handle signed out
+    // Listen for auth changes - only handle SIGNED_OUT
+    // All other events are handled by getSession() above
+    supabase.auth.onAuthStateChange(async (event) => {
+      // Only handle sign out - everything else causes unnecessary re-renders
       if (event === 'SIGNED_OUT') {
         set({ user: null, profile: null })
-        return
       }
-      
-      // Only fetch profile on INITIAL_SESSION (when app loads)
-      if (event === 'INITIAL_SESSION') {
-        console.log('INITIAL_SESSION: Setting user and fetching profile')
-        set({ user: session?.user ?? null })
-        if (session?.user) {
-          await get().fetchProfile()
-        } else {
-          set({ profile: null })
-        }
-        return
-      }
-      
-      // For SIGNED_IN, update user and fetch profile ONLY if we don't have one
-      if (event === 'SIGNED_IN') {
-        console.log('SIGNED_IN: Updating user')
-        const currentProfile = get().profile
-        set({ user: session?.user ?? null })
-        
-        // Only fetch profile if we don't have one yet
-        if (session?.user && !currentProfile) {
-          console.log('SIGNED_IN: No profile found, fetching...')
-          await get().fetchProfile()
-        }
-      }
+      // Ignore all other events - they fire too frequently and cause feed reloads
     })
   },
 

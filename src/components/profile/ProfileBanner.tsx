@@ -1,7 +1,8 @@
 // @ts-nocheck
 import { useState } from 'react'
-import { Camera, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { Camera, X, Trash2 } from 'lucide-react'
+import { useToastStore } from '@/stores/toastStore'
 import { useAuthStore } from '@/stores/authStore'
 
 type Props = {
@@ -15,6 +16,7 @@ export default function ProfileBanner({ coverPhotoUrl, userId, isOwnProfile, onU
   const { user } = useAuthStore()
   const [uploading, setUploading] = useState(false)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
+  const toast = useToastStore()
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !user) return
@@ -23,13 +25,13 @@ export default function ProfileBanner({ coverPhotoUrl, userId, isOwnProfile, onU
     
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB')
+      toast.error('File size must be less than 5MB')
       return
     }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file')
+      toast.error('Please upload an image file')
       return
     }
 
@@ -72,9 +74,10 @@ export default function ProfileBanner({ coverPhotoUrl, userId, isOwnProfile, onU
       if (updateError) throw updateError
 
       onUpdate?.()
+      toast.success('Cover photo updated!')
     } catch (error) {
       console.error('Error uploading cover photo:', error)
-      alert('Failed to upload cover photo')
+      toast.error('Failed to upload cover photo')
     } finally {
       setUploading(false)
     }
@@ -104,9 +107,10 @@ export default function ProfileBanner({ coverPhotoUrl, userId, isOwnProfile, onU
 
       setShowRemoveConfirm(false)
       onUpdate?.()
+      toast.success('Cover photo removed')
     } catch (error) {
       console.error('Error removing cover photo:', error)
-      alert('Failed to remove cover photo')
+      toast.error('Failed to remove cover photo')
     } finally {
       setUploading(false)
     }

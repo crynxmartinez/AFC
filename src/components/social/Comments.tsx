@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { formatDate } from '@/lib/utils'
-import { MessageCircle, Send, Reply, Trash2, Edit2, ArrowUp, ArrowDown } from 'lucide-react'
+import { MessageCircle, Send, Reply, Trash2, Edit2, ArrowUp, ArrowDown, AlertTriangle } from 'lucide-react'
+import { useToastStore } from '@/stores/toastStore'
 import { Link } from 'react-router-dom'
 import CommentReactionPicker from './CommentReactionPicker'
 
@@ -40,6 +41,8 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'likes'>('newest')
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const toast = useToastStore()
 
   useEffect(() => {
     fetchComments()
@@ -152,7 +155,7 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
       await fetchComments()
     } catch (error) {
       console.error('Error submitting comment:', error)
-      alert('Failed to post comment. Please try again.')
+      toast.error('Failed to post comment')
     } finally {
       setSubmitting(false)
     }
@@ -179,15 +182,14 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
       await fetchComments()
     } catch (error) {
       console.error('Error submitting reply:', error)
-      alert('Failed to post reply. Please try again.')
+      toast.error('Failed to post reply')
     } finally {
       setSubmitting(false)
     }
   }
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!confirm('Are you sure you want to delete this comment?')) return
-
+    setDeleteConfirmId(null)
     try {
       const { error } = await supabase
         .from('entry_comments')
@@ -196,9 +198,10 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
 
       if (error) throw error
       await fetchComments()
+      toast.success('Comment deleted')
     } catch (error) {
       console.error('Error deleting comment:', error)
-      alert('Failed to delete comment.')
+      toast.error('Failed to delete comment')
     }
   }
 
@@ -222,7 +225,7 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
       await fetchComments()
     } catch (error) {
       console.error('Error editing comment:', error)
-      alert('Failed to edit comment.')
+      toast.error('Failed to edit comment')
     } finally {
       setSubmitting(false)
     }
@@ -339,7 +342,7 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDeleteComment(comment.id)}
+                  onClick={() => setDeleteConfirmId(comment.id)}
                   className="flex items-center gap-1 text-sm text-error hover:text-error/80 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -492,6 +495,37 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
         </div>
       ) : (
         <div>{sortedComments.map((comment) => renderComment(comment))}</div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-xl border border-border max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-error/20 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-error" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Delete Comment?</h3>
+                <p className="text-sm text-text-secondary">This cannot be undone</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="flex-1 px-4 py-2 bg-background hover:bg-border rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteComment(deleteConfirmId)}
+                className="flex-1 px-4 py-2 bg-error hover:bg-error/80 rounded-lg font-medium transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

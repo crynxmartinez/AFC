@@ -28,7 +28,7 @@ BEGIN
     user_email,
     user_username,
     'user',
-    1000,  -- Starting points for new users
+    100,  -- Starting points for new users (100 free votes)
     0,
     0,
     1,

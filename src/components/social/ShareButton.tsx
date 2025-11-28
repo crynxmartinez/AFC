@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState } from 'react'
 import { Share2, Facebook, X } from 'lucide-react'
+import { useToastStore } from '@/stores/toastStore'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -36,6 +37,7 @@ export default function ShareButton({
   const [showModal, setShowModal] = useState(false)
   const [isSharing, setIsSharing] = useState(false)
   const { user } = useAuthStore()
+  const toast = useToastStore()
 
   const entryUrl = `${window.location.origin}/entries/${entry.id}`
   const artistName = entry.users.display_name || entry.users.username
@@ -110,7 +112,7 @@ export default function ShareButton({
         })
 
         // Show notification
-        alert('🎉 +10 XP for sharing!')
+        toast.success('🎉 +10 XP for sharing!')
       }
 
       // 4. Update user share stats

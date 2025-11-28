@@ -1,9 +1,10 @@
 // @ts-nocheck - Supabase type inference issues
 import { Link } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { Plus, AlertTriangle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { formatDate, getContestStatus } from '@/lib/utils'
+import { useToastStore } from '@/stores/toastStore'
 
 type Contest = {
   id: string
@@ -22,6 +23,8 @@ type Contest = {
 export default function AdminContests() {
   const [contests, setContests] = useState<Contest[]>([])
   const [loading, setLoading] = useState(true)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const toast = useToastStore()
 
   useEffect(() => {
     fetchContests()
@@ -68,8 +71,7 @@ export default function AdminContests() {
   }
 
   const deleteContest = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this contest?')) return
-
+    setDeleteConfirmId(null)
     try {
       const { error } = await supabase
         .from('contests')
@@ -79,8 +81,9 @@ export default function AdminContests() {
       if (error) throw error
 
       setContests(contests.filter((c) => c.id !== id))
+      toast.success('Contest deleted')
     } catch (error: any) {
-      alert('Failed to delete contest: ' + error.message)
+      toast.error('Failed to delete contest: ' + error.message)
     }
   }
 
@@ -94,8 +97,9 @@ export default function AdminContests() {
       if (error) throw error
 
       setContests(contests.map((c) => (c.id === id ? { ...c, status: newStatus } : c)))
+      toast.success('Status updated')
     } catch (error: any) {
-      alert('Failed to update status: ' + error.message)
+      toast.error('Failed to update status: ' + error.message)
     }
   }
 
@@ -191,7 +195,7 @@ export default function AdminContests() {
                   </Link>
                 )}
                 <button
-                  onClick={() => deleteContest(contest.id)}
+                  onClick={() => setDeleteConfirmId(contest.id)}
                   className="px-4 py-2 bg-error/20 hover:bg-error/30 text-error rounded-lg text-sm font-medium transition-colors"
                 >
                   Delete
@@ -199,6 +203,37 @@ export default function AdminContests() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-xl border border-border max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-error/20 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-error" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Delete Contest?</h3>
+                <p className="text-sm text-text-secondary">This will also delete all entries</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="flex-1 px-4 py-2 bg-background hover:bg-border rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteContest(deleteConfirmId)}
+                className="flex-1 px-4 py-2 bg-error hover:bg-error/80 rounded-lg font-medium transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

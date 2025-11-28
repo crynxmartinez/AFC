@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { UserPlus, UserMinus } from 'lucide-react'
+import { useToastStore } from '@/stores/toastStore'
 
 type Props = {
   userId: string
@@ -16,12 +17,16 @@ export default function FollowButton({ userId, username, onFollowChange, size = 
   const [isFollowing, setIsFollowing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(true)
+  const toast = useToastStore()
+
+  // Use currentUserId to prevent refetch on auth state changes
+  const currentUserId = user?.id
 
   useEffect(() => {
-    if (user && userId) {
+    if (currentUserId && userId) {
       checkFollowStatus()
     }
-  }, [user, userId])
+  }, [currentUserId, userId])
 
   const checkFollowStatus = async () => {
     if (!user) return
@@ -45,12 +50,12 @@ export default function FollowButton({ userId, username, onFollowChange, size = 
 
   const handleFollow = async () => {
     if (!user) {
-      alert('Please login to follow artists')
+      toast.warning('Please login to follow artists')
       return
     }
 
     if (user.id === userId) {
-      alert("You can't follow yourself!")
+      toast.info("You can't follow yourself!")
       return
     }
 
@@ -83,7 +88,7 @@ export default function FollowButton({ userId, username, onFollowChange, size = 
       onFollowChange?.()
     } catch (error) {
       console.error('Error toggling follow:', error)
-      alert('Failed to update follow status. Please try again.')
+      toast.error('Failed to update follow status')
     } finally {
       setLoading(false)
     }

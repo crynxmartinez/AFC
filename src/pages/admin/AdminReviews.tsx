@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { formatTimeAgo } from '@/lib/utils'
 import { Check, X } from 'lucide-react'
+import { useToastStore } from '@/stores/toastStore'
 
 type Entry = {
   id: string
@@ -30,6 +31,7 @@ export default function AdminReviews() {
   const [filter, setFilter] = useState<'pending_review' | 'all'>('pending_review')
   const [rejectionReason, setRejectionReason] = useState('')
   const [rejectingId, setRejectingId] = useState<string | null>(null)
+  const toast = useToastStore()
 
   useEffect(() => {
     fetchEntries()
@@ -86,15 +88,15 @@ export default function AdminReviews() {
       if (error) throw error
 
       setEntries(entries.filter((e) => e.id !== id))
-      alert('Entry approved!')
+      toast.success('Entry approved!')
     } catch (error: any) {
-      alert('Failed to approve: ' + error.message)
+      toast.error('Failed to approve: ' + error.message)
     }
   }
 
   const rejectEntry = async (id: string) => {
     if (!rejectionReason.trim()) {
-      alert('Please provide a rejection reason')
+      toast.warning('Please provide a rejection reason')
       return
     }
 
@@ -112,9 +114,9 @@ export default function AdminReviews() {
       setEntries(entries.filter((e) => e.id !== id))
       setRejectingId(null)
       setRejectionReason('')
-      alert('Entry rejected')
+      toast.success('Entry rejected')
     } catch (error: any) {
-      alert('Failed to reject: ' + error.message)
+      toast.error('Failed to reject: ' + error.message)
     }
   }
 

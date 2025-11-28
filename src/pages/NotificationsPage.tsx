@@ -20,11 +20,14 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Use user.id to prevent refetch on auth state changes
+  const userId = user?.id
+
   useEffect(() => {
-    if (user) {
+    if (userId) {
       fetchNotifications()
     }
-  }, [user])
+  }, [userId])
 
   const fetchNotifications = async () => {
     if (!user) return

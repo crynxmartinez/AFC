@@ -1,9 +1,10 @@
 // @ts-nocheck
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
+import { useToastStore } from '@/stores/toastStore'
 import { X, UserPlus, UserCheck } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const REACTIONS = [
   { type: 'like', emoji: '👍' },
@@ -33,7 +34,8 @@ type Props = {
 export default function WhoReactedModal({ entryId, onClose }: Props) {
   const { user } = useAuthStore()
   const [reactions, setReactions] = useState<Reaction[]>([])
-  const [following, setFollowing] = useState<Set<string>>(new Set())
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set())
+  const toast = useToastStore()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -74,8 +76,8 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
 
       if (error) throw error
       
-      const followingIds = new Set(data?.map(f => f.following_id) || [])
-      setFollowing(followingIds)
+      const ids = new Set(data?.map(f => f.following_id) || [])
+      setFollowingIds(ids)
     } catch (error) {
       console.error('Error fetching following:', error)
     }
@@ -83,12 +85,12 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
 
   const handleFollow = async (userId: string) => {
     if (!user) {
-      alert('Please login to follow users')
+      toast.warning('Please login to follow users')
       return
     }
 
     try {
-      if (following.has(userId)) {
+      if (followingIds.has(userId)) {
         // Unfollow
         const { error } = await supabase
           .from('follows')
@@ -98,7 +100,7 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
 
         if (error) throw error
         
-        setFollowing(prev => {
+        setFollowingIds(prev => {
           const newSet = new Set(prev)
           newSet.delete(userId)
           return newSet
@@ -114,11 +116,11 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
 
         if (error) throw error
         
-        setFollowing(prev => new Set(prev).add(userId))
+        setFollowingIds(prev => new Set(prev).add(userId))
       }
     } catch (error) {
       console.error('Error following/unfollowing:', error)
-      alert('Failed to update follow status')
+      toast.error('Failed to update follow status')
     }
   }
 
@@ -181,12 +183,12 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
                     <button
                       onClick={() => handleFollow(reaction.users.id)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                        following.has(reaction.users.id)
+                        followingIds.has(reaction.users.id)
                           ? 'bg-surface border border-border hover:bg-background text-text-secondary'
                           : 'bg-primary text-white hover:bg-primary/80'
                       }`}
                     >
-                      {following.has(reaction.users.id) ? (
+                      {followingIds.has(reaction.users.id) ? (
                         <>
                           <UserCheck className="w-4 h-4" />
                           Following

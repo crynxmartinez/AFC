@@ -3,7 +3,8 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
-import { Bell, X, Heart, MessageCircle, Trophy, UserPlus } from 'lucide-react'
+import { Bell, X, Heart, MessageCircle, Trophy, UserPlus, AlertTriangle } from 'lucide-react'
+import { useToastStore } from '@/stores/toastStore'
 import { formatTimeAgo } from '@/lib/utils'
 import { usePendingReviews } from '@/hooks/usePendingReviews'
 
@@ -28,14 +29,19 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [showDropdown, setShowDropdown] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { pendingCount } = usePendingReviews()
+  const toast = useToastStore()
   
   // Total badge count includes unread notifications + pending reviews for admins
   const totalBadgeCount = unreadCount + (profile?.role === 'admin' ? pendingCount : 0)
 
+  // Use user.id to prevent refetch on auth state changes
+  const userId = user?.id
+
   useEffect(() => {
-    if (user) {
+    if (userId) {
       fetchNotifications()
       
       // Set up realtime subscription
@@ -47,7 +53,7 @@ export default function NotificationBell() {
             event: 'INSERT',
             schema: 'public',
             table: 'notifications',
-            filter: `user_id=eq.${user.id}`,
+            filter: `user_id=eq.${userId}`,
           },
           () => {
             fetchNotifications()
@@ -59,7 +65,7 @@ export default function NotificationBell() {
         supabase.removeChannel(channel)
       }
     }
-  }, [user])
+  }, [userId])
 
   useEffect(() => {
     // Close dropdown when clicking outside
@@ -151,8 +157,9 @@ export default function NotificationBell() {
   }
 
   const clearAllNotifications = async () => {
-    if (!user || !confirm('Clear all notifications? This cannot be undone.')) return
+    if (!user) return
 
+    setShowClearConfirm(false)
     setLoading(true)
     try {
       const { error } = await supabase
@@ -164,8 +171,10 @@ export default function NotificationBell() {
 
       setNotifications([])
       setUnreadCount(0)
+      toast.success('All notifications cleared')
     } catch (error) {
       console.error('Error clearing notifications:', error)
+      toast.error('Failed to clear notifications')
     } finally {
       setLoading(false)
     }
@@ -257,7 +266,7 @@ export default function NotificationBell() {
                 )}
                 {notifications.length > 0 && (
                   <button
-                    onClick={clearAllNotifications}
+                    onClick={() => setShowClearConfirm(true)}
                     disabled={loading}
                     className="text-sm text-error hover:underline disabled:opacity-50"
                   >
@@ -376,6 +385,37 @@ export default function NotificationBell() {
               </Link>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Clear Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+          <div className="bg-surface rounded-xl border border-border max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-error/20 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-error" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Clear All Notifications?</h3>
+                <p className="text-sm text-text-secondary">This cannot be undone</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="flex-1 px-4 py-2 bg-background hover:bg-border rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={clearAllNotifications}
+                className="flex-1 px-4 py-2 bg-error hover:bg-error/80 rounded-lg font-medium transition-colors"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

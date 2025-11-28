@@ -1,4 +1,9 @@
+import { useToastStore } from '@/stores/toastStore'
+import { Construction } from 'lucide-react'
+
 export default function PointsPage() {
+  const toast = useToastStore()
+
   const packages = [
     { name: 'Starter', price: 20, bonus: 2, total: 22 },
     { name: 'Basic', price: 50, bonus: 5, total: 55 },
@@ -7,12 +12,25 @@ export default function PointsPage() {
     { name: 'Champion', price: 1000, bonus: 250, total: 1250 },
   ]
 
+  const handlePurchase = () => {
+    toast.info('Payment integration coming soon! 🚀')
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-2">Buy Points</h1>
-      <p className="text-text-secondary mb-8">
+      <p className="text-text-secondary mb-4">
         1 point = ₱1 = 1 vote • Points never expire
       </p>
+
+      {/* Coming Soon Notice */}
+      <div className="mb-8 p-4 bg-warning/10 border border-warning/30 rounded-lg flex items-center gap-3">
+        <Construction className="w-6 h-6 text-warning flex-shrink-0" />
+        <div>
+          <p className="font-semibold text-warning">Payment Integration Coming Soon</p>
+          <p className="text-sm text-text-secondary">We're integrating with SaligPay for secure payments. Stay tuned!</p>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {packages.map((pkg) => (
@@ -45,7 +63,10 @@ export default function PointsPage() {
                 <span className="font-bold text-primary">{pkg.total}</span>
               </div>
             </div>
-            <button className="w-full py-2 bg-primary hover:bg-primary-hover rounded-lg font-semibold transition-colors">
+            <button 
+              onClick={handlePurchase}
+              className="w-full py-2 bg-primary hover:bg-primary-hover rounded-lg font-semibold transition-colors"
+            >
               Purchase
             </button>
           </div>

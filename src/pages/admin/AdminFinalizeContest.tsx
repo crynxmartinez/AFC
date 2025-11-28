@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { Trophy, Medal, Award, ArrowLeft, AlertCircle } from 'lucide-react'
+import { Trophy, Medal, Award, ArrowLeft, AlertCircle, X } from 'lucide-react'
+import { useToastStore } from '@/stores/toastStore'
 
 type Entry = {
   id: string
@@ -31,6 +32,8 @@ export default function AdminFinalizeContest() {
   const [topEntries, setTopEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
   const [finalizing, setFinalizing] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const toast = useToastStore()
 
   useEffect(() => {
     if (id) {
@@ -85,19 +88,20 @@ export default function AdminFinalizeContest() {
       setTopEntries(sorted.slice(0, 3))
     } catch (error) {
       console.error('Error fetching data:', error)
-      alert('Failed to load contest data')
+      toast.error('Failed to load contest data')
     } finally {
       setLoading(false)
     }
   }
 
+  const handleFinalizeClick = () => {
+    setShowConfirmModal(true)
+  }
+
   const finalizeContest = async () => {
     if (!contest || !id) return
 
-    if (!confirm('Are you sure you want to finalize this contest? This will distribute prizes to the top 3 winners and cannot be undone.')) {
-      return
-    }
-
+    setShowConfirmModal(false)
     setFinalizing(true)
 
     try {
@@ -111,15 +115,16 @@ export default function AdminFinalizeContest() {
       if (data && data.length > 0) {
         const result = data[0]
         if (result.success) {
-          alert(`✅ Contest finalized successfully!\n\n🥇 1st Place: ${result.prize_1st} pts\n🥈 2nd Place: ${result.prize_2nd} pts\n🥉 3rd Place: ${result.prize_3rd} pts\n\nTotal Prize Pool: ${result.total_prize_pool} pts`)
-          navigate('/admin/contests')
+          toast.success(`🎉 Contest finalized! Prizes distributed to winners.`)
+          // Small delay to show toast before navigating
+          setTimeout(() => navigate('/admin/contests'), 1500)
         } else {
-          alert(`❌ Error: ${result.message}`)
+          toast.error(`Error: ${result.message}`)
         }
       }
     } catch (error) {
       console.error('Error finalizing contest:', error)
-      alert('Failed to finalize contest. Please try again.')
+      toast.error('Failed to finalize contest. Please try again.')
     } finally {
       setFinalizing(false)
     }
@@ -328,7 +333,7 @@ export default function AdminFinalizeContest() {
 
       <div className="flex gap-4">
         <button
-          onClick={finalizeContest}
+          onClick={handleFinalizeClick}
           disabled={finalizing || topEntries.length === 0}
           className="flex-1 px-6 py-3 bg-success hover:bg-success/80 disabled:bg-success/50 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
         >
@@ -351,6 +356,68 @@ export default function AdminFinalizeContest() {
           Cancel
         </Link>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-xl border border-border max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-warning/20 flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-warning" />
+                </div>
+                <h3 className="text-xl font-bold">Confirm Finalization</h3>
+              </div>
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="p-2 hover:bg-background rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-text-secondary mb-4">
+                Are you sure you want to finalize <span className="font-semibold text-white">{contest.title}</span>?
+              </p>
+              <div className="bg-background rounded-lg p-4 space-y-2 text-sm">
+                <p className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-primary" />
+                  <span>🥇 1st Place: <span className="font-bold text-primary">{prize1st} pts</span></span>
+                </p>
+                <p className="flex items-center gap-2">
+                  <Medal className="w-4 h-4 text-gray-400" />
+                  <span>🥈 2nd Place: <span className="font-bold text-gray-400">{prize2nd} pts</span></span>
+                </p>
+                <p className="flex items-center gap-2">
+                  <Award className="w-4 h-4 text-amber-600" />
+                  <span>🥉 3rd Place: <span className="font-bold text-amber-600">{prize3rd} pts</span></span>
+                </p>
+              </div>
+              <p className="text-warning text-sm mt-4 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                This action cannot be undone!
+              </p>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 px-4 py-3 bg-background hover:bg-border rounded-lg font-semibold transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={finalizeContest}
+                className="flex-1 px-4 py-3 bg-success hover:bg-success/80 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+              >
+                <Trophy className="w-5 h-5" />
+                Confirm & Distribute
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
