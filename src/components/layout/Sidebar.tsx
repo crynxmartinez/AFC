@@ -1,15 +1,17 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Flame, Trophy, Users, PlusCircle, LayoutDashboard, FileText, UserCog, Award, TrendingUp, Rss } from 'lucide-react'
+import { Home, Flame, Trophy, Users, PlusCircle, LayoutDashboard, FileText, UserCog, Award, TrendingUp, Rss, MessageSquare } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { cn } from '../../lib/utils'
 import XPProgressBar from '../xp/XPProgressBar'
 import { usePendingReviews } from '../../hooks/usePendingReviews'
+import { useContactMessages } from '../../hooks/useContactMessages'
 
 export default function Sidebar() {
   const location = useLocation()
   const { profile } = useAuthStore()
   const isAdmin = profile?.role === 'admin'
   const { pendingCount } = usePendingReviews()
+  const { unreadCount } = useContactMessages()
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
@@ -25,6 +27,7 @@ export default function Sidebar() {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
     { icon: FileText, label: 'Contests', path: '/admin/contests' },
     { icon: FileText, label: 'Reviews', path: '/admin/reviews' },
+    { icon: MessageSquare, label: 'Messages', path: '/admin/messages' },
     { icon: UserCog, label: 'Users', path: '/admin/users' },
     { icon: Award, label: 'XP System', path: '/admin/xp-system' },
   ]
@@ -65,7 +68,10 @@ export default function Sidebar() {
               {adminItems.map((item) => {
                 const Icon = item.icon
                 const isActive = location.pathname === item.path
-                const showBadge = item.path === '/admin/reviews' && pendingCount > 0
+                const showReviewBadge = item.path === '/admin/reviews' && pendingCount > 0
+                const showMessageBadge = item.path === '/admin/messages' && unreadCount > 0
+                const badgeCount = showReviewBadge ? pendingCount : showMessageBadge ? unreadCount : 0
+                const showBadge = showReviewBadge || showMessageBadge
                 return (
                   <Link
                     key={item.path}
@@ -81,7 +87,7 @@ export default function Sidebar() {
                     <span className="font-medium">{item.label}</span>
                     {showBadge && (
                       <span className="ml-auto bg-error text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                        {pendingCount}
+                        {badgeCount}
                       </span>
                     )}
                   </Link>

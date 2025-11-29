@@ -46,6 +46,7 @@ const AdminFinalizeContest = lazy(() => import('./pages/admin/AdminFinalizeConte
 const AdminReviews = lazy(() => import('./pages/admin/AdminReviews'))
 const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminXPSystem = lazy(() => import('./pages/admin/AdminXPSystem'))
+const AdminMessages = lazy(() => import('./pages/admin/AdminMessages'))
 
 // Lazy load legal pages (rarely accessed)
 const AboutPage = lazy(() => import('./pages/AboutPage'))
@@ -111,6 +112,7 @@ function App() {
             <Route path="/admin/reviews" element={<AdminReviews />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/xp-system" element={<AdminXPSystem />} />
+            <Route path="/admin/messages" element={<AdminMessages />} />
           </Route>
 
           {/* Fallback */}
