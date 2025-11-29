@@ -158,7 +158,7 @@ export default function AdminContests() {
                       <option value="ended">Ended</option>
                     </select>
                   </div>
-                  <p className="text-sm text-text-secondary mb-3 line-clamp-2">{contest.description}</p>
+                  <p className="text-sm text-text-secondary mb-3 line-clamp-2 whitespace-pre-line">{contest.description}</p>
                   <div className="flex gap-6 text-sm text-text-secondary">
                     <span>{contest.entry_count || 0} entries</span>
                     <span>Start: {formatDate(contest.start_date)}</span>

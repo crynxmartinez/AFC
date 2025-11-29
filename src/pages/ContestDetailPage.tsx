@@ -217,7 +217,7 @@ export default function ContestDetailPage() {
           )}
         </div>
 
-        <p className="text-text-secondary text-lg mb-6">{contest.description}</p>
+        <p className="text-text-secondary text-lg mb-6 whitespace-pre-line">{contest.description}</p>
 
         {/* Sponsor Section */}
         {contest.has_sponsor && contest.sponsor_name && (
