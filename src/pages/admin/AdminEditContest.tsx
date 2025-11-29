@@ -154,8 +154,8 @@ export default function AdminEditContest() {
         .update({
           title,
           description,
-          start_date: new Date(startDate).toISOString(),
-          end_date: new Date(endDate).toISOString(),
+          start_date: new Date(startDate + 'T00:00:00+08:00').toISOString(),
+          end_date: new Date(endDate + 'T23:59:59+08:00').toISOString(),
           thumbnail_url: thumbnailUrl,
           has_sponsor: hasSponsor,
           sponsor_name: hasSponsor ? sponsorName : null,
