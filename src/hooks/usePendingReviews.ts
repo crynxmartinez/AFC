@@ -11,7 +11,8 @@ export function usePendingReviews() {
     if (profile?.role === 'admin') {
       fetchPendingCount()
       
-      // Set up real-time subscription
+      // Set up real-time subscription - listen to ALL entry changes
+      // (not just pending_review, because we need to catch when status changes FROM pending_review)
       const channel = supabase
         .channel('pending-reviews')
         .on(
@@ -19,8 +20,7 @@ export function usePendingReviews() {
           {
             event: '*',
             schema: 'public',
-            table: 'entries',
-            filter: 'status=eq.pending_review'
+            table: 'entries'
           },
           () => {
             fetchPendingCount()
@@ -28,8 +28,13 @@ export function usePendingReviews() {
         )
         .subscribe()
 
+      // Listen for manual updates from AdminReviews page
+      const handleUpdate = () => fetchPendingCount()
+      window.addEventListener('pending-reviews-updated', handleUpdate)
+
       return () => {
         supabase.removeChannel(channel)
+        window.removeEventListener('pending-reviews-updated', handleUpdate)
       }
     }
   }, [profile?.role])

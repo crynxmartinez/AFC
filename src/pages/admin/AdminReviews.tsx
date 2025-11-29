@@ -89,6 +89,9 @@ export default function AdminReviews() {
 
       setEntries(entries.filter((e) => e.id !== id))
       toast.success('Entry approved!')
+      
+      // Dispatch event to update sidebar badge
+      window.dispatchEvent(new CustomEvent('pending-reviews-updated'))
     } catch (error: any) {
       toast.error('Failed to approve: ' + error.message)
     }
@@ -115,6 +118,9 @@ export default function AdminReviews() {
       setRejectingId(null)
       setRejectionReason('')
       toast.success('Entry rejected')
+      
+      // Dispatch event to update sidebar badge
+      window.dispatchEvent(new CustomEvent('pending-reviews-updated'))
     } catch (error: any) {
       toast.error('Failed to reject: ' + error.message)
     }
