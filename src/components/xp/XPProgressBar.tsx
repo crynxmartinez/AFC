@@ -30,9 +30,9 @@ export default function XPProgressBar() {
     }
   }
 
-  if (loading || !progress) {
+  if (loading) {
     return (
-      <div className="px-4 py-3 bg-surface rounded-lg border border-border">
+      <div className="px-3 py-2 bg-surface rounded-lg border border-border">
         <div className="animate-pulse">
           <div className="h-4 bg-background rounded w-3/4 mb-2"></div>
           <div className="h-2 bg-background rounded"></div>
@@ -41,7 +41,10 @@ export default function XPProgressBar() {
     )
   }
 
-  const percentage = progress.progress_percentage || 0
+  // Use profile data as fallback if progress fetch fails
+  const currentXp = progress?.current_xp ?? profile?.xp ?? 0
+  const nextLevelXp = progress?.xp_for_next_level ?? ((profile?.level || 1) * 100)
+  const percentage = progress?.progress_percentage ?? 0
 
   return (
     <div className="px-3 py-2 bg-surface rounded-lg border border-border">
@@ -73,9 +76,9 @@ export default function XPProgressBar() {
 
       {/* XP Numbers */}
       <div className="flex justify-between text-xs text-text-secondary">
-        <span>{formatXP(progress.current_xp)} XP</span>
+        <span>{formatXP(currentXp)} XP</span>
         <span>{percentage}%</span>
-        <span>{formatXP(progress.xp_for_next_level)} XP</span>
+        <span>{formatXP(nextLevelXp)} XP</span>
       </div>
     </div>
   )
