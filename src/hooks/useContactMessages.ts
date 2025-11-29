@@ -27,8 +27,13 @@ export function useContactMessages() {
         )
         .subscribe()
 
+      // Listen for manual updates from AdminMessages page
+      const handleUpdate = () => fetchUnreadCount()
+      window.addEventListener('contact-messages-updated', handleUpdate)
+
       return () => {
         supabase.removeChannel(channel)
+        window.removeEventListener('contact-messages-updated', handleUpdate)
       }
     }
   }, [profile?.role])

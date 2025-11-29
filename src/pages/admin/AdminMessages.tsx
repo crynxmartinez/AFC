@@ -77,6 +77,9 @@ export default function AdminMessages() {
       setMessages(prev => prev.map(msg => 
         msg.id === id ? { ...msg, status: 'read', read_at: new Date().toISOString() } : msg
       ))
+      
+      // Dispatch event to update sidebar badge
+      window.dispatchEvent(new CustomEvent('contact-messages-updated'))
       toast.success('Marked as read')
     } catch (error) {
       console.error('Error marking as read:', error)
@@ -100,6 +103,9 @@ export default function AdminMessages() {
       setMessages(prev => prev.map(msg => 
         msg.id === id ? { ...msg, status: 'resolved', resolved_at: new Date().toISOString() } : msg
       ))
+      
+      // Dispatch event to update sidebar badge
+      window.dispatchEvent(new CustomEvent('contact-messages-updated'))
       toast.success('Marked as resolved')
     } catch (error) {
       console.error('Error marking as resolved:', error)
