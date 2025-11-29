@@ -154,7 +154,6 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
           entry_id: entryId,
           user_id: user.id,
           comment_text: newComment.trim(),
-          mentioned_users: mentionedUsers.length > 0 ? mentionedUsers : null,
         })
 
       if (error) throw error
@@ -182,7 +181,6 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
           user_id: user.id,
           parent_comment_id: parentId,
           comment_text: replyText.trim(),
-          mentioned_users: replyMentionedUsers.length > 0 ? replyMentionedUsers : null,
         })
 
       if (error) throw error
@@ -243,34 +241,50 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
   }
 
   const handlePinComment = async (commentId: string, isPinned: boolean) => {
-    if (!user || user.id !== entryOwnerId) return
+    if (!user) {
+      toast.error('You must be logged in')
+      return
+    }
+    if (user.id !== entryOwnerId) {
+      toast.error('Only the entry owner can pin comments')
+      return
+    }
 
     try {
       // If pinning, first unpin any existing pinned comment
       if (!isPinned) {
-        await supabase
+        const { error: unpinError } = await supabase
           .from('entry_comments')
           .update({ is_pinned: false, pinned_at: null })
           .eq('entry_id', entryId)
           .eq('is_pinned', true)
+        
+        if (unpinError) {
+          console.error('Error unpinning existing comment:', unpinError)
+        }
       }
 
       // Toggle pin status
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('entry_comments')
         .update({
           is_pinned: !isPinned,
           pinned_at: !isPinned ? new Date().toISOString() : null
         })
         .eq('id', commentId)
+        .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('Pin update error:', error)
+        throw error
+      }
 
+      console.log('Pin update result:', data)
       await fetchComments()
       toast.success(isPinned ? 'Comment unpinned' : 'Comment pinned')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error pinning comment:', error)
-      toast.error('Failed to pin comment')
+      toast.error(error.message || 'Failed to pin comment')
     }
   }
 
