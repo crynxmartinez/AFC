@@ -44,13 +44,13 @@ export default function XPProgressBar() {
   const percentage = progress.progress_percentage || 0
 
   return (
-    <div className="px-4 py-3 bg-surface rounded-lg border border-border">
+    <div className="px-3 py-2 bg-surface rounded-lg border border-border">
       {/* Level and Title */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1">
         <div>
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-primary" />
-            <span className="font-bold text-lg">Level {profile?.level || 1}</span>
+            <span className="font-bold text-base">Level {profile?.level || 1}</span>
           </div>
           <p className="text-xs text-text-secondary">{extendedProfile?.profile_title || 'Beginner'}</p>
         </div>
@@ -62,7 +62,7 @@ export default function XPProgressBar() {
       </div>
 
       {/* Progress Bar */}
-      <div className="mb-2">
+      <div className="mb-1">
         <div className="w-full bg-background rounded-full h-2 overflow-hidden">
           <div
             className="bg-gradient-to-r from-primary to-primary-hover h-2 rounded-full transition-all duration-500"
@@ -75,13 +75,8 @@ export default function XPProgressBar() {
       <div className="flex justify-between text-xs text-text-secondary">
         <span>{formatXP(progress.current_xp)} XP</span>
         <span>{percentage}%</span>
-        <span>{formatXP(progress.next_level_xp)} XP</span>
+        <span>{formatXP(progress.xp_for_next_level)} XP</span>
       </div>
-
-      {/* XP to Next Level */}
-      <p className="text-xs text-text-secondary text-center mt-1">
-        {formatXP(progress.xp_to_next_level)} XP to Level {(profile?.level || 1) + 1}
-      </p>
     </div>
   )
 }

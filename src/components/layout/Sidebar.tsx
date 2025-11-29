@@ -101,7 +101,7 @@ export default function Sidebar() {
 
       {/* XP Progress - Fixed at bottom */}
       {profile && (
-        <div className="flex-shrink-0 p-4 border-t border-border bg-surface">
+        <div className="flex-shrink-0 p-3 border-t border-border bg-surface">
           <XPProgressBar />
         </div>
       )}
