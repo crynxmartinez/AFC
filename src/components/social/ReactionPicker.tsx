@@ -91,7 +91,7 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
 
     try {
       if (userReaction === reactionType) {
-        // Remove reaction - refund 1 point
+        // Remove reaction (free - no point refund needed)
         const { error: deleteError } = await supabase
           .from('reactions')
           .delete()
@@ -99,16 +99,9 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
           .eq('user_id', user.id)
 
         if (deleteError) throw deleteError
-
-        // Refund 1 point to user
-        await supabase.rpc('add_points', {
-          user_id_param: user.id,
-          amount: 1
-        })
-
         setUserReaction(null)
       } else if (userReaction) {
-        // Update existing reaction (no point cost, just changing reaction type)
+        // Update existing reaction (just changing reaction type)
         const { error } = await supabase
           .from('reactions')
           .update({ reaction_type: reactionType })
@@ -118,35 +111,7 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
         if (error) throw error
         setUserReaction(reactionType)
       } else {
-        // Add new reaction - costs 1 point
-        // First check if user has enough points
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('points_balance')
-          .eq('id', user.id)
-          .single()
-
-        if (userError) throw userError
-
-        if (!userData || userData.points_balance < 1) {
-          toast.warning('You need at least 1 point to vote!')
-          setLoading(false)
-          return
-        }
-
-        // Deduct 1 point from user
-        const { data: deductResult } = await supabase.rpc('deduct_points', {
-          user_id_param: user.id,
-          amount: 1
-        })
-
-        if (!deductResult) {
-          toast.error('Failed to deduct points')
-          setLoading(false)
-          return
-        }
-
-        // Add reaction
+        // Add new reaction (free - no point cost for MVP)
         const { error: insertError } = await supabase
           .from('reactions')
           .insert({
@@ -155,14 +120,7 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
             reaction_type: reactionType,
           })
 
-        if (insertError) {
-          // Refund point if reaction insert fails
-          await supabase.rpc('add_points', {
-            user_id_param: user.id,
-            amount: 1
-          })
-          throw insertError
-        }
+        if (insertError) throw insertError
 
         setUserReaction(reactionType)
 
