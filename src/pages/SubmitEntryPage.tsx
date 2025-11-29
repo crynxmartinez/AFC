@@ -56,7 +56,9 @@ export default function SubmitEntryPage() {
       
       // Initialize phases based on contest category
       const category = (data.category || 'art') as ContestCategory
+      console.log('Contest category:', category, 'from data:', data.category)
       const configs = getPhasesForCategory(category)
+      console.log('Phase configs for', category, ':', configs.length, 'phases')
       setPhaseConfigs(configs)
       
       // Initialize phase files array
