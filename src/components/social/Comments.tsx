@@ -3,10 +3,12 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { formatDate } from '@/lib/utils'
-import { MessageCircle, Send, Reply, Trash2, Edit2, ArrowUp, ArrowDown, AlertTriangle } from 'lucide-react'
+import { MessageCircle, Send, Reply, Trash2, Edit2, Pin, PinOff, AlertTriangle } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
 import { Link } from 'react-router-dom'
 import CommentReactionPicker from './CommentReactionPicker'
+import MentionInput from './MentionInput'
+import MarkdownRenderer from '@/components/ui/MarkdownRenderer'
 
 type Comment = {
   id: string
@@ -16,6 +18,8 @@ type Comment = {
   comment_text: string
   created_at: string
   edited_at?: string | null
+  is_pinned?: boolean
+  pinned_at?: string | null
   reaction_counts?: Record<string, number>
   user_reaction?: string | null
   users: {
@@ -27,10 +31,11 @@ type Comment = {
 
 type Props = {
   entryId: string
+  entryOwnerId?: string
   onCommentCountChange?: (count: number) => void
 }
 
-export default function CommentSection({ entryId, onCommentCountChange }: Props) {
+export default function CommentSection({ entryId, entryOwnerId, onCommentCountChange }: Props) {
   const { user } = useAuthStore()
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
@@ -42,6 +47,8 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [mentionedUsers, setMentionedUsers] = useState<string[]>([])
+  const [replyMentionedUsers, setReplyMentionedUsers] = useState<string[]>([])
   const toast = useToastStore()
 
   useEffect(() => {
@@ -135,8 +142,8 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
     }
   }
 
-  const handleSubmitComment = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmitComment = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     if (!user || !newComment.trim()) return
 
     setSubmitting(true)
@@ -147,11 +154,13 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
           entry_id: entryId,
           user_id: user.id,
           comment_text: newComment.trim(),
+          mentioned_users: mentionedUsers.length > 0 ? mentionedUsers : null,
         })
 
       if (error) throw error
 
       setNewComment('')
+      setMentionedUsers([])
       await fetchComments()
     } catch (error) {
       console.error('Error submitting comment:', error)
@@ -173,12 +182,14 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
           user_id: user.id,
           parent_comment_id: parentId,
           comment_text: replyText.trim(),
+          mentioned_users: replyMentionedUsers.length > 0 ? replyMentionedUsers : null,
         })
 
       if (error) throw error
 
       setReplyText('')
       setReplyingTo(null)
+      setReplyMentionedUsers([])
       await fetchComments()
     } catch (error) {
       console.error('Error submitting reply:', error)
@@ -231,17 +242,57 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
     }
   }
 
+  const handlePinComment = async (commentId: string, isPinned: boolean) => {
+    if (!user || user.id !== entryOwnerId) return
+
+    try {
+      // If pinning, first unpin any existing pinned comment
+      if (!isPinned) {
+        await supabase
+          .from('entry_comments')
+          .update({ is_pinned: false, pinned_at: null })
+          .eq('entry_id', entryId)
+          .eq('is_pinned', true)
+      }
+
+      // Toggle pin status
+      const { error } = await supabase
+        .from('entry_comments')
+        .update({
+          is_pinned: !isPinned,
+          pinned_at: !isPinned ? new Date().toISOString() : null
+        })
+        .eq('id', commentId)
+
+      if (error) throw error
+
+      await fetchComments()
+      toast.success(isPinned ? 'Comment unpinned' : 'Comment pinned')
+    } catch (error) {
+      console.error('Error pinning comment:', error)
+      toast.error('Failed to pin comment')
+    }
+  }
+
 
   const sortComments = (comments: Comment[]) => {
     const sorted = [...comments]
+    
+    // First, separate pinned and unpinned comments
+    const pinned = sorted.filter(c => c.is_pinned)
+    const unpinned = sorted.filter(c => !c.is_pinned)
+    
+    // Sort unpinned comments based on selected sort
     if (sortBy === 'newest') {
-      sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      unpinned.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     } else if (sortBy === 'oldest') {
-      sorted.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      unpinned.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
     } else if (sortBy === 'likes') {
-      sorted.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
+      unpinned.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
     }
-    return sorted
+    
+    // Pinned comments always come first
+    return [...pinned, ...unpinned]
   }
 
   const renderComment = (comment: Comment, isReply = false) => (
@@ -264,13 +315,19 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
           )}
         </Link>
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <Link
               to={`/users/${comment.users.username}`}
               className="font-semibold hover:text-primary transition-colors"
             >
               @{comment.users.username}
             </Link>
+            {comment.is_pinned && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/20 text-primary text-xs font-medium rounded-full">
+                <Pin className="w-3 h-3" />
+                Pinned
+              </span>
+            )}
             <span className="text-xs text-text-secondary">
               {formatDate(comment.created_at)}
               {comment.edited_at && ' (edited)'}
@@ -307,7 +364,9 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
               </div>
             </div>
           ) : (
-            <p className="text-text-primary whitespace-pre-wrap">{comment.comment_text}</p>
+            <div className="text-text-primary">
+              <MarkdownRenderer content={comment.comment_text} />
+            </div>
           )}
 
           <div className="flex items-center gap-4 mt-2">
@@ -350,6 +409,22 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
                 </button>
               </>
             )}
+            
+            {/* Pin button - only for entry owner, only on top-level comments */}
+            {user?.id === entryOwnerId && !isReply && (
+              <button
+                onClick={() => handlePinComment(comment.id, comment.is_pinned || false)}
+                className={`flex items-center gap-1 text-sm transition-colors ${
+                  comment.is_pinned 
+                    ? 'text-primary hover:text-primary/80' 
+                    : 'text-text-secondary hover:text-primary'
+                }`}
+                title={comment.is_pinned ? 'Unpin comment' : 'Pin comment'}
+              >
+                {comment.is_pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                {comment.is_pinned ? 'Unpin' : 'Pin'}
+              </button>
+            )}
           </div>
 
           {/* Reply Form */}
@@ -362,14 +437,17 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
               className="mt-3"
             >
               <div className="flex flex-col gap-2">
-                <input
-                  type="text"
+                <MentionInput
                   value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Write a reply..."
-                  className="w-full px-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary"
+                  onChange={(value, mentions) => {
+                    setReplyText(value)
+                    setReplyMentionedUsers(mentions)
+                  }}
+                  placeholder="Write a reply... (use @ to mention users)"
                   disabled={submitting}
                   autoFocus
+                  className="py-2"
+                  onSubmit={() => handleSubmitReply(comment.id)}
                 />
                 <div className="flex gap-2 justify-end">
                   <button
@@ -377,6 +455,7 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
                     onClick={() => {
                       setReplyingTo(null)
                       setReplyText('')
+                      setReplyMentionedUsers([])
                     }}
                     className="px-4 py-2 text-sm bg-background hover:bg-border rounded-lg transition-colors"
                   >
@@ -453,13 +532,15 @@ export default function CommentSection({ entryId, onCommentCountChange }: Props)
               </div>
             )}
             <div className="flex-1 flex gap-2">
-              <input
-                type="text"
+              <MentionInput
                 value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Write a comment..."
-                className="flex-1 px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
+                onChange={(value, mentions) => {
+                  setNewComment(value)
+                  setMentionedUsers(mentions)
+                }}
+                placeholder="Write a comment... (use @ to mention users)"
                 disabled={submitting}
+                onSubmit={handleSubmitComment}
               />
               <button
                 type="submit"

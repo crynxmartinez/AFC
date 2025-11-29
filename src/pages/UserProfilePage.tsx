@@ -8,6 +8,7 @@ import FollowButton from '@/components/social/FollowButton'
 import ProfileStats from '@/components/profile/ProfileStats'
 import Achievements from '@/components/profile/Achievements'
 import ProfileBanner from '@/components/profile/ProfileBanner'
+import MarkdownRenderer from '@/components/ui/MarkdownRenderer'
 import { useAuthStore } from '@/stores/authStore'
 
 type UserProfile = {
@@ -348,7 +349,9 @@ export default function UserProfilePage() {
               </div>
 
               {profile.bio && (
-                <p className="text-text-secondary mt-4 mb-4">{profile.bio}</p>
+                <div className="text-text-secondary mt-4 mb-4">
+                  <MarkdownRenderer content={profile.bio} />
+                </div>
               )}
 
             {/* Social Links */}

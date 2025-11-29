@@ -321,9 +321,14 @@ export default function SettingsPage() {
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={4}
+              maxLength={500}
               className="w-full bg-background border border-border rounded-lg px-4 py-2 focus:outline-none focus:border-primary resize-none"
               placeholder="Tell us about yourself..."
             />
+            <div className="mt-2 flex items-center justify-between text-xs text-text-secondary">
+              <span>{bio.length}/500 characters</span>
+              <span>Supports: **bold**, *italic*, [links](url), @mentions</span>
+            </div>
           </div>
 
           {/* Social Links */}

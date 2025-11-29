@@ -296,7 +296,7 @@ export default function EntryDetailPage() {
 
           {/* Comments Section */}
           <div>
-            <Comments entryId={entry.id} onCommentCountChange={setCommentCount} />
+            <Comments entryId={entry.id} entryOwnerId={entry.user_id} onCommentCountChange={setCommentCount} />
           </div>
         </div>
       </div>
