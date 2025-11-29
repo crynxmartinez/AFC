@@ -30,7 +30,7 @@ export default function XPProgressBar() {
     }
   }
 
-  if (loading) {
+  if (loading || !progress) {
     return (
       <div className="px-3 py-2 bg-surface rounded-lg border border-border">
         <div className="animate-pulse">
