@@ -33,8 +33,9 @@ export default function Sidebar() {
   ]
 
   return (
-    <aside className="hidden md:block fixed left-0 top-16 bottom-0 w-64 bg-surface border-r border-border overflow-y-auto scrollbar-hide">
-      <div className="p-4 space-y-6">
+    <aside className="hidden md:block fixed left-0 top-16 bottom-0 w-64 bg-surface border-r border-border flex flex-col">
+      {/* Scrollable Navigation */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide p-4 space-y-6">
         {/* Main Navigation */}
         <nav className="space-y-1">
           {navItems.map((item) => {
@@ -96,10 +97,14 @@ export default function Sidebar() {
             </nav>
           </div>
         )}
-
-        {/* XP Progress */}
-        {profile && <XPProgressBar />}
       </div>
+
+      {/* XP Progress - Fixed at bottom */}
+      {profile && (
+        <div className="flex-shrink-0 p-4 border-t border-border bg-surface">
+          <XPProgressBar />
+        </div>
+      )}
     </aside>
   )
 }
