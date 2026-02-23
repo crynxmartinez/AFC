@@ -355,6 +355,28 @@ export const adminApi = {
     return apiRequest('/admin/users')
   },
 
+  getPendingEntries: async () => {
+    return apiRequest('/admin/entries?status=pending_review')
+  },
+
+  reviewEntry: async (entryId: string, status: string, reason: string | null) => {
+    return apiRequest(`/admin/entries/${entryId}/review`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, rejectionReason: reason }),
+    })
+  },
+
+  getMessages: async () => {
+    return apiRequest('/admin/messages')
+  },
+
+  updateMessage: async (messageId: string, data: any) => {
+    return apiRequest(`/admin/messages/${messageId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  },
+
   updateUserRole: async (userId: string, role: string) => {
     return apiRequest(`/admin/users/${userId}/role`, {
       method: 'PUT',

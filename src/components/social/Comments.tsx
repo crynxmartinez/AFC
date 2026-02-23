@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { commentsApi, commentReactionsApi, usersApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { formatDate } from '@/lib/utils'
 import { MessageCircle, Send, Reply, Trash2, Edit2, Pin, PinOff, AlertTriangle } from 'lucide-react'
@@ -58,63 +58,43 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
   const fetchComments = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('entry_comments')
-        .select('*')
-        .eq('entry_id', entryId)
-        .is('parent_comment_id', null)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
+      const response: any = await commentsApi.list(entryId)
+      const data = response.comments || []
 
       // Fetch user data and replies for each comment
       const commentsWithReplies = await Promise.all(
-        (data || []).map(async (comment: any) => {
+        data.map(async (comment: any) => {
           // Fetch user data for comment
-          const { data: userData } = await supabase
-            .from('users')
-            .select('username, avatar_url')
-            .eq('id', comment.user_id)
-            .single()
+          const userResponse: any = await usersApi.get(comment.userId)
+          const userData = userResponse.user
 
           // Check user's reaction on this comment
           let userReaction = null
           if (user) {
-            const { data: reactionData } = await supabase
-              .from('comment_reactions')
-              .select('reaction_type')
-              .eq('comment_id', comment.id)
-              .eq('user_id', user.id)
-              .maybeSingle()
-            userReaction = reactionData?.reaction_type || null
+            const reactionsResponse: any = await commentReactionsApi.get(comment.id)
+            const reactions = reactionsResponse.reactions || []
+            const myReaction = reactions.find((r: any) => r.userId === user.id)
+            userReaction = myReaction?.reactionType || null
           }
 
-          // Fetch replies
-          const { data: repliesData } = await supabase
-            .from('entry_comments')
-            .select('*')
-            .eq('parent_comment_id', comment.id)
-            .order('created_at', { ascending: true })
+          // Fetch replies (comments with this comment as parent)
+          const repliesResponse: any = await commentsApi.list(entryId)
+          const allComments = repliesResponse.comments || []
+          const repliesData = allComments.filter((c: any) => c.parentCommentId === comment.id)
 
           // Fetch user data for each reply
           const repliesWithUsers = await Promise.all(
-            (repliesData || []).map(async (reply: any) => {
-              const { data: replyUserData } = await supabase
-                .from('users')
-                .select('username, avatar_url')
-                .eq('id', reply.user_id)
-                .single()
+            repliesData.map(async (reply: any) => {
+              const replyUserResponse: any = await usersApi.get(reply.userId)
+              const replyUserData = replyUserResponse.user
               
               // Check user's reaction on this reply
               let replyUserReaction = null
               if (user) {
-                const { data: replyReactionData } = await supabase
-                  .from('comment_reactions')
-                  .select('reaction_type')
-                  .eq('comment_id', reply.id)
-                  .eq('user_id', user.id)
-                  .maybeSingle()
-                replyUserReaction = replyReactionData?.reaction_type || null
+                const replyReactionsResponse: any = await commentReactionsApi.get(reply.id)
+                const replyReactions = replyReactionsResponse.reactions || []
+                const myReplyReaction = replyReactions.find((r: any) => r.userId === user.id)
+                replyUserReaction = myReplyReaction?.reactionType || null
               }
               
               return { ...reply, users: replyUserData, user_reaction: replyUserReaction }
@@ -148,15 +128,7 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
 
     setSubmitting(true)
     try {
-      const { error } = await supabase
-        .from('entry_comments')
-        .insert({
-          entry_id: entryId,
-          user_id: user.id,
-          comment_text: newComment.trim(),
-        })
-
-      if (error) throw error
+      await commentsApi.create(entryId, newComment.trim())
 
       setNewComment('')
       setMentionedUsers([])
@@ -174,14 +146,7 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
 
     setSubmitting(true)
     try {
-      const { error } = await supabase
-        .from('entry_comments')
-        .insert({
-          entry_id: entryId,
-          user_id: user.id,
-          parent_comment_id: parentId,
-          comment_text: replyText.trim(),
-        })
+      await commentsApi.create(entryId, replyText.trim(), parentId)
 
       if (error) throw error
 
