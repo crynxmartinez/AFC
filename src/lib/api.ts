@@ -103,6 +103,14 @@ export const usersApi = {
   getEntries: async (userId: string) => {
     return apiRequest(`/users/${userId}/entries`)
   },
+
+  getBadges: async (userId: string) => {
+    return apiRequest(`/users/${userId}/badges`)
+  },
+
+  getAchievements: async (userId: string) => {
+    return apiRequest(`/users/${userId}/achievements`)
+  },
 }
 
 // Contests API
@@ -309,6 +317,117 @@ export const searchApi = {
 export const xpApi = {
   getProgress: async (userId: string) => {
     return apiRequest(`/xp/progress/${userId}`)
+  },
+
+  awardXP: async (data: any) => {
+    return apiRequest('/xp/award', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+}
+
+// Auth API
+export const authApi = {
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    return apiRequest('/auth/password', {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    })
+  },
+}
+
+// Contact API
+export const contactApi = {
+  submit: async (data: any) => {
+    return apiRequest('/contact', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+}
+
+// Leaderboard API
+export const leaderboardApi = {
+  get: async (limit?: number, timeframe?: string) => {
+    const params = new URLSearchParams()
+    if (limit) params.append('limit', limit.toString())
+    if (timeframe) params.append('timeframe', timeframe)
+    return apiRequest(`/leaderboard?${params.toString()}`)
+  },
+}
+
+// Admin API
+export const adminApi = {
+  getStats: async () => {
+    return apiRequest('/admin/stats')
+  },
+
+  getUsers: async () => {
+    return apiRequest('/admin/users')
+  },
+
+  updateUserRole: async (userId: string, role: string) => {
+    return apiRequest(`/admin/users/${userId}/role`, {
+      method: 'PUT',
+      body: JSON.stringify({ role }),
+    })
+  },
+
+  banUser: async (userId: string, banned: boolean) => {
+    return apiRequest(`/admin/users/${userId}/ban`, {
+      method: 'PUT',
+      body: JSON.stringify({ banned }),
+    })
+  },
+
+  getXPRewards: async () => {
+    return apiRequest('/admin/xp/rewards')
+  },
+
+  updateXPReward: async (action: string, xpAmount: number) => {
+    return apiRequest(`/admin/xp/rewards/${action}`, {
+      method: 'PUT',
+      body: JSON.stringify({ xpAmount }),
+    })
+  },
+
+  getLevels: async () => {
+    return apiRequest('/admin/xp/levels')
+  },
+
+  updateLevel: async (level: number, xpRequired: number) => {
+    return apiRequest(`/admin/xp/levels/${level}`, {
+      method: 'PUT',
+      body: JSON.stringify({ xpRequired }),
+    })
+  },
+}
+
+// Comment Reactions API
+export const commentReactionsApi = {
+  get: async (commentId: string) => {
+    return apiRequest(`/comments/${commentId}/reactions`)
+  },
+
+  add: async (commentId: string, type: string) => {
+    return apiRequest('/comment-reactions', {
+      method: 'POST',
+      body: JSON.stringify({ commentId, type }),
+    })
+  },
+
+  update: async (reactionId: string, type: string) => {
+    return apiRequest(`/comment-reactions/${reactionId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ type }),
+    })
+  },
+
+  delete: async (reactionId: string) => {
+    return apiRequest(`/comment-reactions/${reactionId}`, {
+      method: 'DELETE',
+    })
   },
 }
 
