@@ -9,46 +9,46 @@ type Contest = {
   title: string
   description: string
   status: string
-  start_date: string
-  end_date: string
-  thumbnail_url: string | null
-  has_sponsor: boolean
-  sponsor_name: string | null
-  sponsor_logo_url: string | null
-  sponsor_prize_amount: number | null
-  prize_pool: number
-  prize_pool_distributed: boolean
-  winner_1st_id: string | null
-  winner_2nd_id: string | null
-  winner_3rd_id: string | null
+  startDate: string
+  endDate: string
+  thumbnailUrl: string | null
+  hasSponsor: boolean
+  sponsorName: string | null
+  sponsorLogoUrl: string | null
+  sponsorPrizeAmount: number | null
+  prizePool: number
+  prizePoolDistributed: boolean
+  winner1stId: string | null
+  winner2ndId: string | null
+  winner3rdId: string | null
 }
 
 type Winner = {
   id: string
-  entry_id: string
-  user_id: string
+  entryId: string
+  userId: string
   placement: number
-  votes_received: number
-  prize_amount: number
+  votesReceived: number
+  prizeAmount: number
   users: {
     username: string
-    avatar_url: string | null
+    avatarUrl: string | null
   }
   entries: {
-    phase_4_url: string | null
+    phase4Url: string | null
   }
 }
 
 type Entry = {
   id: string
-  user_id: string
+  userId: string
   title: string | null
   description: string | null
-  phase_4_url: string | null
-  vote_count: number
+  phase4Url: string | null
+  voteCount: number
   users: {
     username: string
-    avatar_url: string | null
+    avatarUrl: string | null
   }
 }
 
@@ -118,9 +118,9 @@ export default function ContestDetailPage() {
       // Fetch related data separately
       const winnersWithData = await Promise.all(
         (data || []).map(async (winner: any) => {
-          const userDataResponse: any = await usersApi.get(winner.user_id)
+          const userDataResponse: any = await usersApi.get(winner.userId)
           const userData = userDataResponse.user
-          const entryDataResponse: any = await entriesApi.get(winner.entry_id)
+          const entryDataResponse: any = await entriesApi.get(winner.entryId)
           const entryData = entryDataResponse.entry
 
           return { ...winner, users: userData, entries: entryData }
@@ -136,7 +136,7 @@ export default function ContestDetailPage() {
   const getTimeRemaining = () => {
     if (!contest) return ''
     const now = new Date()
-    const end = new Date(contest.end_date)
+    const end = new Date(contest.endDate)
     const diff = end.getTime() - now.getTime()
     
     if (diff < 0) return 'Ended'
@@ -151,8 +151,8 @@ export default function ContestDetailPage() {
   const canSubmit = () => {
     if (!user || !contest) return false
     const now = new Date()
-    const start = new Date(contest.start_date)
-    const end = new Date(contest.end_date)
+    const start = new Date(contest.startDate)
+    const end = new Date(contest.endDate)
     return contest.status === 'active' && now >= start && now <= end
   }
 
@@ -166,9 +166,9 @@ export default function ContestDetailPage() {
 
   return (
     <div>
-      {contest.thumbnail_url && (
+      {contest.thumbnailUrl && (
         <div className="mb-6 rounded-lg overflow-hidden">
-          <img src={contest.thumbnail_url} alt={contest.title} className="w-full h-64 object-cover" />
+          <img src={contest.thumbnailUrl} alt={contest.title} className="w-full h-64 object-cover" />
         </div>
       )}
 
@@ -203,25 +203,25 @@ export default function ContestDetailPage() {
         <p className="text-text-secondary text-lg mb-6 whitespace-pre-line">{contest.description}</p>
 
         {/* Sponsor Section */}
-        {contest.has_sponsor && contest.sponsor_name && (
+        {contest.hasSponsor && contest.sponsorName && (
           <div className="mb-6 p-4 bg-background rounded-lg border-2 border-primary/30">
             <div className="flex items-center gap-4">
-              {contest.sponsor_logo_url && (
+              {contest.sponsorLogoUrl && (
                 <img 
-                  src={contest.sponsor_logo_url} 
-                  alt={contest.sponsor_name}
+                  src={contest.sponsorLogoUrl} 
+                  alt={contest.sponsorName}
                   className="h-12 w-auto object-contain"
                 />
               )}
               <div className="flex-1">
                 <p className="text-sm text-text-secondary">Sponsored by</p>
-                <p className="text-xl font-bold text-primary">{contest.sponsor_name}</p>
+                <p className="text-xl font-bold text-primary">{contest.sponsorName}</p>
               </div>
-              {contest.sponsor_prize_amount && contest.sponsor_prize_amount > 0 && (
+              {contest.sponsorPrizeAmount && contest.sponsorPrizeAmount > 0 && (
                 <div className="text-right">
                   <p className="text-sm text-text-secondary">Additional Prize</p>
                   <p className="text-2xl font-bold text-success">
-                    ₱{contest.sponsor_prize_amount.toLocaleString()}
+                    ₱{contest.sponsorPrizeAmount.toLocaleString()}
                   </p>
                 </div>
               )}
@@ -237,16 +237,16 @@ export default function ContestDetailPage() {
           <div>
             <span className="text-text-secondary">Total Votes:</span>
             <span className="font-semibold ml-2">
-              {formatNumber(entries.reduce((sum, e) => sum + e.vote_count, 0))}
+              {formatNumber(entries.reduce((sum, e) => sum + e.voteCount, 0))}
             </span>
           </div>
           <div>
             <span className="text-text-secondary">Start:</span>
-            <span className="font-semibold ml-2">{formatDate(contest.start_date)}</span>
+            <span className="font-semibold ml-2">{formatDate(contest.startDate)}</span>
           </div>
           <div>
             <span className="text-text-secondary">End:</span>
-            <span className="font-semibold ml-2">{formatDate(contest.end_date)}</span>
+            <span className="font-semibold ml-2">{formatDate(contest.endDate)}</span>
           </div>
           <div>
             <span className="text-text-secondary">Time Remaining:</span>
@@ -256,12 +256,12 @@ export default function ContestDetailPage() {
       </div>
 
       {/* Winners Section */}
-      {contest.prize_pool_distributed && winners.length > 0 && (
+      {contest.prizePoolDistributed && winners.length > 0 && (
         <div className="bg-surface rounded-lg p-6 mb-6 border border-border">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">🏆 Contest Winners</h2>
             <div className="text-sm text-text-secondary">
-              Prize Pool: <span className="font-bold text-primary">{contest.prize_pool} pts</span>
+              Prize Pool: <span className="font-bold text-primary">{contest.prizePool} pts</span>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -291,11 +291,11 @@ export default function ContestDetailPage() {
                 </div>
 
                 {/* Entry Image */}
-                <Link to={`/entries/${winner.entry_id}`}>
+                <Link to={`/entries/${winner.entryId}`}>
                   <div className="aspect-square bg-background flex items-center justify-center">
-                    {winner.entries.phase_4_url ? (
+                    {winner.entries.phase4Url ? (
                       <img
-                        src={winner.entries.phase_4_url}
+                        src={winner.entries.phase4Url}
                         alt={`${winner.placement} place`}
                         className="w-full h-full object-cover hover:scale-105 transition-transform"
                       />
@@ -311,9 +311,9 @@ export default function ContestDetailPage() {
                     to={`/users/${winner.users.username}`}
                     className="flex items-center gap-2 mb-2 hover:text-primary transition-colors"
                   >
-                    {winner.users.avatar_url ? (
+                    {winner.users.avatarUrl ? (
                       <img
-                        src={winner.users.avatar_url}
+                        src={winner.users.avatarUrl}
                         alt={winner.users.username}
                         className="w-8 h-8 rounded-full"
                       />
@@ -327,10 +327,10 @@ export default function ContestDetailPage() {
 
                   <div className="flex items-center justify-between text-sm">
                     <div className="text-text-secondary">
-                      {winner.votes_received} votes
+                      {winner.votesReceived} votes
                     </div>
                     <div className="font-bold text-primary">
-                      +{winner.prize_amount} pts
+                      +{winner.prizeAmount} pts
                     </div>
                   </div>
                 </div>
@@ -341,14 +341,14 @@ export default function ContestDetailPage() {
       )}
 
       {/* Prize Pool Display (if contest ended but not finalized) */}
-      {contest.status === 'ended' && !contest.prize_pool_distributed && contest.prize_pool > 0 && (
+      {contest.status === 'ended' && !contest.prizePoolDistributed && contest.prizePool > 0 && (
         <div className="bg-warning/20 border border-warning rounded-lg p-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="text-2xl">⏳</div>
             <div>
               <p className="font-semibold">Contest Ended - Awaiting Finalization</p>
               <p className="text-sm text-text-secondary">
-                Prize Pool: <span className="font-bold">{contest.prize_pool} pts</span> will be distributed to top 3 winners soon!
+                Prize Pool: <span className="font-bold">{contest.prizePool} pts</span> will be distributed to top 3 winners soon!
               </p>
             </div>
           </div>
@@ -376,8 +376,8 @@ export default function ContestDetailPage() {
               className="bg-surface rounded-lg overflow-hidden border border-border hover:border-primary transition-colors"
             >
               <div className="aspect-square bg-background flex items-center justify-center">
-                {entry.phase_4_url ? (
-                  <img src={entry.phase_4_url} alt={entry.title || "Entry"} className="w-full h-full object-cover" />
+                {entry.phase4Url ? (
+                  <img src={entry.phase4Url} alt={entry.title || "Entry"} className="w-full h-full object-cover" />
                 ) : (
                   <p className="text-text-secondary">No final artwork yet</p>
                 )}
@@ -388,9 +388,9 @@ export default function ContestDetailPage() {
                 )}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {entry.users.avatar_url && (
+                    {entry.users.avatarUrl && (
                       <img
-                        src={entry.users.avatar_url}
+                        src={entry.users.avatarUrl}
                         alt={entry.users.username}
                         className="w-6 h-6 rounded-full"
                       />
@@ -398,7 +398,7 @@ export default function ContestDetailPage() {
                     <span className="font-semibold text-sm">@{entry.users.username}</span>
                   </div>
                   <span className="text-sm text-text-secondary">
-                    🔥 {formatNumber(entry.vote_count)} votes
+                    🔥 {formatNumber(entry.voteCount)} votes
                   </span>
                 </div>
               </div>
