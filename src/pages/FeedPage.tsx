@@ -1,45 +1,45 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { Heart, MessageCircle, TrendingUp, Clock, UserPlus, Trophy, Sparkles } from 'lucide-react'
 import { formatTimeAgo } from '@/lib/utils'
+import { feedApi, contestsApi, usersApi } from '@/lib/api'
 
 type FeedEntry = {
   id: string
   title: string | null
   description: string | null
-  phase_4_url: string
-  created_at: string
-  last_activity_at: string
-  user_id: string
-  contest_id: string
+  phase4Url: string
+  createdAt: string
+  lastActivityAt: string
+  userId: string
+  contestId: string
   status: string
-  users: {
+  user: {
     username: string
-    avatar_url: string | null
+    avatarUrl: string | null
   }
-  contests: {
+  contest: {
     title: string
     status: string
   }
-  vote_count: number
-  comment_count: number
+  voteCount: number
+  commentCount: number
 }
 
 type FilterType = 'latest' | 'popular' | 'following'
 type TimeRange = 7 | 30 | 90 | 365
 
 type WinnerAnnouncement = {
-  contest_id: string
-  contest_title: string
-  finalized_at: string
+  contestId: string
+  contestTitle: string
+  finalizedAt: string
   winners: {
     placement: number
     username: string
-    avatar_url: string | null
-    prize_amount: number
-    entry_image: string | null
+    avatarUrl: string | null
+    prizeAmount: number
+    entryImage: string | null
   }[]
 }
 
@@ -52,7 +52,6 @@ export default function FeedPage() {
   const [followingCount, setFollowingCount] = useState(0)
   const [announcements, setAnnouncements] = useState<WinnerAnnouncement[]>([])
 
-  // Use user.id as dependency to prevent refetch on auth state changes
   const userId = user?.id
 
   useEffect(() => {
@@ -65,62 +64,18 @@ export default function FeedPage() {
 
   const fetchFollowingCount = async () => {
     if (!user) return
-    const { count } = await supabase
-      .from('follows')
-      .select('*', { count: 'exact', head: true })
-      .eq('follower_id', user.id)
-    setFollowingCount(count || 0)
+    try {
+      const response = await usersApi.getFollowing(user.id)
+      setFollowingCount(response.following?.length || 0)
+    } catch (error) {
+      console.error('Error fetching following count:', error)
+    }
   }
 
   const fetchWinnerAnnouncements = async () => {
     try {
-      // Get recently finalized contests (last 7 days)
-      const sevenDaysAgo = new Date()
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-      
-      const { data: contests } = await supabase
-        .from('contests')
-        .select('id, title, finalized_at')
-        .eq('prize_pool_distributed', true)
-        .gte('finalized_at', sevenDaysAgo.toISOString())
-        .order('finalized_at', { ascending: false })
-        .limit(3)
-
-      if (!contests || contests.length === 0) {
-        setAnnouncements([])
-        return
-      }
-
-      // Get winners for each contest
-      const announcementsData = await Promise.all(
-        (contests as any[]).map(async (contest) => {
-          const { data: winners } = await supabase
-            .from('contest_winners')
-            .select(`
-              placement,
-              prize_amount,
-              users:user_id (username, avatar_url),
-              entries:entry_id (phase_4_url)
-            `)
-            .eq('contest_id', contest.id)
-            .order('placement', { ascending: true })
-
-          return {
-            contest_id: contest.id,
-            contest_title: contest.title,
-            finalized_at: contest.finalized_at,
-            winners: (winners || []).map((w: any) => ({
-              placement: w.placement,
-              username: w.users?.username || 'Unknown',
-              avatar_url: w.users?.avatar_url,
-              prize_amount: w.prize_amount,
-              entry_image: w.entries?.phase_4_url
-            }))
-          }
-        })
-      )
-
-      setAnnouncements(announcementsData)
+      const response = await contestsApi.getRecentWinners(7)
+      setAnnouncements(response.announcements || [])
     } catch (error) {
       console.error('Error fetching announcements:', error)
     }
@@ -130,75 +85,8 @@ export default function FeedPage() {
     if (!user) return
     setLoading(true)
     try {
-      // Get users I'm following
-      const { data: followingData } = await supabase
-        .from('follows')
-        .select('following_id')
-        .eq('follower_id', user.id)
-
-      const followingIds = followingData?.map((f: any) => f.following_id) || []
-
-      // Latest & Popular: Show ALL entries (global)
-      // Following: Show only followed users' entries
-      let query = supabase
-        .from('entries')
-        .select('id, title, description, phase_4_url, created_at, last_activity_at, user_id, contest_id, status')
-        .eq('status', 'approved')
-
-      // Apply time range filter ONLY to Popular and Following (NOT Latest)
-      if (filter !== 'latest') {
-        const timeAgo = new Date()
-        timeAgo.setDate(timeAgo.getDate() - timeRange)
-        query = query.gte('created_at', timeAgo.toISOString())
-      }
-
-      // Only filter by followed users for "Following"
-      if (filter === 'following') {
-        if (followingIds.length === 0) {
-          setEntries([])
-          setLoading(false)
-          return
-        }
-        query = query.in('user_id', followingIds)
-      }
-
-      // Sort by last_activity_at for Latest, created_at for others
-      const sortField = filter === 'latest' ? 'last_activity_at' : 'created_at'
-      const { data: entriesData, error } = await query
-        .order(sortField, { ascending: false })
-        .limit(50)
-
-      if (error) throw error
-
-      // Fetch related data for each entry
-      const entriesWithData = await Promise.all(
-        (entriesData || []).map(async (entry: any) => {
-          const [{ data: userData }, { data: contestData }, { count: voteCount }, { count: commentCount }] = await Promise.all([
-            supabase.from('users').select('username, avatar_url').eq('id', entry.user_id).single(),
-            supabase.from('contests').select('title, status').eq('id', entry.contest_id).single(),
-            supabase.from('reactions').select('*', { count: 'exact', head: true }).eq('entry_id', entry.id),
-            supabase.from('entry_comments').select('*', { count: 'exact', head: true }).eq('entry_id', entry.id)
-          ])
-
-          return {
-            ...entry,
-            users: userData,
-            contests: contestData,
-            vote_count: voteCount || 0,
-            comment_count: commentCount || 0
-          }
-        })
-      )
-
-      // For Popular: Filter only active contests and sort by votes
-      if (filter === 'popular') {
-        const activeEntries = entriesWithData.filter(e => e.contests?.status === 'active')
-        activeEntries.sort((a, b) => b.vote_count - a.vote_count)
-        setEntries(activeEntries)
-        return
-      }
-
-      setEntries(entriesWithData)
+      const response = await feedApi.getFeed(filter, timeRange)
+      setEntries(response.entries || [])
     } catch (error) {
       console.error('Error fetching feed:', error)
     } finally {
@@ -321,7 +209,7 @@ export default function FeedPage() {
         <div className="max-w-2xl mx-auto mb-8 space-y-4">
           {announcements.map((announcement) => (
             <div
-              key={announcement.contest_id}
+              key={announcement.contestId}
               className="bg-gradient-to-r from-primary/20 via-warning/10 to-primary/20 rounded-xl border-2 border-primary/50 overflow-hidden"
             >
               {/* Header */}
@@ -335,10 +223,10 @@ export default function FeedPage() {
                     <span className="font-bold text-primary">Contest Winners Announced!</span>
                   </div>
                   <p className="text-sm text-text-secondary">
-                    <Link to={`/contests/${announcement.contest_id}`} className="hover:text-primary font-semibold">
-                      {announcement.contest_title}
+                    <Link to={`/contests/${announcement.contestId}`} className="hover:text-primary font-semibold">
+                      {announcement.contestTitle}
                     </Link>
-                    {' • '}{formatTimeAgo(announcement.finalized_at)}
+                    {' • '}{formatTimeAgo(announcement.finalizedAt)}
                   </p>
                 </div>
               </div>
@@ -353,17 +241,16 @@ export default function FeedPage() {
                       className="flex flex-col items-center group"
                     >
                       {/* Entry Image */}
-                      {winner.entry_image && (
+                      {winner.entryImage && (
                         <div className="w-full aspect-square rounded-lg overflow-hidden mb-3 border-2 border-transparent group-hover:border-primary transition-colors">
                           <img
-                            src={winner.entry_image}
+                            src={winner.entryImage}
                             alt={`${winner.username}'s entry`}
                             className="w-full h-full object-cover"
                           />
                         </div>
                       )}
                       
-
                       {/* Placement Badge */}
                       <div className={`text-2xl mb-1 ${
                         winner.placement === 1 ? 'animate-bounce' : ''
@@ -371,12 +258,11 @@ export default function FeedPage() {
                         {winner.placement === 1 ? '🥇' : winner.placement === 2 ? '🥈' : '🥉'}
                       </div>
                       
-
                       {/* Avatar & Name */}
                       <div className="flex items-center gap-2 mb-1">
-                        {winner.avatar_url ? (
+                        {winner.avatarUrl ? (
                           <img
-                            src={winner.avatar_url}
+                            src={winner.avatarUrl}
                             alt={winner.username}
                             className="w-6 h-6 rounded-full"
                           />
@@ -390,13 +276,12 @@ export default function FeedPage() {
                         </span>
                       </div>
                       
-
                       {/* Prize */}
                       <div className={`text-sm font-bold ${
                         winner.placement === 1 ? 'text-yellow-500' :
                         winner.placement === 2 ? 'text-gray-400' : 'text-amber-600'
                       }`}>
-                        +{winner.prize_amount} pts
+                        +{winner.prizeAmount} pts
                       </div>
                     </Link>
                   ))}
@@ -406,7 +291,7 @@ export default function FeedPage() {
               {/* View Contest Link */}
               <div className="px-4 pb-4">
                 <Link
-                  to={`/contests/${announcement.contest_id}`}
+                  to={`/contests/${announcement.contestId}`}
                   className="block w-full py-2 text-center bg-primary/20 hover:bg-primary/30 rounded-lg text-primary font-semibold transition-colors"
                 >
                   View Contest Results →
@@ -455,31 +340,31 @@ export default function FeedPage() {
             <div key={entry.id} className="bg-surface rounded-lg border border-border overflow-hidden hover:border-primary transition-colors">
               {/* Artist Info */}
               <div className="p-4 flex items-center gap-3">
-                <Link to={`/users/${entry.users.username}`}>
-                  {entry.users.avatar_url ? (
+                <Link to={`/users/${entry.user.username}`}>
+                  {entry.user.avatarUrl ? (
                     <img
-                      src={entry.users.avatar_url}
-                      alt={entry.users.username}
+                      src={entry.user.avatarUrl}
+                      alt={entry.user.username}
                       className="w-10 h-10 rounded-full"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold">
-                      {entry.users.username.charAt(0).toUpperCase()}
+                      {entry.user.username.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </Link>
                 <div className="flex-1">
                   <Link
-                    to={`/users/${entry.users.username}`}
+                    to={`/users/${entry.user.username}`}
                     className="font-semibold hover:text-primary transition-colors"
                   >
-                    @{entry.users.username}
+                    @{entry.user.username}
                   </Link>
                   <p className="text-sm text-text-secondary">
-                    Submitted to <Link to={`/contests/${entry.contest_id}`} className="hover:text-primary">{entry.contests.title}</Link> • 
-                    {filter === 'latest' && entry.last_activity_at !== entry.created_at
-                      ? `Active ${formatTimeAgo(entry.last_activity_at)}`
-                      : formatTimeAgo(entry.created_at)
+                    Submitted to <Link to={`/contests/${entry.contestId}`} className="hover:text-primary">{entry.contest.title}</Link> • 
+                    {filter === 'latest' && entry.lastActivityAt !== entry.createdAt
+                      ? `Active ${formatTimeAgo(entry.lastActivityAt)}`
+                      : formatTimeAgo(entry.createdAt)
                     }
                   </p>
                 </div>
@@ -489,7 +374,7 @@ export default function FeedPage() {
               <Link to={`/entries/${entry.id}`} className="block">
                 <div className="flex justify-center bg-black/20">
                   <img
-                    src={entry.phase_4_url}
+                    src={entry.phase4Url}
                     alt={entry.title || "Entry"}
                     className="max-h-[500px] w-auto max-w-full object-contain hover:opacity-90 transition-opacity"
                   />
@@ -518,11 +403,11 @@ export default function FeedPage() {
               <div className="p-4 flex items-center gap-4 text-text-secondary">
                 <div className="flex items-center gap-1">
                   <Heart className="w-5 h-5" />
-                  <span>{entry.vote_count}</span>
+                  <span>{entry.voteCount}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <MessageCircle className="w-5 h-5" />
-                  <span>{entry.comment_count}</span>
+                  <span>{entry.commentCount}</span>
                 </div>
                 <Link
                   to={`/entries/${entry.id}`}
