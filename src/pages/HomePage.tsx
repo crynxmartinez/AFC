@@ -13,15 +13,15 @@ type Contest = {
   id: string
   title: string
   description: string
-  thumbnail_url: string | null
-  start_date: string
-  end_date: string
+  thumbnailUrl: string | null
+  startDate: string
+  endDate: string
   status: string
-  entry_count?: number
-  has_sponsor: boolean
-  sponsor_name: string | null
-  sponsor_logo_url: string | null
-  sponsor_prize_amount: number | null
+  entryCount?: number
+  hasSponsor: boolean
+  sponsorName: string | null
+  sponsorLogoUrl: string | null
+  sponsorPrizeAmount: number | null
 }
 
 export default function HomePage() {
@@ -45,7 +45,7 @@ export default function HomePage() {
 
           return {
             ...contest,
-            entry_count: entries.length,
+            entryCount: entries.length,
           }
         })
       )
@@ -124,9 +124,9 @@ export default function HomePage() {
               className="bg-surface rounded-lg overflow-hidden border border-border hover:border-primary transition-colors"
             >
               <div className="aspect-square bg-background flex items-center justify-center overflow-hidden">
-                {contest.thumbnail_url ? (
+                {contest.thumbnailUrl ? (
                   <img
-                    src={contest.thumbnail_url}
+                    src={contest.thumbnailUrl}
                     alt={contest.title}
                     className="w-full h-full object-cover"
                   />
@@ -176,11 +176,11 @@ export default function HomePage() {
                   {contest.description}
                 </p>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-text-secondary">{contest.entry_count || 0} entries</span>
-                  <span className="text-primary font-semibold">{getTimeRemaining(contest.end_date)}</span>
+                  <span className="text-text-secondary">{contest.entryCount || 0} entries</span>
+                  <span className="text-primary font-semibold">{getTimeRemaining(contest.endDate)}</span>
                 </div>
                 <p className="text-xs text-text-secondary mt-2">
-                  Ends: {formatDate(contest.end_date)}
+                  Ends: {formatDate(contest.endDate)}
                 </p>
               </div>
             </Link>
