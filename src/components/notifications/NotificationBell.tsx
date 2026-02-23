@@ -323,9 +323,9 @@ export default function NotificationBell() {
                   >
                     <div className="flex gap-3">
                       {/* Actor Avatar */}
-                      {notification.users?.avatar_url ? (
+                      {notification.users?.avatarUrl ? (
                         <img
-                          src={notification.users.avatar_url}
+                          src={notification.users.avatarUrl}
                           alt={notification.users.username}
                           className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                         />
@@ -345,7 +345,7 @@ export default function NotificationBell() {
                               {notification.content}
                             </p>
                             <p className="text-xs text-text-secondary mt-1">
-                              {formatTimeAgo(notification.created_at)}
+                              {formatTimeAgo(notification.createdAt)}
                             </p>
                           </div>
                         </div>

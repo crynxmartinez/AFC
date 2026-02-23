@@ -284,7 +284,7 @@ export default function UserProfilePage() {
       {/* Profile Banner */}
       <div className="bg-surface rounded-lg overflow-hidden mb-6">
         <ProfileBanner
-          coverPhotoUrl={profile.cover_photo_url}
+          coverPhotoUrl={profile.coverPhotoUrl}
           userId={profile.id}
           isOwnProfile={user?.id === profile.id}
           onUpdate={fetchProfile}
@@ -295,9 +295,9 @@ export default function UserProfilePage() {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             {/* Avatar - Overlaps banner by 1/3 */}
             <div className="relative flex-shrink-0 -mt-16 md:-mt-20">
-              {profile.avatar_url ? (
+              {profile.avatarUrl ? (
                 <img
-                  src={profile.avatar_url}
+                  src={profile.avatarUrl}
                   alt={profile.username}
                   className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-surface shadow-xl"
                 />
@@ -317,10 +317,10 @@ export default function UserProfilePage() {
             {/* Profile Info */}
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-3 mb-2">
-                <h1 className="text-2xl md:text-3xl font-bold">{profile.display_name || profile.username}</h1>
-                {profile.profile_title && (
+                <h1 className="text-2xl md:text-3xl font-bold">{profile.displayName || profile.username}</h1>
+                {profile.profileTitle && (
                   <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm font-semibold">
-                    {profile.profile_title}
+                    {profile.profileTitle}
                   </span>
                 )}
               </div>
@@ -356,9 +356,9 @@ export default function UserProfilePage() {
 
             {/* Social Links */}
             <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-4">
-              {profile.instagram_url && (
+              {profile.instagramUrl && (
                 <a
-                  href={profile.instagram_url}
+                  href={profile.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 bg-background hover:bg-border rounded-lg text-sm transition-colors"
@@ -367,9 +367,9 @@ export default function UserProfilePage() {
                   Instagram
                 </a>
               )}
-              {profile.twitter_url && (
+              {profile.twitterUrl && (
                 <a
-                  href={profile.twitter_url}
+                  href={profile.twitterUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 bg-background hover:bg-border rounded-lg text-sm transition-colors"
@@ -378,9 +378,9 @@ export default function UserProfilePage() {
                   Twitter
                 </a>
               )}
-              {profile.portfolio_url && (
+              {profile.portfolioUrl && (
                 <a
-                  href={profile.portfolio_url}
+                  href={profile.portfolioUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 bg-background hover:bg-border rounded-lg text-sm transition-colors"
@@ -436,7 +436,7 @@ export default function UserProfilePage() {
             )}
 
             {/* Available for Work Badge */}
-            {profile.available_for_work && (
+            {profile.availableForWork && (
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-success/10 text-success rounded-lg text-sm font-medium">
                 <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
                 Available for Work
@@ -553,7 +553,7 @@ export default function UserProfilePage() {
                     )}
                     <p className="text-sm text-text-secondary mb-2 line-clamp-1">{entry.contests.title}</p>
                     <div className="flex items-center justify-between text-sm text-text-secondary">
-                      <span>{formatDate(entry.created_at)}</span>
+                      <span>{formatDate(entry.createdAt)}</span>
                       {entry.total_votes !== undefined && (
                         <span className="font-semibold text-primary">{entry.total_votes} votes</span>
                       )}

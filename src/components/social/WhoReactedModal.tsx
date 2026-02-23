@@ -154,9 +154,9 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
                 <div key={reaction.id} className="p-4 flex items-center gap-3 hover:bg-background transition-colors">
                   {/* Avatar */}
                   <Link to={`/users/${reaction.users.username}`} className="flex-shrink-0">
-                    {reaction.users.avatar_url ? (
+                    {reaction.users.avatarUrl ? (
                       <img
-                        src={reaction.users.avatar_url}
+                        src={reaction.users.avatarUrl}
                         alt={reaction.users.username}
                         className="w-12 h-12 rounded-full object-cover"
                       />

@@ -128,7 +128,7 @@ export default function NotificationsPage() {
                     {notif.content}
                   </p>
                   <p className="text-xs text-text-secondary mt-1">
-                    {formatTimeAgo(notif.created_at)}
+                    {formatTimeAgo(notif.createdAt)}
                   </p>
                 </div>
                 {!notif.read && (

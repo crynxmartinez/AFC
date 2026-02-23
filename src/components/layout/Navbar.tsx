@@ -49,7 +49,7 @@ export default function Navbar() {
                 to="/points"
                 className="hidden md:flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover rounded-lg transition-colors"
               >
-                <span className="font-semibold">{profile?.points_balance || 0}</span>
+                <span className="font-semibold">{profile?.pointsBalance || 0}</span>
                 <span className="text-sm">pts</span>
               </Link>
 
@@ -65,9 +65,9 @@ export default function Navbar() {
                   onClick={() => setShowDropdown(!showDropdown)}
                   className="flex items-center gap-2 hover:bg-background rounded-lg p-2 transition-colors"
                 >
-                  {profile?.avatar_url ? (
+                  {profile?.avatarUrl ? (
                     <img
-                      src={profile.avatar_url}
+                      src={profile.avatarUrl}
                       alt={profile.username}
                       className="w-8 h-8 rounded-full object-cover"
                     />

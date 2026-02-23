@@ -88,9 +88,9 @@ export default function AdminUsers() {
                 <tr key={user.id} className="border-t border-border">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      {user.avatar_url ? (
+                      {user.avatarUrl ? (
                         <img
-                          src={user.avatar_url}
+                          src={user.avatarUrl}
                           alt={user.username}
                           className="w-10 h-10 rounded-full object-cover"
                         />
@@ -122,8 +122,8 @@ export default function AdminUsers() {
                       Level {user.level}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-semibold">{user.points_balance} pts</td>
-                  <td className="px-6 py-4 text-text-secondary">{formatDate(user.created_at)}</td>
+                  <td className="px-6 py-4 font-semibold">{user.pointsBalance} pts</td>
+                  <td className="px-6 py-4 text-text-secondary">{formatDate(user.createdAt)}</td>
                   <td className="px-6 py-4">
                     <a
                       href={`/profile/${user.username}`}

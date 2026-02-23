@@ -64,7 +64,7 @@ export const authApi = {
 // Users API
 export const usersApi = {
   getProfile: async (username: string) => {
-    return apiRequest(`/users/${username}`)
+    return apiRequest(`/users/by-username/${username}`)
   },
 
   updateProfile: async (userId: string, data: any) => {

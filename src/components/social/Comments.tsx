@@ -298,9 +298,9 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
     
     // Sort unpinned comments based on selected sort
     if (sortBy === 'newest') {
-      unpinned.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      unpinned.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     } else if (sortBy === 'oldest') {
-      unpinned.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      unpinned.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
     } else if (sortBy === 'likes') {
       unpinned.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
     }
@@ -316,9 +316,9 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
     >
       <div className="flex items-start gap-3">
         <Link to={`/users/${comment.users.username}`}>
-          {comment.users.avatar_url ? (
+          {comment.users.avatarUrl ? (
             <img
-              src={comment.users.avatar_url}
+              src={comment.users.avatarUrl}
               alt={comment.users.username}
               className="w-10 h-10 rounded-full"
             />
@@ -343,7 +343,7 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
               </span>
             )}
             <span className="text-xs text-text-secondary">
-              {formatDate(comment.created_at)}
+              {formatDate(comment.createdAt)}
               {comment.edited_at && ' (edited)'}
             </span>
           </div>
@@ -532,9 +532,9 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
           <div className="flex gap-3">
             {user && (
               <div className="flex-shrink-0">
-                {user.user_metadata?.avatar_url ? (
+                {user.user_metadata?.avatarUrl ? (
                   <img
-                    src={user.user_metadata.avatar_url}
+                    src={user.user_metadata.avatarUrl}
                     alt="Your avatar"
                     className="w-10 h-10 rounded-full"
                   />

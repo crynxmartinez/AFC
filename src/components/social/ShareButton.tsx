@@ -40,7 +40,7 @@ export default function ShareButton({
   const toast = useToastStore()
 
   const entryUrl = `${window.location.origin}/entries/${entry.id}`
-  const artistName = entry.users.display_name || entry.users.username
+  const artistName = entry.users.displayName || entry.users.username
   const entryTitle = entry.title || 'Untitled Entry'
   const entryDescription = entry.description || ''
   const imageUrl = entry.phase_4_url || ''

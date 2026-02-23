@@ -75,8 +75,8 @@ export default function SearchPage() {
               type: 'user' as const,
               id: u.id,
               username: u.username,
-              display_name: u.display_name,
-              avatar_url: u.avatar_url,
+              display_name: u.displayName,
+              avatar_url: u.avatarUrl,
               level: u.level,
             }))
           )
@@ -259,9 +259,9 @@ export default function SearchPage() {
                   className="flex items-center gap-4 p-4 bg-surface rounded-lg border border-border hover:border-primary transition-all"
                 >
                   <div className="relative flex-shrink-0">
-                    {result.avatar_url ? (
+                    {result.avatarUrl ? (
                       <img
-                        src={result.avatar_url}
+                        src={result.avatarUrl}
                         alt={result.username}
                         className="w-12 h-12 rounded-full object-cover"
                       />
@@ -282,7 +282,7 @@ export default function SearchPage() {
                         ARTIST
                       </span>
                       <h3 className="font-bold truncate">
-                        {result.display_name || result.username}
+                        {result.displayName || result.username}
                       </h3>
                     </div>
                     <p className="text-sm text-text-secondary">@{result.username}</p>

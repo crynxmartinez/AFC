@@ -92,7 +92,7 @@ export default function ArtistsPage() {
     const query = searchQuery.toLowerCase()
     return (
       artist.username.toLowerCase().includes(query) ||
-      artist.display_name?.toLowerCase().includes(query)
+      artist.displayName?.toLowerCase().includes(query)
     )
   })
 
@@ -195,9 +195,9 @@ export default function ArtistsPage() {
             >
               {/* Cover Photo Banner */}
               <div className="h-32 bg-gradient-to-br from-primary/30 via-primary/20 to-secondary/30 relative overflow-hidden">
-                {artist.cover_photo_url ? (
+                {artist.coverPhotoUrl ? (
                   <img
-                    src={artist.cover_photo_url}
+                    src={artist.coverPhotoUrl}
                     alt={`${artist.username}'s cover`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
@@ -210,9 +210,9 @@ export default function ArtistsPage() {
               <div className="relative px-4 pb-4 -mt-8">
                 <div className="flex items-end gap-3">
                   <div className="relative flex-shrink-0">
-                    {artist.avatar_url ? (
+                    {artist.avatarUrl ? (
                       <img
-                        src={artist.avatar_url}
+                        src={artist.avatarUrl}
                         alt={artist.username}
                         className="w-16 h-16 rounded-full object-cover border-4 border-surface shadow-lg"
                       />
@@ -229,7 +229,7 @@ export default function ArtistsPage() {
                   </div>
                   <div className="flex-1 min-w-0 mb-1">
                     <h3 className="font-bold text-text-primary truncate">
-                      {artist.display_name || artist.username}
+                      {artist.displayName || artist.username}
                     </h3>
                     <p className="text-xs text-text-secondary">@{artist.username}</p>
                   </div>
@@ -238,10 +238,10 @@ export default function ArtistsPage() {
 
               {/* Stats */}
               <div className="p-4">
-                {artist.profile_title && (
+                {artist.profileTitle && (
                   <div className="mb-2">
                     <span className="px-2 py-1 bg-primary/20 text-primary rounded text-xs font-semibold">
-                      {artist.profile_title}
+                      {artist.profileTitle}
                     </span>
                   </div>
                 )}

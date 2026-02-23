@@ -55,7 +55,7 @@ export default function XPProgressBar() {
             <TrendingUp className="w-4 h-4 text-primary" />
             <span className="font-bold text-base">Level {profile?.level || 1}</span>
           </div>
-          <p className="text-xs text-text-secondary">{extendedProfile?.profile_title || 'Beginner'}</p>
+          <p className="text-xs text-text-secondary">{extendedProfile?.profileTitle || 'Beginner'}</p>
         </div>
         {extendedProfile?.xp_multiplier && extendedProfile.xp_multiplier > 1 && (
           <div className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">

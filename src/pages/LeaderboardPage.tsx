@@ -205,9 +205,9 @@ export default function LeaderboardPage() {
               className="flex flex-col items-center group"
             >
               <div className="relative mb-3">
-                {topUsers[1].avatar_url ? (
+                {topUsers[1].avatarUrl ? (
                   <img
-                    src={topUsers[1].avatar_url}
+                    src={topUsers[1].avatarUrl}
                     alt={topUsers[1].username}
                     className="w-20 h-20 rounded-full object-cover border-4 border-gray-400 group-hover:scale-110 transition-transform"
                   />
@@ -223,7 +223,7 @@ export default function LeaderboardPage() {
                 </div>
               </div>
               <h3 className="font-bold text-center mb-1 group-hover:text-primary transition-colors">
-                {topUsers[1].display_name || topUsers[1].username}
+                {topUsers[1].displayName || topUsers[1].username}
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[1].level}</p>
               {category === 'xp' && <p className="text-lg font-bold text-primary">{formatNumber(topUsers[1].xp)} XP</p>}
@@ -240,9 +240,9 @@ export default function LeaderboardPage() {
             >
               <Crown className="w-8 h-8 text-yellow-500 mb-2 animate-pulse" />
               <div className="relative mb-3">
-                {topUsers[0].avatar_url ? (
+                {topUsers[0].avatarUrl ? (
                   <img
-                    src={topUsers[0].avatar_url}
+                    src={topUsers[0].avatarUrl}
                     alt={topUsers[0].username}
                     className="w-24 h-24 rounded-full object-cover border-4 border-yellow-500 group-hover:scale-110 transition-transform"
                   />
@@ -258,7 +258,7 @@ export default function LeaderboardPage() {
                 </div>
               </div>
               <h3 className="font-bold text-lg text-center mb-1 group-hover:text-primary transition-colors">
-                {topUsers[0].display_name || topUsers[0].username}
+                {topUsers[0].displayName || topUsers[0].username}
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[0].level}</p>
               {category === 'xp' && <p className="text-xl font-bold text-primary">{formatNumber(topUsers[0].xp)} XP</p>}
@@ -274,9 +274,9 @@ export default function LeaderboardPage() {
               className="flex flex-col items-center group"
             >
               <div className="relative mb-3">
-                {topUsers[2].avatar_url ? (
+                {topUsers[2].avatarUrl ? (
                   <img
-                    src={topUsers[2].avatar_url}
+                    src={topUsers[2].avatarUrl}
                     alt={topUsers[2].username}
                     className="w-20 h-20 rounded-full object-cover border-4 border-amber-600 group-hover:scale-110 transition-transform"
                   />
@@ -292,7 +292,7 @@ export default function LeaderboardPage() {
                 </div>
               </div>
               <h3 className="font-bold text-center mb-1 group-hover:text-primary transition-colors">
-                {topUsers[2].display_name || topUsers[2].username}
+                {topUsers[2].displayName || topUsers[2].username}
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[2].level}</p>
               {category === 'xp' && <p className="text-lg font-bold text-primary">{formatNumber(topUsers[2].xp)} XP</p>}
@@ -322,9 +322,9 @@ export default function LeaderboardPage() {
 
               {/* Avatar */}
               <div className="relative">
-                {user.avatar_url ? (
+                {user.avatarUrl ? (
                   <img
-                    src={user.avatar_url}
+                    src={user.avatarUrl}
                     alt={user.username}
                     className="w-12 h-12 rounded-full object-cover"
                   />
@@ -343,10 +343,10 @@ export default function LeaderboardPage() {
               {/* User Info */}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-bold">{user.display_name || user.username}</h3>
-                  {user.profile_title && (
+                  <h3 className="font-bold">{user.displayName || user.username}</h3>
+                  {user.profileTitle && (
                     <span className="px-2 py-0.5 bg-primary/20 text-primary rounded text-xs font-semibold">
-                      {user.profile_title}
+                      {user.profileTitle}
                     </span>
                   )}
                 </div>

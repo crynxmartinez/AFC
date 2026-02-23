@@ -42,18 +42,18 @@ export default function SettingsPage() {
     if (profile) {
       setUsername(profile.username || '')
       setBio(profile.bio || '')
-      setDisplayName(profile.display_name || '')
-      setInstagramUrl(profile.instagram_url || '')
-      setTwitterUrl(profile.twitter_url || '')
-      setPortfolioUrl(profile.portfolio_url || '')
-      setAvatarPreview(profile.avatar_url || null)
-      setProfileVisibility(profile.profile_visibility || 'public')
+      setDisplayName(profile.displayName || '')
+      setInstagramUrl(profile.instagramUrl || '')
+      setTwitterUrl(profile.twitterUrl || '')
+      setPortfolioUrl(profile.portfolioUrl || '')
+      setAvatarPreview(profile.avatarUrl || null)
+      setProfileVisibility(profile.profileVisibility || 'public')
       setNotifyReactions(profile.notify_reactions ?? true)
       setNotifyFollows(profile.notify_follows ?? true)
       setNotifyComments(profile.notify_comments ?? true)
       setNotifyArtistContests(profile.notify_artist_contests ?? true)
-      setShowContestsJoined(profile.show_contests_joined ?? true)
-      setShowContestsWon(profile.show_contests_won ?? true)
+      setShowContestsJoined(profile.showContestsJoined ?? true)
+      setShowContestsWon(profile.showContestsWon ?? true)
     }
   }, [profile])
 
@@ -77,7 +77,7 @@ export default function SettingsPage() {
     setMessage('')
 
     try {
-      let avatarUrl = profile?.avatar_url
+      let avatarUrl = profile?.avatarUrl
 
       // Upload avatar if changed
       if (avatarFile) {
