@@ -1,0 +1,406 @@
+// Prisma Schema for AFC (Arena for Creatives)
+// Using Prisma Accelerate for connection pooling and caching
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                  String   @id @default(uuid())
+  email               String   @unique
+  username            String   @unique
+  passwordHash        String   @map("password_hash")
+  role                String   @default("user")
+  displayName         String?  @map("display_name")
+  avatarUrl           String?  @map("avatar_url")
+  coverPhotoUrl       String?  @map("cover_photo_url")
+  bio                 String?
+  profileTitle        String?  @map("profile_title")
+  pointsBalance       Int      @default(100) @map("points_balance")
+  totalSpent          Int      @default(0) @map("total_spent")
+  xp                  Int      @default(0)
+  level               Int      @default(1)
+  totalXp             Int      @default(0) @map("total_xp")
+  instagramUrl        String?  @map("instagram_url")
+  twitterUrl          String?  @map("twitter_url")
+  portfolioUrl        String?  @map("portfolio_url")
+  website             String?
+  location            String?
+  skills              String[] @default([])
+  specialties         String[] @default([])
+  yearsExperience     Int?     @map("years_experience")
+  availableForWork    Boolean  @default(false) @map("available_for_work")
+  profileVisibility   String   @default("public") @map("profile_visibility")
+  notifyReactions     Boolean  @default(true) @map("notify_reactions")
+  notifyComments      Boolean  @default(true) @map("notify_comments")
+  notifyArtistContests Boolean @default(true) @map("notify_artist_contests")
+  notifyFollows       Boolean  @default(true) @map("notify_follows")
+  showContestsJoined  Boolean  @default(true) @map("show_contests_joined")
+  showContestsWon     Boolean  @default(true) @map("show_contests_won")
+  lastActiveAt        DateTime? @map("last_active_at")
+  emailVerified       Boolean  @default(false) @map("email_verified")
+  emailVerificationToken String? @map("email_verification_token")
+  passwordResetToken  String?  @map("password_reset_token")
+  passwordResetExpires DateTime? @map("password_reset_expires")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  entries             Entry[]
+  contestsCreated     Contest[]        @relation("ContestCreator")
+  votes               Vote[]
+  comments            EntryComment[]
+  reactions           Reaction[]
+  commentReactions    CommentReaction[]
+  shares              Share[]
+  followers           Follow[]         @relation("Following")
+  following           Follow[]         @relation("Follower")
+  notifications       Notification[]   @relation("NotificationRecipient")
+  actorNotifications  Notification[]   @relation("NotificationActor")
+  xpTransactions      XpTransaction[]
+  userAchievements    UserAchievement[]
+  userBadges          UserBadge[]
+  userStats           UserStats?
+  contestWins         ContestWinner[]
+  contactSubmissions  ContactSubmission[]
+  dailyXpClaims       DailyXpClaim[]
+
+  @@map("users")
+}
+
+model Contest {
+  id                   String   @id @default(uuid())
+  title                String
+  description          String
+  category             String   @default("art")
+  status               String   @default("draft")
+  startDate            DateTime @map("start_date")
+  endDate              DateTime @map("end_date")
+  thumbnailUrl         String?  @map("thumbnail_url")
+  createdById          String   @map("created_by")
+  prizePool            Int      @default(0) @map("prize_pool")
+  prizePoolDistributed Boolean  @default(false) @map("prize_pool_distributed")
+  finalizedAt          DateTime? @map("finalized_at")
+  hasSponsor           Boolean  @default(false) @map("has_sponsor")
+  sponsorName          String?  @map("sponsor_name")
+  sponsorLogoUrl       String?  @map("sponsor_logo_url")
+  sponsorPrizeAmount   Float?   @map("sponsor_prize_amount")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  createdBy            User     @relation("ContestCreator", fields: [createdById], references: [id])
+  entries              Entry[]
+  winners              ContestWinner[]
+
+  @@map("contests")
+}
+
+model Entry {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  contestId         String    @map("contest_id")
+  title             String?
+  description       String?
+  phase1Url         String?   @map("phase_1_url")
+  phase2Url         String?   @map("phase_2_url")
+  phase3Url         String?   @map("phase_3_url")
+  phase4Url         String?   @map("phase_4_url")
+  status            String    @default("draft")
+  voteCount         Int       @default(0) @map("vote_count")
+  commentCount      Int       @default(0) @map("comment_count")
+  shareCount        Int       @default(0) @map("share_count")
+  finalRank         Int?      @map("final_rank")
+  submittedAt       DateTime? @map("submitted_at")
+  approvedAt        DateTime? @map("approved_at")
+  rejectionReason   String?   @map("rejection_reason")
+  lastActivityAt    DateTime  @default(now()) @map("last_activity_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contest           Contest   @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  votes             Vote[]
+  comments          EntryComment[]
+  reactions         Reaction[]
+  shares            Share[]
+  contestWin        ContestWinner?
+
+  @@unique([userId, contestId])
+  @@index([contestId, status])
+  @@index([userId])
+  @@map("entries")
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  entryId   String   @map("entry_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entryId])
+  @@index([entryId])
+  @@map("votes")
+}
+
+model EntryComment {
+  id              String    @id @default(uuid())
+  entryId         String    @map("entry_id")
+  userId          String    @map("user_id")
+  parentCommentId String?   @map("parent_comment_id")
+  content         String
+  isPinned        Boolean   @default(false) @map("is_pinned")
+  pinnedAt        DateTime? @map("pinned_at")
+  mentionedUsers  String[]  @default([]) @map("mentioned_users")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry           Entry          @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  parentComment   EntryComment?  @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies         EntryComment[] @relation("CommentReplies")
+  reactions       CommentReaction[]
+
+  @@index([entryId])
+  @@index([userId])
+  @@index([parentCommentId])
+  @@map("entry_comments")
+}
+
+model Reaction {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  entryId      String   @map("entry_id")
+  reactionType String   @map("reaction_type")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry        Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entryId])
+  @@index([entryId])
+  @@map("reactions")
+}
+
+model CommentReaction {
+  id           String   @id @default(uuid())
+  commentId    String   @map("comment_id")
+  userId       String   @map("user_id")
+  reactionType String   @map("reaction_type")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  comment      EntryComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId, reactionType])
+  @@index([commentId])
+  @@map("comment_reactions")
+}
+
+model Share {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  entryId   String   @map("entry_id")
+  contestId String   @map("contest_id")
+  platform  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([entryId])
+  @@map("shares")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  actorId   String?  @map("actor_id")
+  type      String
+  content   String
+  read      Boolean  @default(false)
+  entryId   String?  @map("entry_id")
+  contestId String?  @map("contest_id")
+  link      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?    @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model XpTransaction {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  actionType  String   @map("action_type")
+  xpAmount    Int      @map("xp_amount")
+  referenceId String?  @map("reference_id")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("xp_transactions")
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  icon        String
+  category    String
+  requirement String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  achievementId String   @map("achievement_id")
+  earnedAt      DateTime @default(now()) @map("earned_at")
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@map("user_achievements")
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  badgeName String   @map("badge_name")
+  badgeIcon String   @map("badge_icon")
+  earnedAt  DateTime @default(now()) @map("earned_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_badges")
+}
+
+model UserStats {
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_stats")
+}
+
+model ContestWinner {
+  id            String   @id @default(uuid())
+  contestId     String   @map("contest_id")
+  userId        String   @map("user_id")
+  entryId       String   @unique @map("entry_id")
+  placement     Int
+  votesReceived Int      @default(0) @map("votes_received")
+  prizeAmount   Int      @default(0) @map("prize_amount")
+  awardedAt     DateTime @default(now()) @map("awarded_at")
+
+  contest       Contest  @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry         Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([contestId])
+  @@index([userId])
+  @@map("contest_winners")
+}
+
+model LevelConfig {
+  level      Int    @id
+  xpRequired Int    @map("xp_required")
+  title      String
+
+  @@map("level_config")
+}
+
+model XpReward {
+  id          String  @id @default(uuid())
+  actionType  String  @unique @map("action_type")
+  xpAmount    Int     @map("xp_amount")
+  description String
+  enabled     Boolean @default(true)
+
+  @@map("xp_rewards")
+}
+
+model LevelReward {
+  id          String  @id @default(uuid())
+  level       Int
+  rewardType  String  @map("reward_type")
+  rewardValue String  @map("reward_value")
+  description String
+  autoGrant   Boolean @default(false) @map("auto_grant")
+
+  @@index([level])
+  @@map("level_rewards")
+}
+
+model ContactSubmission {
+  id         String    @id @default(uuid())
+  userId     String?   @map("user_id")
+  name       String
+  email      String
+  subject    String
+  message    String
+  status     String    @default("new")
+  readAt     DateTime? @map("read_at")
+  resolvedAt DateTime? @map("resolved_at")
+  adminNotes String?   @map("admin_notes")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("contact_submissions")
+}
+
+model DailyXpClaim {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  action    String
+  claimedAt DateTime @default(now()) @map("claimed_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, action, claimedAt])
+  @@index([userId])
+  @@map("daily_xp_claims")
+}

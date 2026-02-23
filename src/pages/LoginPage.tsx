@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import { supabase } from '../lib/supabase'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
@@ -19,25 +18,8 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      let loginEmail = emailOrUsername
-
-      // Check if input is username (no @ symbol)
-      if (!emailOrUsername.includes('@')) {
-        // Look up email by username
-        const { data: userData, error: lookupError } = await supabase
-          .from('users')
-          .select('email')
-          .eq('username', emailOrUsername)
-          .single()
-
-        if (lookupError || !userData) {
-          throw new Error('Username not found')
-        }
-
-        loginEmail = (userData as { email: string }).email
-      }
-
-      await signIn(loginEmail, password)
+      // API handles both email and username
+      await signIn(emailOrUsername, password)
       navigate('/')
     } catch (err: any) {
       setError(err.message || 'Failed to sign in')

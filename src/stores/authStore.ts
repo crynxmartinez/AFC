@@ -1,9 +1,20 @@
 import { create } from 'zustand'
-import { supabase } from '../lib/supabase'
-import type { User } from '@supabase/supabase-js'
-import type { Database } from '../types/database'
+import { authApi } from '../lib/api'
 
-type UserProfile = Database['public']['Tables']['users']['Row']
+interface User {
+  id: string
+  email: string
+  username: string
+  role: string
+  displayName: string | null
+  avatarUrl: string | null
+  level: number
+  xp: number
+  pointsBalance: number
+  emailVerified: boolean
+}
+
+type UserProfile = User
 
 interface AuthState {
   user: User | null
@@ -17,8 +28,8 @@ interface AuthState {
   initialize: () => Promise<void>
 }
 
-// Track if we've already set up the auth listener to prevent duplicates
-let authListenerSetup = false
+// Track if we've already initialized to prevent duplicates
+let initialized = false
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -28,77 +39,45 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   initialize: async () => {
     // Prevent multiple initializations
-    if (get().initialized || authListenerSetup) {
+    if (get().initialized || initialized) {
       return
     }
-    authListenerSetup = true
+    initialized = true
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        set({ user: session.user })
-        await get().fetchProfile()
+      const { data, error } = await authApi.getSession()
+      if (!error && data?.user) {
+        set({ user: data.user, profile: data.user })
       }
     } catch (error) {
       console.error('Initialize error:', error)
     } finally {
       set({ loading: false, initialized: true })
     }
-
-    // Listen for auth changes - only handle SIGNED_OUT
-    // All other events are handled by getSession() above
-    supabase.auth.onAuthStateChange(async (event) => {
-      // Only handle sign out - everything else causes unnecessary re-renders
-      if (event === 'SIGNED_OUT') {
-        set({ user: null, profile: null })
-      }
-      // Ignore all other events - they fire too frequently and cause feed reloads
-    })
   },
 
   signUp: async (email: string, password: string, username: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          username: username
-        },
-        emailRedirectTo: `${window.location.origin}/auth/confirm`
-      }
-    })
+    const { data, error } = await authApi.signup(email, username, password)
 
-    if (error) throw error
-    if (!data.user) throw new Error('No user returned')
+    if (error) throw new Error(error)
+    if (!data?.user) throw new Error('No user returned')
 
-    // Create user profile using database function (bypasses RLS)
-    const { error: profileError } = await supabase.rpc('create_user_profile', {
-      user_id: data.user.id,
-      user_email: data.user.email!,
-      user_username: username
-    } as any)
-
-    if (profileError) throw profileError
-
-    // Don't set user or fetch profile yet - wait for email verification
-    // set({ user: data.user })
-    // await get().fetchProfile()
+    // User is automatically logged in after signup
+    set({ user: data.user, profile: data.user })
   },
 
   signIn: async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    const { data, error } = await authApi.login(email, password)
 
-    if (error) throw error
-    set({ user: data.user })
-    await get().fetchProfile()
+    if (error) throw new Error(error)
+    if (!data?.user) throw new Error('Login failed')
+
+    set({ user: data.user, profile: data.user })
   },
 
   signOut: async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    const { error } = await authApi.logout()
+    if (error) throw new Error(error)
     set({ user: null, profile: null })
   },
 
@@ -106,17 +85,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user } = get()
     if (!user) return
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single()
+    const { data, error } = await authApi.getSession()
 
-    if (error) {
+    if (error || !data?.user) {
       console.error('Fetch profile error:', error)
       return
     }
 
-    set({ profile: data })
+    set({ user: data.user, profile: data.user })
   },
 }))
