@@ -87,6 +87,22 @@ export const usersApi = {
       body: JSON.stringify({ coverPhotoUrl }),
     })
   },
+
+  getFollowing: async (userId: string) => {
+    return apiRequest(`/users/${userId}/following`)
+  },
+
+  getFollowers: async (userId: string) => {
+    return apiRequest(`/users/${userId}/followers`)
+  },
+
+  getStats: async (userId: string) => {
+    return apiRequest(`/users/${userId}/stats`)
+  },
+
+  getEntries: async (userId: string) => {
+    return apiRequest(`/users/${userId}/entries`)
+  },
 }
 
 // Contests API
@@ -273,6 +289,11 @@ export const notificationsApi = {
 export const feedApi = {
   get: async (filter: 'latest' | 'popular' | 'following' = 'latest') => {
     return apiRequest(`/feed?filter=${filter}`)
+  },
+
+  getFeed: async (filter: 'latest' | 'popular' | 'following' = 'latest', timeRange?: number) => {
+    const timeParam = timeRange ? `&timeRange=${timeRange}` : ''
+    return apiRequest(`/feed?filter=${filter}${timeParam}`)
   },
 }
 

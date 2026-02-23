@@ -65,7 +65,7 @@ export default function FeedPage() {
   const fetchFollowingCount = async () => {
     if (!user) return
     try {
-      const response = await usersApi.getFollowing(user.id)
+      const response: any = await usersApi.getFollowing(user.id)
       setFollowingCount(response.following?.length || 0)
     } catch (error) {
       console.error('Error fetching following count:', error)
@@ -74,7 +74,7 @@ export default function FeedPage() {
 
   const fetchWinnerAnnouncements = async () => {
     try {
-      const response = await contestsApi.getRecentWinners(7)
+      const response: any = await contestsApi.getRecentWinners(7)
       setAnnouncements(response.announcements || [])
     } catch (error) {
       console.error('Error fetching announcements:', error)
@@ -85,7 +85,7 @@ export default function FeedPage() {
     if (!user) return
     setLoading(true)
     try {
-      const response = await feedApi.getFeed(filter, timeRange)
+      const response: any = await feedApi.getFeed(filter, timeRange)
       setEntries(response.entries || [])
     } catch (error) {
       console.error('Error fetching feed:', error)
