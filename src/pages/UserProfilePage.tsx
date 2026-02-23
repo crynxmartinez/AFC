@@ -14,46 +14,46 @@ import { useAuthStore } from '@/stores/authStore'
 type UserProfile = {
   id: string
   username: string
-  display_name: string | null
-  avatar_url: string | null
-  cover_photo_url: string | null
+  displayName: string | null
+  avatarUrl: string | null
+  coverPhotoUrl: string | null
   bio: string | null
   xp: number
   level: number
-  profile_title: string | null
-  created_at: string
-  instagram_url: string | null
-  twitter_url: string | null
-  portfolio_url: string | null
+  profileTitle: string | null
+  createdAt: string
+  instagramUrl: string | null
+  twitterUrl: string | null
+  portfolioUrl: string | null
   location: string | null
   website: string | null
   skills: string[] | null
   specialties: string[] | null
-  years_experience: number | null
-  available_for_work: boolean
+  yearsExperience: number | null
+  availableForWork: boolean
 }
 
 type Entry = {
   id: string
-  contest_id: string
-  phase_4_url: string | null
-  created_at: string
+  contestId: string
+  phase4Url: string | null
+  createdA: string
   status: string
   contests: {
     title: string
     status: string
   }
   ranking?: number
-  total_votes?: number
+  totalVotes?: number
 }
 
 type Winner = {
   id: string
-  contest_id: string
+  contestId: string
   placement: number
-  prize_amount: number
-  votes_received: number
-  awarded_at: string
+  prizeAmount: number
+  votesReceived: number
+  awardedAt: string
   contests: {
     title: string
   }
@@ -61,9 +61,9 @@ type Winner = {
 
 type Badge = {
   id: string
-  badge_name: string
-  badge_icon: string
-  earned_at: string
+  badgeName: string
+  badgeIcon: string
+  earnedAt: string
 }
 
 export default function UserProfilePage() {
@@ -265,7 +265,7 @@ export default function UserProfilePage() {
       {/* Profile Banner */}
       <div className="bg-surface rounded-lg overflow-hidden mb-6">
         <ProfileBanner
-          coverPhotoUrl={profile.cover_photo_url}
+          coverPhotoUrl={profile.coverPhotoUrl}
           userId={profile.id}
           isOwnProfile={user?.id === profile.id}
           onUpdate={fetchProfile}
@@ -276,9 +276,9 @@ export default function UserProfilePage() {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             {/* Avatar - Overlaps banner by 1/3 */}
             <div className="relative flex-shrink-0 -mt-16 md:-mt-20">
-              {profile.avatar_url ? (
+              {profile.avatarUrl ? (
                 <img
-                  src={profile.avatar_url}
+                  src={profile.avatarUrl}
                   alt={profile.username}
                   className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-surface shadow-xl"
                 />
@@ -298,10 +298,10 @@ export default function UserProfilePage() {
             {/* Profile Info */}
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-3 mb-2">
-                <h1 className="text-2xl md:text-3xl font-bold">{profile.display_name || profile.username}</h1>
-                {profile.profile_title && (
+                <h1 className="text-2xl md:text-3xl font-bold">{profile.displayName || profile.username}</h1>
+                {profile.profileTitle && (
                   <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm font-semibold">
-                    {profile.profile_title}
+                    {profile.profileTitle}
                   </span>
                 )}
               </div>
@@ -417,7 +417,7 @@ export default function UserProfilePage() {
             )}
 
             {/* Available for Work Badge */}
-            {profile.available_for_work && (
+            {profile.availableForWork && (
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-success/10 text-success rounded-lg text-sm font-medium">
                 <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
                 Available for Work
@@ -485,9 +485,9 @@ export default function UserProfilePage() {
                   className="bg-surface rounded-lg overflow-hidden border border-border hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/20"
                 >
                   <div className="relative">
-                    {entry.phase_4_url ? (
+                    {entry.phase4Url ? (
                       <img
-                        src={entry.phase_4_url}
+                        src={entry.phase4Url}
                         alt="Entry"
                         className="w-full aspect-square object-cover"
                       />
@@ -534,7 +534,7 @@ export default function UserProfilePage() {
                     )}
                     <p className="text-sm text-text-secondary mb-2 line-clamp-1">{entry.contests.title}</p>
                     <div className="flex items-center justify-between text-sm text-text-secondary">
-                      <span>{formatDate(entry.created_at)}</span>
+                      <span>{formatDate(entry.createdAt)}</span>
                       {entry.total_votes !== undefined && (
                         <span className="font-semibold text-primary">{entry.total_votes} votes</span>
                       )}
@@ -565,9 +565,9 @@ export default function UserProfilePage() {
                   className="bg-surface rounded-lg p-6 text-center border border-border hover:border-primary transition-colors"
                 >
                   <div className="text-5xl mb-3">{badge.badge_icon}</div>
-                  <h3 className="font-semibold mb-1">{badge.badge_name}</h3>
+                  <h3 className="font-semibold mb-1">{badge.badgeName}</h3>
                   <p className="text-xs text-text-secondary">
-                    Earned {formatDate(badge.earned_at)}
+                    Earned {formatDate(badge.earnedAt)}
                   </p>
                 </div>
               ))}
@@ -624,7 +624,7 @@ export default function UserProfilePage() {
                   <div className="flex items-center gap-6 text-sm text-text-secondary">
                     <div className="flex items-center gap-2">
                       <Trophy className="w-4 h-4" />
-                      <span>{winner.votes_received} votes</span>
+                      <span>{winner.votesReceived} votes</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
