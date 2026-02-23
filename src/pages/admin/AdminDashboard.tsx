@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { adminApi, contestsApi } from '@/lib/api'
 import { Users, Trophy, DollarSign, AlertCircle, TrendingUp } from 'lucide-react'
 
 type Contest = {
@@ -26,23 +27,13 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch total users
-      const { count: usersCount } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
+      // Fetch admin stats
+      const statsResponse: any = await adminApi.getStats()
+      const stats = statsResponse.stats
 
-      // Fetch active contests
-      const { count: contestsCount } = await supabase
-        .from('contests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-
-      // Fetch recent contests (without entry_count if it doesn't exist)
-      const { data: contests } = await supabase
-        .from('contests')
-        .select('id, title, status, end_date, created_at')
-        .order('created_at', { ascending: false })
-        .limit(5)
+      // Fetch recent contests
+      const contestsResponse: any = await contestsApi.list()
+      const contests = (contestsResponse.contests || []).slice(0, 5)
 
       // Count entries for each contest manually
       const contestsWithCounts = await Promise.all(

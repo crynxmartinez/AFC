@@ -1,7 +1,7 @@
 // @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { adminApi, entriesApi } from '@/lib/api'
 import { formatTimeAgo } from '@/lib/utils'
 import { Check, X } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
@@ -39,10 +39,8 @@ export default function AdminReviews() {
 
   const fetchEntries = async () => {
     try {
-      let query = supabase
-        .from('entries')
-        .select('*')
-        .order('submitted_at', { ascending: false })
+      const response: any = await adminApi.getPendingEntries()
+      const data = response.entries || []
 
       if (filter === 'pending_review') {
         query = query.eq('status', 'pending_review')
@@ -77,13 +75,7 @@ export default function AdminReviews() {
 
   const approveEntry = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('entries')
-        .update({
-          status: 'approved',
-          approved_at: new Date().toISOString(),
-        } as any)
-        .eq('id', id)
+      await adminApi.reviewEntry(id, 'approved', null)
 
       if (error) throw error
 
@@ -104,13 +96,7 @@ export default function AdminReviews() {
     }
 
     try {
-      const { error } = await supabase
-        .from('entries')
-        .update({
-          status: 'rejected',
-          rejection_reason: rejectionReason,
-        } as any)
-        .eq('id', id)
+      await adminApi.reviewEntry(id, 'rejected', rejectionReason)
 
       if (error) throw error
 

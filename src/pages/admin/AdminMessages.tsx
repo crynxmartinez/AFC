@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { adminApi } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import { Mail, MailOpen, CheckCircle, Clock, Filter, ChevronDown, ChevronUp, User, MessageSquare } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
@@ -34,20 +34,15 @@ export default function AdminMessages() {
   const fetchMessages = async () => {
     setLoading(true)
     try {
-      let query = supabase
-        .from('contact_submissions')
-        .select('*')
-        .order('created_at', { ascending: false })
+      const response: any = await adminApi.getMessages()
+      let data = response.messages || []
 
       if (filter !== 'all') {
-        query = query.eq('status', filter)
+        data = data.filter(msg => msg.status === filter)
       }
 
-      const { data, error } = await query
-
-      if (error) throw error
       setMessages(data || [])
-      
+
       // Initialize admin notes
       const notes: Record<string, string> = {}
       data?.forEach(msg => {
@@ -64,16 +59,8 @@ export default function AdminMessages() {
 
   const markAsRead = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('contact_submissions')
-        .update({ 
-          status: 'read',
-          read_at: new Date().toISOString()
-        })
-        .eq('id', id)
+      await adminApi.updateMessage(id, { status: 'read' })
 
-      if (error) throw error
-      
       setMessages(prev => prev.map(msg => 
         msg.id === id ? { ...msg, status: 'read', read_at: new Date().toISOString() } : msg
       ))
@@ -115,10 +102,7 @@ export default function AdminMessages() {
 
   const saveNotes = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('contact_submissions')
-        .update({ admin_notes: adminNotes[id] || null })
-        .eq('id', id)
+      await adminApi.updateMessage(id, { adminNotes: adminNotes[id] || null })
 
       if (error) throw error
       toast.success('Notes saved')

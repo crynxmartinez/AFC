@@ -2,7 +2,8 @@
 import { Link } from 'react-router-dom'
 import { Plus, AlertTriangle } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { Link } from 'react-router-dom'
+import { contestsApi } from '@/lib/api'
 import { formatDate, getContestStatus } from '@/lib/utils'
 import { useToastStore } from '@/stores/toastStore'
 
@@ -32,20 +33,15 @@ export default function AdminContests() {
 
   const fetchContests = async () => {
     try {
-      const { data, error } = await supabase
-        .from('contests')
-        .select('*')
-        .order('created_at', { ascending: false })
+      const response: any = await contestsApi.list()
+      const data = response.contests || []
 
       if (error) throw error
 
       // Get entry counts and calculate actual status based on dates
       const contestsWithCounts = await Promise.all(
         (data || []).map(async (contest: any) => {
-          const { count } = await supabase
-            .from('entries')
-            .select('*', { count: 'exact', head: true })
-            .eq('contest_id', contest.id)
+          const { count } = await contestsApi.getEntryCount(contest.id)
 
           // Calculate actual status based on dates
           const calculatedStatus = getContestStatus(contest.start_date, contest.end_date)
@@ -71,12 +67,9 @@ export default function AdminContests() {
   }
 
   const deleteContest = async (id: string) => {
-    setDeleteConfirmId(null)
+    if (!confirm('Are you sure you want to delete this contest?')) return
     try {
-      const { error } = await supabase
-        .from('contests')
-        .delete()
-        .eq('id', id)
+      await contestsApi.delete(id)
 
       if (error) throw error
 

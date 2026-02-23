@@ -1,6 +1,7 @@
-// @ts-nocheck - Supabase type inference issues
+// @ts-nocheck - API type inference issues
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { Link } from 'react-router-dom'
+import { adminApi } from '@/lib/api'
 import { useToastStore } from '@/stores/toastStore'
 import { formatDate } from '@/lib/utils'
 
@@ -13,6 +14,7 @@ type User = {
   created_at: string
   role: string
   avatar_url: string | null
+  banned: boolean
 }
 
 export default function AdminUsers() {
@@ -26,10 +28,8 @@ export default function AdminUsers() {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false })
+      const response: any = await adminApi.getUsers()
+      const data = response.users || []
 
       if (error) throw error
       setUsers(data || [])
@@ -42,10 +42,7 @@ export default function AdminUsers() {
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ role: newRole } as any)
-        .eq('id', userId)
+      await adminApi.updateUserRole(userId, newRole)
 
       if (error) throw error
       
