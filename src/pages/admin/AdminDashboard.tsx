@@ -7,8 +7,8 @@ type Contest = {
   id: string
   title: string
   status: string
-  entry_count: number
-  end_date: string
+  entryCount: number
+  endDate: string
 }
 
 export default function AdminDashboard() {
@@ -38,7 +38,7 @@ export default function AdminDashboard() {
       // Contests already have entry counts from API
       const contestsWithCounts = contests.map((contest: any) => ({
         ...contest,
-        entry_count: contest.entryCount || 0
+        entryCount: contest.entryCount || 0
       }))
 
       setStats({
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
           </div>
           <div className="text-3xl font-bold">{stats.activeContests}</div>
           <div className="text-text-secondary text-sm mt-2">
-            {recentContests.filter(c => new Date(c.end_date) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)).length} ending soon
+            {recentContests.filter(c => new Date(c.endDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)).length} ending soon
           </div>
         </div>
 
@@ -141,7 +141,7 @@ export default function AdminDashboard() {
                   <div>
                     <div className="font-semibold">{contest.title}</div>
                     <div className="text-sm text-text-secondary">
-                      {contest.entry_count || 0} entries
+                      {contest.entryCount || 0} entries
                     </div>
                   </div>
                   <div className={`text-sm font-medium ${

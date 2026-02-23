@@ -12,13 +12,13 @@ type Contest = {
   title: string
   description: string
   status: string
-  start_date: string
-  end_date: string
-  thumbnail_url: string | null
-  created_at: string
-  entry_count?: number
-  prize_pool?: number
-  prize_pool_distributed?: boolean
+  startDate: string
+  endDate: string
+  thumbnailUrl: string | null
+  createdAt: string
+  entryCount?: number
+  prizePool?: number
+  prizePoolDistributed?: boolean
 }
 
 export default function AdminContests() {
@@ -44,7 +44,7 @@ export default function AdminContests() {
           const { count } = await contestsApi.getEntryCount(contest.id)
 
           // Calculate actual status based on dates
-          const calculatedStatus = getContestStatus(contest.start_date, contest.end_date)
+          const calculatedStatus = getContestStatus(contest.startDate, contest.endDate)
           
           // If database status is 'voting', keep it (manual override)
           // Otherwise use calculated status
@@ -53,7 +53,7 @@ export default function AdminContests() {
           return {
             ...contest,
             status: actualStatus,
-            entry_count: count || 0,
+            entryCount: count || 0,
           }
         })
       )
@@ -153,14 +153,14 @@ export default function AdminContests() {
                   </div>
                   <p className="text-sm text-text-secondary mb-3 line-clamp-2 whitespace-pre-line">{contest.description}</p>
                   <div className="flex gap-6 text-sm text-text-secondary">
-                    <span>{contest.entry_count || 0} entries</span>
-                    <span>Start: {formatDate(contest.start_date)}</span>
-                    <span>End: {formatDate(contest.end_date)}</span>
+                    <span>{contest.entryCount || 0} entries</span>
+                    <span>Start: {formatDate(contest.startDate)}</span>
+                    <span>End: {formatDate(contest.endDate)}</span>
                   </div>
                 </div>
-                {contest.thumbnail_url && (
+                {contest.thumbnailUrl && (
                   <img
-                    src={contest.thumbnail_url}
+                    src={contest.thumbnailUrl}
                     alt={contest.title}
                     className="w-24 h-24 object-cover rounded-lg ml-4"
                   />
