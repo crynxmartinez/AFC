@@ -8,17 +8,17 @@ import { Trophy, Award, TrendingUp, Crown, Medal } from 'lucide-react'
 type LeaderboardUser = {
   id: string
   username: string
-  display_name: string | null
-  avatar_url: string | null
+  displayName: string | null
+  avatarUrl: string | null
   xp: number
   level: number
-  profile_title: string | null
-  total_entries?: number
-  total_reactions?: number
-  total_wins?: number
-  total_prize_money?: number
-  win_rate?: number
-  avg_votes?: number
+  profileTitle: string | null
+  totalEntries?: number
+  totalReactions?: number
+  totalWins?: number
+  totalPrizeMoney?: number
+  winRate?: number
+  avgVotes?: number
 }
 
 type CategoryType = 'xp' | 'earners' | 'winners'
@@ -41,20 +41,20 @@ export default function LeaderboardPage() {
       // Users already have basic stats from API
       const usersWithStats = data.map((user: any) => ({
         ...user,
-        total_entries: 0,
-        total_reactions: 0,
-        total_wins: 0,
-        total_prize_money: 0,
-        win_rate: 0,
-        avg_votes: 0,
+        totalEntries: 0,
+        totalReactions: 0,
+        totalWins: 0,
+        totalPrizeMoney: 0,
+        winRate: 0,
+        avgVotes: 0,
       }))
 
       // Sort based on category
       let sortedUsers = [...usersWithStats]
       if (category === 'earners') {
-        sortedUsers.sort((a, b) => (b.total_prize_money || 0) - (a.total_prize_money || 0))
+        sortedUsers.sort((a, b) => (b.totalPrizeMoney || 0) - (a.totalPrizeMoney || 0))
       } else if (category === 'winners') {
-        sortedUsers.sort((a, b) => (b.total_wins || 0) - (a.total_wins || 0))
+        sortedUsers.sort((a, b) => (b.totalWins || 0) - (a.totalWins || 0))
       }
       // 'xp' is already sorted from the query
 
@@ -156,9 +156,9 @@ export default function LeaderboardPage() {
               className="flex flex-col items-center group"
             >
               <div className="relative mb-3">
-                {topUsers[1].avatar_url ? (
+                {topUsers[1].avatarUrl ? (
                   <img
-                    src={topUsers[1].avatar_url}
+                    src={topUsers[1].avatarUrl}
                     alt={topUsers[1].username}
                     className="w-20 h-20 rounded-full object-cover border-4 border-gray-400 group-hover:scale-110 transition-transform"
                   />
@@ -174,12 +174,12 @@ export default function LeaderboardPage() {
                 </div>
               </div>
               <h3 className="font-bold text-center mb-1 group-hover:text-primary transition-colors">
-                {topUsers[1].display_name || topUsers[1].username}
+                {topUsers[1].displayName || topUsers[1].username}
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[1].level}</p>
               {category === 'xp' && <p className="text-lg font-bold text-primary">{formatNumber(topUsers[1].xp)} XP</p>}
               {category === 'earners' && <p className="text-lg font-bold text-success">{formatNumber(topUsers[1].total_prize_money || 0)} pts</p>}
-              {category === 'winners' && <p className="text-lg font-bold text-warning">{topUsers[1].total_wins} Wins</p>}
+              {category === 'winners' && <p className="text-lg font-bold text-warning">{topUsers[1].totalWins} Wins</p>}
             </Link>
           </div>
 
@@ -209,12 +209,12 @@ export default function LeaderboardPage() {
                 </div>
               </div>
               <h3 className="font-bold text-lg text-center mb-1 group-hover:text-primary transition-colors">
-                {topUsers[0].display_name || topUsers[0].username}
+                {topUsers[0].displayName || topUsers[0].username}
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[0].level}</p>
               {category === 'xp' && <p className="text-xl font-bold text-primary">{formatNumber(topUsers[0].xp)} XP</p>}
               {category === 'earners' && <p className="text-xl font-bold text-success">{formatNumber(topUsers[0].total_prize_money || 0)} pts</p>}
-              {category === 'winners' && <p className="text-xl font-bold text-warning">{topUsers[0].total_wins} Wins</p>}
+              {category === 'winners' && <p className="text-xl font-bold text-warning">{topUsers[0].totalWins} Wins</p>}
             </Link>
           </div>
 
@@ -243,12 +243,12 @@ export default function LeaderboardPage() {
                 </div>
               </div>
               <h3 className="font-bold text-center mb-1 group-hover:text-primary transition-colors">
-                {topUsers[2].display_name || topUsers[2].username}
+                {topUsers[2].displayName || topUsers[2].username}
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[2].level}</p>
               {category === 'xp' && <p className="text-lg font-bold text-primary">{formatNumber(topUsers[2].xp)} XP</p>}
               {category === 'earners' && <p className="text-lg font-bold text-success">{formatNumber(topUsers[2].total_prize_money || 0)} pts</p>}
-              {category === 'winners' && <p className="text-lg font-bold text-warning">{topUsers[2].total_wins} Wins</p>}
+              {category === 'winners' && <p className="text-lg font-bold text-warning">{topUsers[2].totalWins} Wins</p>}
             </Link>
           </div>
         </div>
@@ -294,10 +294,10 @@ export default function LeaderboardPage() {
               {/* User Info */}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-bold">{user.display_name || user.username}</h3>
-                  {user.profile_title && (
+                  <h3 className="font-bold">{user.displayName || user.username}</h3>
+                  {user.profileTitle && (
                     <span className="px-2 py-0.5 bg-primary/20 text-primary rounded text-xs font-semibold">
-                      {user.profile_title}
+                      {user.profileTitle}
                     </span>
                   )}
                 </div>
@@ -317,7 +317,7 @@ export default function LeaderboardPage() {
                       <div className="text-text-secondary text-xs">Entries</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold">{Math.round(user.avg_votes || 0)}</div>
+                      <div className="font-bold">{Math.round(user.avgVotes || 0)}</div>
                       <div className="text-text-secondary text-xs">Avg Votes</div>
                     </div>
                   </>
@@ -329,7 +329,7 @@ export default function LeaderboardPage() {
                       <div className="text-text-secondary text-xs">Prize Points</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold">{user.total_wins}</div>
+                      <div className="font-bold">{user.totalWins}</div>
                       <div className="text-text-secondary text-xs">Wins</div>
                     </div>
                     <div className="text-center">
@@ -341,11 +341,11 @@ export default function LeaderboardPage() {
                 {category === 'winners' && (
                   <>
                     <div className="text-center">
-                      <div className="font-bold text-warning">{user.total_wins}</div>
+                      <div className="font-bold text-warning">{user.totalWins}</div>
                       <div className="text-text-secondary text-xs">Wins</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold">{user.win_rate ? user.win_rate.toFixed(1) : '0.0'}%</div>
+                      <div className="font-bold">{user.winRate ? user.winRate.toFixed(1) : '0.0'}%</div>
                       <div className="text-text-secondary text-xs">Win Rate</div>
                     </div>
                     <div className="text-center">
