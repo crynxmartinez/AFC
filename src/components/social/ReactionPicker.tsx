@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
+import { reactionsApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
 import WhoReactedModal from './WhoReactedModal'
@@ -52,24 +52,20 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
   const fetchReactions = async () => {
     try {
       // Get all reactions for this entry
-      const { data: reactions, error } = await supabase
-        .from('reactions')
-        .select('*')
-        .eq('entry_id', entryId)
-
-      if (error) throw error
+      const response: any = await reactionsApi.list(entryId)
+      const reactions = response.reactions || []
 
       // Count reactions by type
       const counts: Record<string, number> = {}
       let total = 0
       
-      reactions?.forEach((reaction) => {
-        counts[reaction.reaction_type] = (counts[reaction.reaction_type] || 0) + 1
+      reactions.forEach((reaction: any) => {
+        counts[reaction.reactionType] = (counts[reaction.reactionType] || 0) + 1
         total++
         
         // Check if current user reacted
-        if (user && reaction.user_id === user.id) {
-          setUserReaction(reaction.reaction_type)
+        if (user && reaction.userId === user.id) {
+          setUserReaction(reaction.reactionType)
         }
       })
 
@@ -91,34 +87,14 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
 
     try {
       if (userReaction === reactionType) {
-        // Remove reaction (free - no point refund needed)
-        const { error: deleteError } = await supabase
-          .from('reactions')
-          .delete()
-          .eq('entry_id', entryId)
-          .eq('user_id', user.id)
-
-        if (deleteError) throw deleteError
+        // Remove reaction
+        await reactionsApi.remove(entryId)
         setUserReaction(null)
-      } else if (userReaction) {
-        // Update existing reaction (just changing reaction type)
-        const { error } = await supabase
-          .from('reactions')
-          .update({ reaction_type: reactionType })
-          .eq('entry_id', entryId)
-          .eq('user_id', user.id)
-
-        if (error) throw error
-        setUserReaction(reactionType)
       } else {
-        // Add new reaction (free - no point cost for MVP)
-        const { error: insertError } = await supabase
-          .from('reactions')
-          .insert({
-            entry_id: entryId,
-            user_id: user.id,
-            reaction_type: reactionType,
-          })
+        // Add or update reaction
+        await reactionsApi.add(entryId, reactionType)
+        setUserReaction(reactionType)
+      }
 
         if (insertError) throw insertError
 

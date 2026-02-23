@@ -148,8 +148,6 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
     try {
       await commentsApi.create(entryId, replyText.trim(), parentId)
 
-      if (error) throw error
-
       setReplyText('')
       setReplyingTo(null)
       setReplyMentionedUsers([])
@@ -165,12 +163,7 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
   const handleDeleteComment = async (commentId: string) => {
     setDeleteConfirmId(null)
     try {
-      const { error } = await supabase
-        .from('entry_comments')
-        .delete()
-        .eq('id', commentId)
-
-      if (error) throw error
+      await commentsApi.delete(commentId)
       await fetchComments()
       toast.success('Comment deleted')
     } catch (error) {
@@ -184,15 +177,7 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
 
     setSubmitting(true)
     try {
-      const { error } = await supabase
-        .from('entry_comments')
-        .update({
-          comment_text: editText.trim(),
-          edited_at: new Date().toISOString()
-        })
-        .eq('id', commentId)
-
-      if (error) throw error
+      await commentsApi.update(commentId, editText.trim())
 
       setEditingComment(null)
       setEditText('')
@@ -216,33 +201,8 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
     }
 
     try {
-      // If pinning, first unpin any existing pinned comment
-      if (!isPinned) {
-        const { error: unpinError } = await supabase
-          .from('entry_comments')
-          .update({ is_pinned: false, pinned_at: null })
-          .eq('entry_id', entryId)
-          .eq('is_pinned', true)
-        
-        if (unpinError) {
-          console.error('Error unpinning existing comment:', unpinError)
-        }
-      }
+      await commentsApi.pin(commentId, !isPinned)
 
-      // Toggle pin status
-      const { data, error } = await supabase
-        .from('entry_comments')
-        .update({
-          is_pinned: !isPinned,
-          pinned_at: !isPinned ? new Date().toISOString() : null
-        })
-        .eq('id', commentId)
-        .select()
-
-      if (error) {
-        console.error('Pin update error:', error)
-        throw error
-      }
 
       console.log('Pin update result:', data)
       await fetchComments()
