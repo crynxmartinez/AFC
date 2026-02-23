@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import prisma from '../../src/lib/prisma'
+import prisma from '../lib/prisma'
 import { verifyPassword, generateToken, setSessionCookie } from '../lib/auth'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

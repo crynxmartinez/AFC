@@ -1,5 +1,3 @@
-import { awardXP as awardXPApi, getLevelProgress as getLevelProgressApi } from './xp-system'
-
 /**
  * Award XP to a user for a specific action
  */
@@ -17,7 +15,18 @@ export async function awardXP(
   error?: string
 }> {
   try {
-    const result = await awardXPApi(userId, actionType, referenceId, description)
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/xp/award`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ userId, actionType, referenceId, description }),
+    })
+    
+    if (!response.ok) {
+      return { success: false, error: 'Failed to award XP' }
+    }
+    
+    const result = await response.json()
     
     return {
       success: result.success,
@@ -46,7 +55,13 @@ export async function getLevelProgress(userId: string): Promise<{
   progressPercentage: number
 } | null> {
   try {
-    const progress = await getLevelProgressApi(userId)
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/xp/progress/${userId}`, {
+      credentials: 'include',
+    })
+    
+    if (!response.ok) return null
+    
+    const progress = await response.json()
     
     if (!progress) return null
 
