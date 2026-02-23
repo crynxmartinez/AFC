@@ -94,12 +94,7 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
         // Add or update reaction
         await reactionsApi.add(entryId, reactionType)
         setUserReaction(reactionType)
-      }
-
-        if (insertError) throw insertError
-
-        setUserReaction(reactionType)
-
+        
         // Create notification for entry owner
         await createReactionNotification(reactionType)
       }
@@ -122,37 +117,9 @@ export default function ReactionPicker({ entryId, onReactionChange }: Props) {
 
   const createReactionNotification = async (reactionType: ReactionType) => {
     try {
-      // Get entry owner and title
-      const { data: entry } = await supabase
-        .from('entries')
-        .select('user_id, title')
-        .eq('id', entryId)
-        .single()
-
-      if (!entry || entry.user_id === user?.id) return // Don't notify self
-
-      // Check if owner wants reaction notifications
-      const { data: owner } = await supabase
-        .from('users')
-        .select('notify_reactions')
-        .eq('id', entry.user_id)
-        .single()
-
-      if (!owner?.notify_reactions) return
-
-      // Create notification
-      const reactionEmoji = REACTIONS.find(r => r.type === reactionType)?.emoji || '👍'
-      const entryTitle = entry.title || 'your entry'
-      await supabase.from('notifications').insert({
-        user_id: entry.user_id,
-        type: 'reaction',
-        actor_id: user?.id,
-        entry_id: entryId,
-        content: `reacted ${reactionEmoji} to "${entryTitle}"`,
-      })
-
-      // Award XP to entry owner
-      await awardXP(entry.user_id, 'get_reaction', entryId, `Received ${reactionEmoji} reaction`)
+      // Notifications will be created by the API endpoint
+      // XP will be awarded by the API endpoint
+      // This function is now a placeholder for future client-side notification logic
     } catch (error) {
       console.error('Error creating notification:', error)
     }

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { followsApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { UserPlus, UserMinus } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
@@ -32,15 +32,8 @@ export default function FollowButton({ userId, username, onFollowChange, size = 
     if (!user) return
     
     try {
-      const { data, error } = await supabase
-        .from('follows')
-        .select('follower_id')
-        .eq('follower_id', user.id)
-        .eq('following_id', userId)
-        .maybeSingle()
-
-      if (error) throw error
-      setIsFollowing(!!data)
+      const response: any = await followsApi.check(userId)
+      setIsFollowing(response.isFollowing || false)
     } catch (error) {
       console.error('Error checking follow status:', error)
     } finally {
@@ -64,24 +57,11 @@ export default function FollowButton({ userId, username, onFollowChange, size = 
     try {
       if (isFollowing) {
         // Unfollow
-        const { error } = await supabase
-          .from('follows')
-          .delete()
-          .eq('follower_id', user.id)
-          .eq('following_id', userId)
-
-        if (error) throw error
+        await followsApi.unfollow(userId)
         setIsFollowing(false)
       } else {
         // Follow
-        const { error } = await supabase
-          .from('follows')
-          .insert({
-            follower_id: user.id,
-            following_id: userId,
-          })
-
-        if (error) throw error
+        await followsApi.follow(userId)
         setIsFollowing(true)
       }
 
