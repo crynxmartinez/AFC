@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { reactionsApi, followsApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
 import { X, UserPlus, UserCheck } from 'lucide-react'
@@ -47,17 +47,9 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
 
   const fetchReactions = async () => {
     try {
-      const { data, error } = await supabase
-        .from('reactions')
-        .select(`
-          *,
-          users:user_id (id, username, avatar_url)
-        `)
-        .eq('entry_id', entryId)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setReactions(data || [])
+      const response: any = await reactionsApi.list(entryId)
+      const data = response.reactions || []
+      setReactions(data)
     } catch (error) {
       console.error('Error fetching reactions:', error)
     } finally {
@@ -69,14 +61,9 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
     if (!user) return
     
     try {
-      const { data, error } = await supabase
-        .from('follows')
-        .select('following_id')
-        .eq('follower_id', user.id)
-
-      if (error) throw error
-      
-      const ids = new Set(data?.map(f => f.following_id) || [])
+      const response: any = await followsApi.getFollowing(user.id)
+      const data = response.following || []
+      const ids = new Set(data.map((f: any) => f.id))
       setFollowingIds(ids)
     } catch (error) {
       console.error('Error fetching following:', error)
@@ -92,14 +79,7 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
     try {
       if (followingIds.has(userId)) {
         // Unfollow
-        const { error } = await supabase
-          .from('follows')
-          .delete()
-          .eq('follower_id', user.id)
-          .eq('following_id', userId)
-
-        if (error) throw error
-        
+        await followsApi.unfollow(userId)
         setFollowingIds(prev => {
           const newSet = new Set(prev)
           newSet.delete(userId)
@@ -107,15 +87,7 @@ export default function WhoReactedModal({ entryId, onClose }: Props) {
         })
       } else {
         // Follow
-        const { error } = await supabase
-          .from('follows')
-          .insert({
-            follower_id: user.id,
-            following_id: userId,
-          })
-
-        if (error) throw error
-        
+        await followsApi.follow(userId)
         setFollowingIds(prev => new Set(prev).add(userId))
       }
     } catch (error) {

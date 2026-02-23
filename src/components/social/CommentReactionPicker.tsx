@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useRef, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { commentReactionsApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 
 type ReactionType = 'like' | 'love' | 'haha' | 'fire' | 'wow' | 'sad' | 'cry' | 'angry'
@@ -58,34 +58,11 @@ export default function CommentReactionPicker({
     try {
       if (userReaction === reactionType) {
         // Remove reaction
-        await supabase
-          .from('comment_reactions')
-          .delete()
-          .eq('comment_id', commentId)
-          .eq('user_id', user.id)
-          .eq('reaction_type', reactionType)
-        
+        await commentReactionsApi.remove(commentId)
         setUserReaction(null)
       } else {
-        // Remove old reaction if exists
-        if (userReaction) {
-          await supabase
-            .from('comment_reactions')
-            .delete()
-            .eq('comment_id', commentId)
-            .eq('user_id', user.id)
-            .eq('reaction_type', userReaction)
-        }
-        
-        // Add new reaction
-        await supabase
-          .from('comment_reactions')
-          .insert({
-            comment_id: commentId,
-            user_id: user.id,
-            reaction_type: reactionType
-          })
-        
+        // Add or update reaction
+        await commentReactionsApi.add(commentId, reactionType)
         setUserReaction(reactionType)
       }
       

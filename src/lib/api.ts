@@ -254,34 +254,6 @@ export const followsApi = {
       method: 'DELETE',
     })
   },
-  check: async (userId: string) => {
-    return apiRequest(`/follows/check/${userId}`)
-  },
-
-  follow: async (userId: string) => {
-    return apiRequest('/follows', {
-      method: 'POST',
-      body: JSON.stringify({ userId }),
-    })
-  },
-
-  unfollow: async (userId: string) => {
-    return apiRequest(`/follows/${userId}`, {
-      method: 'DELETE',
-    })
-  },
-  follow: async (userId: string) => {
-    return apiRequest('/follows', {
-      method: 'POST',
-      body: JSON.stringify({ userId }),
-    })
-  },
-
-  unfollow: async (userId: string) => {
-    return apiRequest(`/follows/${userId}`, {
-      method: 'DELETE',
-    })
-  },
 
   getFollowers: async (userId: string) => {
     return apiRequest(`/users/${userId}/followers`)

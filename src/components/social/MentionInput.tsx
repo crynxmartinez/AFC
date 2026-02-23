@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
+import { usersApi } from '@/lib/api'
 
 type User = {
   id: string
@@ -55,14 +55,9 @@ export default function MentionInput({
     }
 
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, username, avatar_url')
-        .ilike('username', `${query}%`)
-        .limit(5)
-
-      if (error) throw error
-      setSuggestions(data || [])
+      const response: any = await usersApi.search(query)
+      const data = response.users || []
+      setSuggestions(data)
       setSelectedIndex(0)
     } catch (error) {
       console.error('Error searching users:', error)

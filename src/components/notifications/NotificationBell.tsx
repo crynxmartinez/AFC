@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { notificationsApi, usersApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Bell, X, Heart, MessageCircle, Trophy, UserPlus, AlertTriangle } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
@@ -44,25 +44,13 @@ export default function NotificationBell() {
     if (userId) {
       fetchNotifications()
       
-      // Set up realtime subscription
-      const channel = supabase
-        .channel('notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${userId}`,
-          },
-          () => {
-            fetchNotifications()
-          }
-        )
-        .subscribe()
+      // Poll for new notifications every 60 seconds
+      const interval = setInterval(() => {
+        fetchNotifications()
+      }, 60000)
 
       return () => {
-        supabase.removeChannel(channel)
+        clearInterval(interval)
       }
     }
   }, [userId])
@@ -83,25 +71,15 @@ export default function NotificationBell() {
     if (!user) return
 
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20)
-
-      if (error) throw error
+      const response: any = await notificationsApi.list()
+      const data = response.notifications || []
 
       // Fetch actor data separately for each notification
       const notificationsWithActors = await Promise.all(
-        (data || []).map(async (notification) => {
-          if (notification.actor_id) {
-            const { data: actorData } = await supabase
-              .from('users')
-              .select('username, avatar_url')
-              .eq('id', notification.actor_id)
-              .single()
-
+        data.map(async (notification: any) => {
+          if (notification.actorId) {
+            const userResponse: any = await usersApi.get(notification.actorId)
+            const actorData = userResponse.user
             return { ...notification, users: actorData }
           }
           return { ...notification, users: null }
@@ -109,7 +87,7 @@ export default function NotificationBell() {
       )
 
       setNotifications(notificationsWithActors)
-      setUnreadCount(notificationsWithActors.filter(n => !n.read).length || 0)
+      setUnreadCount(notificationsWithActors.filter((n: any) => !n.read).length || 0)
     } catch (error) {
       console.error('Error fetching notifications:', error)
     }
@@ -117,12 +95,7 @@ export default function NotificationBell() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', notificationId)
-
-      if (error) throw error
+      await notificationsApi.markAsRead(notificationId)
 
       // Update local state
       setNotifications(prev =>
@@ -139,13 +112,7 @@ export default function NotificationBell() {
 
     setLoading(true)
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('user_id', user.id)
-        .eq('read', false)
-
-      if (error) throw error
+      await notificationsApi.markAllAsRead()
 
       setNotifications(prev => prev.map(n => ({ ...n, read: true })))
       setUnreadCount(0)
@@ -162,12 +129,7 @@ export default function NotificationBell() {
     setShowClearConfirm(false)
     setLoading(true)
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('user_id', user.id)
-
-      if (error) throw error
+      await notificationsApi.deleteAll()
 
       setNotifications([])
       setUnreadCount(0)
@@ -182,12 +144,7 @@ export default function NotificationBell() {
 
   const deleteNotification = async (notificationId: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId)
-
-      if (error) throw error
+      await notificationsApi.delete(notificationId)
 
       setNotifications(prev => prev.filter(n => n.id !== notificationId))
       setUnreadCount(prev => {
