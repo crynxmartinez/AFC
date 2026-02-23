@@ -31,9 +31,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
         include: {
           user: true,
-          _count: {
-            select: { reactions: true },
-          },
         },
         orderBy: { voteCount: 'desc' },
         take: 3,
@@ -49,7 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // Create winners and distribute prizes
       const winners = await Promise.all(
-        topEntries.map(async (entry, index) => {
+        topEntries.map(async (entry: any, index: number) => {
           const placement = index + 1
           const prizeAmount = Math.floor(totalPrize * prizeDistribution[index])
 
@@ -60,7 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               userId: entry.userId,
               entryId: entry.id,
               placement,
-              votesReceived: entry._count.reactions,
+              votesReceived: entry.voteCount,
               prizeAmount,
             },
           })
