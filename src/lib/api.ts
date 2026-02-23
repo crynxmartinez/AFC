@@ -292,33 +292,6 @@ export const notificationsApi = {
       method: 'DELETE',
     })
   },
-  list: async () => {
-    return apiRequest('/notifications')
-  },
-
-  markAsRead: async (notificationId: string) => {
-    return apiRequest(`/notifications/${notificationId}/read`, {
-      method: 'PUT',
-    })
-  },
-
-  markAllAsRead: async () => {
-    return apiRequest('/notifications/read-all', {
-      method: 'PUT',
-    })
-  },
-
-  delete: async (notificationId: string) => {
-    return apiRequest(`/notifications/${notificationId}`, {
-      method: 'DELETE',
-    })
-  },
-
-  clearAll: async () => {
-    return apiRequest('/notifications', {
-      method: 'DELETE',
-    })
-  },
 }
 
 // Feed API

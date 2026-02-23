@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { usersApi } from '@/lib/api'
 import { Camera, X, Trash2 } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -18,61 +18,16 @@ export default function ProfileBanner({ coverPhotoUrl, userId, isOwnProfile, onU
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const toast = useToastStore()
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0] || !user) return
+  const handleUpload = async () => {
+    if (!user) return
 
-    const file = e.target.files[0]
-    
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB')
-      return
-    }
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file')
-      return
-    }
+    const url = prompt('Enter cover photo URL:')
+    if (!url) return
 
     setUploading(true)
 
     try {
-      // Delete old cover photo if exists
-      if (coverPhotoUrl) {
-        const oldPath = coverPhotoUrl.split('/').pop()
-        if (oldPath) {
-          await supabase.storage
-            .from('cover-photos')
-            .remove([`${user.id}/${oldPath}`])
-        }
-      }
-
-      // Upload new cover photo
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Date.now()}.${fileExt}`
-      const filePath = `${user.id}/${fileName}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('cover-photos')
-        .upload(filePath, file)
-
-      if (uploadError) throw uploadError
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('cover-photos')
-        .getPublicUrl(filePath)
-
-      // Update user profile
-      // @ts-ignore - Supabase type inference issue with cover_photo_url
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ cover_photo_url: publicUrl })
-        .eq('id', user.id)
-
-      if (updateError) throw updateError
-
+      await usersApi.updateCoverPhoto(url)
       onUpdate?.()
       toast.success('Cover photo updated!')
     } catch (error) {
@@ -89,21 +44,7 @@ export default function ProfileBanner({ coverPhotoUrl, userId, isOwnProfile, onU
     setUploading(true)
 
     try {
-      // Delete from storage
-      const oldPath = coverPhotoUrl.split('/').pop()
-      if (oldPath) {
-        await supabase.storage
-          .from('cover-photos')
-          .remove([`${user.id}/${oldPath}`])
-      }
-
-      // Update user profile
-      const { error } = await supabase
-        .from('users')
-        .update({ cover_photo_url: null })
-        .eq('id', user.id)
-
-      if (error) throw error
+      await usersApi.updateCoverPhoto(null)
 
       setShowRemoveConfirm(false)
       onUpdate?.()
@@ -133,17 +74,14 @@ export default function ProfileBanner({ coverPhotoUrl, userId, isOwnProfile, onU
       {isOwnProfile && (
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
           <div className="flex items-center gap-3">
-            <label className="px-6 py-3 bg-surface/95 hover:bg-surface text-text-primary rounded-lg transition-colors cursor-pointer flex items-center gap-2 shadow-lg">
+            <button
+              onClick={handleUpload}
+              disabled={uploading}
+              className="px-6 py-3 bg-surface/95 hover:bg-surface text-text-primary rounded-lg transition-colors flex items-center gap-2 shadow-lg disabled:opacity-50"
+            >
               <Camera className="w-5 h-5" />
               {uploading ? 'Uploading...' : coverPhotoUrl ? 'Change Cover Photo' : 'Add Cover Photo'}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleUpload}
-                disabled={uploading}
-                className="hidden"
-              />
-            </label>
+            </button>
             
             {coverPhotoUrl && (
               <button
