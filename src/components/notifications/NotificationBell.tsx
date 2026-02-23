@@ -13,13 +13,13 @@ type Notification = {
   type: 'reaction' | 'comment' | 'artist_contest' | 'reply' | 'follow'
   content: string
   read: boolean
-  created_at: string
-  entry_id: string | null
-  contest_id: string | null
+  createdAt: string
+  entryId: string | null
+  contestId: string | null
   link: string | null
   users: {
     username: string
-    avatar_url: string | null
+    avatarUrl: string | null
   } | null
 }
 
@@ -160,11 +160,11 @@ export default function NotificationBell() {
     if (notification.link) {
       return notification.link
     }
-    if (notification.entry_id) {
-      return `/entries/${notification.entry_id}`
+    if (notification.entryId) {
+      return `/entries/${notification.entryId}`
     }
-    if (notification.contest_id) {
-      return `/contests/${notification.contest_id}`
+    if (notification.contestId) {
+      return `/contests/${notification.contestId}`
     }
     return '#'
   }
@@ -280,9 +280,9 @@ export default function NotificationBell() {
                   >
                     <div className="flex gap-3">
                       {/* Actor Avatar */}
-                      {notification.users?.avatar_url ? (
+                      {notification.users?.avatarUrl ? (
                         <img
-                          src={notification.users.avatar_url}
+                          src={notification.users.avatarUrl}
                           alt={notification.users.username}
                           className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                         />
@@ -302,7 +302,7 @@ export default function NotificationBell() {
                               {notification.content}
                             </p>
                             <p className="text-xs text-text-secondary mt-1">
-                              {formatTimeAgo(notification.created_at)}
+                              {formatTimeAgo(notification.createdAt)}
                             </p>
                           </div>
                         </div>

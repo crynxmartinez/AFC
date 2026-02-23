@@ -12,19 +12,19 @@ import MarkdownRenderer from '@/components/ui/MarkdownRenderer'
 
 type Comment = {
   id: string
-  entry_id: string
-  user_id: string
-  parent_comment_id: string | null
-  comment_text: string
-  created_at: string
-  edited_at?: string | null
-  is_pinned?: boolean
-  pinned_at?: string | null
-  reaction_counts?: Record<string, number>
-  user_reaction?: string | null
+  entryId: string
+  userId: string
+  parentCommentId: string | null
+  commentText: string
+  createdAt: string
+  editedAt?: string | null
+  isPinned?: boolean
+  pinnedAt?: string | null
+  reactionCounts?: Record<string, number>
+  userReaction?: string | null
   users: {
     username: string
-    avatar_url: string | null
+    avatarUrl: string | null
   }
   replies?: Comment[]
 }
@@ -218,16 +218,16 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
     const sorted = [...comments]
     
     // First, separate pinned and unpinned comments
-    const pinned = sorted.filter(c => c.is_pinned)
-    const unpinned = sorted.filter(c => !c.is_pinned)
+    const pinned = sorted.filter(c => c.isPinned)
+    const unpinned = sorted.filter(c => !c.isPinned)
     
     // Sort unpinned comments based on selected sort
     if (sortBy === 'newest') {
-      unpinned.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      unpinned.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     } else if (sortBy === 'oldest') {
-      unpinned.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      unpinned.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
     } else if (sortBy === 'likes') {
-      unpinned.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
+      unpinned.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0))
     }
     
     // Pinned comments always come first
@@ -241,9 +241,9 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
     >
       <div className="flex items-start gap-3">
         <Link to={`/users/${comment.users.username}`}>
-          {comment.users.avatar_url ? (
+          {comment.users.avatarUrl ? (
             <img
-              src={comment.users.avatar_url}
+              src={comment.users.avatarUrl}
               alt={comment.users.username}
               className="w-10 h-10 rounded-full"
             />
@@ -268,8 +268,8 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
               </span>
             )}
             <span className="text-xs text-text-secondary">
-              {formatDate(comment.created_at)}
-              {comment.edited_at && ' (edited)'}
+              {formatDate(comment.createdAt)}
+              {comment.editedAt && ' (edited)'}
             </span>
           </div>
           
@@ -304,7 +304,7 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
             </div>
           ) : (
             <div className="text-text-primary">
-              <MarkdownRenderer content={comment.comment_text} />
+              <MarkdownRenderer content={comment.commentText} />
             </div>
           )}
 
@@ -312,8 +312,8 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
             {/* Reaction Picker */}
             <CommentReactionPicker
               commentId={comment.id}
-              initialReaction={comment.user_reaction}
-              reactionCounts={comment.reaction_counts || {}}
+              initialReaction={comment.userReaction}
+              reactionCounts={comment.reactionCounts || {}}
               onReactionChange={fetchComments}
             />
 
@@ -327,12 +327,12 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
               </button>
             )}
             
-            {user?.id === comment.user_id && editingComment !== comment.id && (
+            {user?.id === comment.userId && editingComment !== comment.id && (
               <>
                 <button
                   onClick={() => {
                     setEditingComment(comment.id)
-                    setEditText(comment.comment_text)
+                    setEditText(comment.commentText)
                   }}
                   className="flex items-center gap-1 text-sm text-text-secondary hover:text-primary transition-colors"
                 >
@@ -352,16 +352,16 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
             {/* Pin button - only for entry owner, only on top-level comments */}
             {user?.id === entryOwnerId && !isReply && (
               <button
-                onClick={() => handlePinComment(comment.id, comment.is_pinned || false)}
+                onClick={() => handlePinComment(comment.id, comment.isPinned || false)}
                 className={`flex items-center gap-1 text-sm transition-colors ${
-                  comment.is_pinned 
+                  comment.isPinned 
                     ? 'text-primary hover:text-primary/80' 
                     : 'text-text-secondary hover:text-primary'
                 }`}
-                title={comment.is_pinned ? 'Unpin comment' : 'Pin comment'}
+                title={comment.isPinned ? 'Unpin comment' : 'Pin comment'}
               >
-                {comment.is_pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-                {comment.is_pinned ? 'Unpin' : 'Pin'}
+                {comment.isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                {comment.isPinned ? 'Unpin' : 'Pin'}
               </button>
             )}
           </div>

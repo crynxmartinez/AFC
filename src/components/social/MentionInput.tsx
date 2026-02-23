@@ -5,7 +5,7 @@ import { usersApi } from '@/lib/api'
 type User = {
   id: string
   username: string
-  avatar_url: string | null
+  avatarUrl: string | null
 }
 
 type Props = {
@@ -192,9 +192,9 @@ export default function MentionInput({
                 index === selectedIndex ? 'bg-primary/10' : 'hover:bg-background'
               }`}
             >
-              {user.avatar_url ? (
+              {user.avatarUrl ? (
                 <img
-                  src={user.avatar_url}
+                  src={user.avatarUrl}
                   alt={user.username}
                   className="w-8 h-8 rounded-full object-cover"
                 />
