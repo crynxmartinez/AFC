@@ -31,7 +31,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         level: true,
         xp: true,
         pointsBalance: true,
-        banned: true,
         createdAt: true,
         avatarUrl: true,
       },
