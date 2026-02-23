@@ -31,63 +31,47 @@ export default function SearchPage() {
 
     setLoading(true)
     try {
+      const response: any = await searchApi.search(query, filter === 'all' ? undefined : filter)
       const searchResults: SearchResult[] = []
 
-      // Search contests
-      if (filter === 'all' || filter === 'contests') {
-        const { data: contests } = await supabase
-          .from('contests')
-          .select('id, title, description, thumbnail_url')
-          .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-          .limit(10)
-
-        if (contests) {
-          searchResults.push(
-            ...contests.map((c) => ({
-              type: 'contest' as const,
-              id: c.id,
-              title: c.title,
-              description: c.description,
-              thumbnail_url: c.thumbnail_url,
-            }))
-          )
-        }
+      // Map contests
+      if (response.contests) {
+        searchResults.push(
+          ...response.contests.map((c: any) => ({
+            type: 'contest' as const,
+            id: c.id,
+            title: c.title,
+            description: c.description,
+            thumbnail_url: c.thumbnailUrl,
+          }))
+        )
       }
 
-      // Search users
-      if (filter === 'all' || filter === 'users') {
-        // Search by username OR display_name
-        const searchPattern = `%${query.toLowerCase()}%`
-        const { data: users, error: usersError } = await supabase
-          .from('users')
-          .select('id, username, display_name, avatar_url, level')
-          .or(`username.ilike.${searchPattern},display_name.ilike.${searchPattern}`)
-          .limit(10)
-
-        if (usersError) {
-              supabase.from('contests').select('title').eq('id', e.contest_id).single(),
-              supabase.from('users').select('username').eq('id', e.user_id).single()
-            ])
-            return { ...e, contests: contest, users: user }
-          })
+      // Map users
+      if (response.users) {
+        searchResults.push(
+          ...response.users.map((u: any) => ({
+            type: 'user' as const,
+            id: u.id,
+            username: u.username,
+            display_name: u.displayName,
+            avatar_url: u.avatarUrl,
+            level: u.level,
+          }))
         )
+      }
 
-        if (entriesWithData) {
-          // Filter entries where contest title matches
-          const matchingEntries = entriesWithData.filter((e: any) =>
-            e.contests?.title?.toLowerCase().includes(query.toLowerCase())
-          )
-
-          searchResults.push(
-            ...matchingEntries.map((e: any) => ({
-              type: 'entry' as const,
-              id: e.id,
-              phase_4_url: e.phase_4_url,
-              contest_title: e.contests?.title,
-              username: e.users?.username,
-            }))
-          )
-        }
+      // Map entries
+      if (response.entries) {
+        searchResults.push(
+          ...response.entries.map((e: any) => ({
+            type: 'entry' as const,
+            id: e.id,
+            phase_4_url: e.phase4Url,
+            contest_title: e.contestTitle,
+            username: e.username,
+          }))
+        )
       }
 
       setResults(searchResults)

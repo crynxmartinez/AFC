@@ -59,18 +59,39 @@ export const authApi = {
       method: 'GET',
     })
   },
+
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    return apiRequest('/auth/password', {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    })
+  },
 }
 
 // Users API
 export const usersApi = {
+  get: async (userId: string) => {
+    return apiRequest(`/users/${userId}`)
+  },
+  getById: async (userId: string) => {
+    return apiRequest(`/users/${userId}`)
+  },
   getProfile: async (username: string) => {
     return apiRequest(`/users/by-username/${username}`)
   },
-
+  getByUsername: async (username: string) => {
+    return apiRequest(`/users/by-username/${username}`)
+  },
   updateProfile: async (userId: string, data: any) => {
     return apiRequest(`/users/${userId}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
+    })
+  },
+  update: async (userId: string, data: any) => {
+    return apiRequest(`/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
     })
   },
 
@@ -165,47 +186,20 @@ export const contestsApi = {
 
 // Entries API
 export const entriesApi = {
-  get: async (id: string) => {
-    return apiRequest(`/entries/${id}`)
-  },
-
-  create: async (data: any) => {
-    return apiRequest('/entries', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
-
-  update: async (id: string, data: any) => {
-    return apiRequest(`/entries/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
-  },
-
-  listByContest: async (contestId: string) => {
-    return apiRequest(`/contests/${contestId}/entries`)
-  },
+  get: (id: string) => apiRequest(`/entries/${id}`),
+  create: (data: any) => apiRequest('/entries', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: any) => apiRequest(`/entries/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  listByContest: (contestId: string) => apiRequest(`/contests/${contestId}/entries`),
+  getReactions: (entryId: string) => apiRequest(`/entries/${entryId}/reactions`),
+  getByContestAndUser: (contestId: string, userId: string) => apiRequest(`/entries?contestId=${contestId}&userId=${userId}`),
 }
 
 // Reactions API
 export const reactionsApi = {
-  list: async (entryId: string) => {
-    return apiRequest(`/entries/${entryId}/reactions`)
-  },
-
-  add: async (entryId: string, reactionType: string) => {
-    return apiRequest(`/entries/${entryId}/reactions`, {
-      method: 'POST',
-      body: JSON.stringify({ reactionType }),
-    })
-  },
-
-  remove: async (entryId: string) => {
-    return apiRequest(`/entries/${entryId}/reactions`, {
-      method: 'DELETE',
-    })
-  },
+  list: (entryId: string) => apiRequest(`/entries/${entryId}/reactions`),
+  getReactions: (entryId: string) => apiRequest(`/entries/${entryId}/reactions`),
+  add: (entryId: string, reactionType: string) => apiRequest('/reactions', { method: 'POST', body: JSON.stringify({ entryId, reactionType }) }),
+  remove: (entryId: string) => apiRequest(`/reactions/${entryId}`, { method: 'DELETE' }),
 }
 
 // Comments API
@@ -327,16 +321,6 @@ export const xpApi = {
     return apiRequest('/xp/award', {
       method: 'POST',
       body: JSON.stringify(data),
-    })
-  },
-}
-
-// Auth API
-export const authApi = {
-  changePassword: async (currentPassword: string, newPassword: string) => {
-    return apiRequest('/auth/password', {
-      method: 'PUT',
-      body: JSON.stringify({ currentPassword, newPassword }),
     })
   },
 }

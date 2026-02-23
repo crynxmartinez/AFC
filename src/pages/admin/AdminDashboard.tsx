@@ -29,32 +29,23 @@ export default function AdminDashboard() {
     try {
       // Fetch admin stats
       const statsResponse: any = await adminApi.getStats()
-      const stats = statsResponse.stats
+      const statsData = statsResponse.stats || {}
 
       // Fetch recent contests
       const contestsResponse: any = await contestsApi.list()
       const contests = (contestsResponse.contests || []).slice(0, 5)
 
-      // Count entries for each contest manually
-      const contestsWithCounts = await Promise.all(
-        (contests || []).map(async (contest: any) => {
-          const { count } = await supabase
-            .from('entries')
-            .select('*', { count: 'exact', head: true })
-            .eq('contest_id', contest.id)
-          
-          return {
-            ...contest,
-            entry_count: count || 0
-          }
-        })
-      )
+      // Contests already have entry counts from API
+      const contestsWithCounts = contests.map((contest: any) => ({
+        ...contest,
+        entry_count: contest.entryCount || 0
+      }))
 
       setStats({
-        totalUsers: usersCount || 0,
-        activeContests: contestsCount || 0,
-        totalRevenue: 0, // No point_transactions table yet
-        pendingReviews: 0 // No contest_entries table yet
+        totalUsers: statsData.totalUsers || 0,
+        activeContests: statsData.activeContests || 0,
+        totalRevenue: 0,
+        pendingReviews: 0
       })
 
       setRecentContests(contestsWithCounts)
