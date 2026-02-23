@@ -11,8 +11,8 @@ type LevelConfig = {
 
 type XPReward = {
   id: string
-  action_type: string
-  xp_amount: number
+  actionType: string
+  xpAmount: number
   description: string
   enabled: boolean
 }
@@ -27,8 +27,8 @@ type LevelReward = {
 }
 
 type LevelStats = {
-  level_range: string
-  user_count: number
+  levelRange: string
+  userCount: number
 }
 
 export default function AdminXPSystem() {
@@ -111,8 +111,8 @@ export default function AdminXPSystem() {
         })
         
         const statsData = Object.entries(distribution).map(([range, count]) => ({
-          level_range: range,
-          user_count: count
+          levelRange: range,
+          userCount: count
         }))
         setStats(statsData)
       }
@@ -136,9 +136,9 @@ export default function AdminXPSystem() {
     }
   }
 
-  const updateXPReward = async (id: string, xp_amount: number, enabled: boolean) => {
+  const updateXPReward = async (id: string, xpAmount: number, enabled: boolean) => {
     try {
-      await adminApi.updateXPReward(id, xp_amount)
+      await adminApi.updateXPReward(id, xpAmount)
 
       if (error) throw error
       
@@ -333,7 +333,7 @@ export default function AdminXPSystem() {
                           <td className="px-4 py-3">
                             <input
                               type="number"
-                              defaultValue={reward.xp_amount}
+                              defaultValue={reward.xpAmount}
                               id={`xp-amount-${reward.id}`}
                               className="w-20 px-2 py-1 bg-background border border-border rounded"
                             />
@@ -370,9 +370,9 @@ export default function AdminXPSystem() {
                         </>
                       ) : (
                         <>
-                          <td className="px-4 py-3 font-mono text-sm">{reward.action_type}</td>
+                          <td className="px-4 py-3 font-mono text-sm">{reward.actionType}</td>
                           <td className="px-4 py-3 text-sm">{reward.description}</td>
-                          <td className="px-4 py-3 font-semibold">+{reward.xp_amount} XP</td>
+                          <td className="px-4 py-3 font-semibold">+{reward.xpAmount} XP</td>
                           <td className="px-4 py-3">
                             <span className={`px-2 py-1 rounded text-xs ${reward.enabled ? 'bg-success/20 text-success' : 'bg-error/20 text-error'}`}>
                               {reward.enabled ? 'Enabled' : 'Disabled'}
@@ -492,15 +492,15 @@ export default function AdminXPSystem() {
               <div className="bg-surface rounded-lg p-6">
                 <h3 className="text-xl font-bold mb-4">Level Distribution</h3>
                 {stats.map((stat) => (
-                  <div key={stat.level_range} className="mb-3">
+                  <div key={stat.levelRange} className="mb-3">
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm">Level {stat.level_range}</span>
-                      <span className="text-sm font-semibold">{stat.user_count} users</span>
+                      <span className="text-sm">Level {stat.levelRange}</span>
+                      <span className="text-sm font-semibold">{stat.userCount} users</span>
                     </div>
                     <div className="w-full bg-background rounded-full h-2">
                       <div
                         className="bg-primary h-2 rounded-full"
-                        style={{ width: `${(stat.user_count / Math.max(...stats.map(s => s.user_count))) * 100}%` }}
+                        style={{ width: `${(stat.userCount / Math.max(...stats.map(s => s.userCount))) * 100}%` }}
                       ></div>
                     </div>
                   </div>

@@ -8,17 +8,17 @@ import { useToastStore } from '@/stores/toastStore'
 
 type Entry = {
   id: string
-  user_id: string
-  contest_id: string
-  phase_1_url: string | null
-  phase_2_url: string | null
-  phase_3_url: string | null
-  phase_4_url: string | null
+  userId: string
+  contestId: string
+  phase1Url: string | null
+  phase2Url: string | null
+  phase3Url: string | null
+  phase4Url: string | null
   status: string
-  submitted_at: string
+  submittedAt: string
   users: {
     username: string
-    avatar_url: string | null
+    avatarUrl: string | null
   }
   contests: {
     title: string
@@ -88,10 +88,10 @@ export default function AdminReviews() {
 
   const getPhaseCount = (entry: Entry) => {
     let count = 0
-    if (entry.phase_1_url) count++
-    if (entry.phase_2_url) count++
-    if (entry.phase_3_url) count++
-    if (entry.phase_4_url) count++
+    if (entry.phase1Url) count++
+    if (entry.phase2Url) count++
+    if (entry.phase3Url) count++
+    if (entry.phase4Url) count++
     return count
   }
 
@@ -123,9 +123,9 @@ export default function AdminReviews() {
             <div key={entry.id} className="bg-surface rounded-lg p-6 border border-border">
               <div className="flex gap-6">
                 <div className="w-48 h-48 bg-background rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {entry.phase_4_url || entry.phase_3_url || entry.phase_2_url || entry.phase_1_url ? (
+                  {entry.phase4Url || entry.phase3Url || entry.phase2Url || entry.phase1Url ? (
                     <img
-                      src={entry.phase_4_url || entry.phase_3_url || entry.phase_2_url || entry.phase_1_url || ''}
+                      src={entry.phase4Url || entry.phase3Url || entry.phase2Url || entry.phase1Url || ''}
                       alt="Entry"
                       className="w-full h-full object-cover"
                     />
@@ -141,7 +141,7 @@ export default function AdminReviews() {
                       </h3>
                       <p className="text-text-secondary text-sm">Contest: {entry.contests.title}</p>
                       <p className="text-text-secondary text-sm">
-                        Submitted: {formatTimeAgo(entry.submitted_at)}
+                        Submitted: {formatTimeAgo(entry.submittedAt)}
                       </p>
                     </div>
                     <span
@@ -163,10 +163,10 @@ export default function AdminReviews() {
                     </div>
                     <div className="flex gap-2">
                       {[
-                        { label: 'Sketch', url: entry.phase_1_url },
-                        { label: 'Line Art', url: entry.phase_2_url },
-                        { label: 'Base Colors', url: entry.phase_3_url },
-                        { label: 'Final', url: entry.phase_4_url },
+                        { label: 'Sketch', url: entry.phase1Url },
+                        { label: 'Line Art', url: entry.phase2Url },
+                        { label: 'Base Colors', url: entry.phase3Url },
+                        { label: 'Final', url: entry.phase4Url },
                       ].map((phase, idx) => (
                         <div
                           key={idx}

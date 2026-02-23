@@ -7,16 +7,16 @@ import { useToastStore } from '@/stores/toastStore'
 
 type ContactSubmission = {
   id: string
-  user_id: string | null
+  userId: string | null
   name: string
   email: string
   subject: string
   message: string
   status: 'new' | 'read' | 'resolved'
-  read_at: string | null
-  resolved_at: string | null
-  admin_notes: string | null
-  created_at: string
+  readAt: string | null
+  resolvedAt: string | null
+  adminNotes: string | null
+  createdAt: string
 }
 
 export default function AdminMessages() {
@@ -62,7 +62,7 @@ export default function AdminMessages() {
       await adminApi.updateMessage(id, { status: 'read' })
 
       setMessages(prev => prev.map(msg => 
-        msg.id === id ? { ...msg, status: 'read', read_at: new Date().toISOString() } : msg
+        msg.id === id ? { ...msg, status: 'read', readAt: new Date().toISOString() } : msg
       ))
       
       // Dispatch event to update sidebar badge
@@ -80,15 +80,15 @@ export default function AdminMessages() {
         .from('contact_submissions')
         .update({ 
           status: 'resolved',
-          resolved_at: new Date().toISOString(),
-          admin_notes: adminNotes[id] || null
+          resolvedAt: new Date().toISOString(),
+          adminNotes: adminNotes[id] || null
         })
         .eq('id', id)
 
       if (error) throw error
       
       setMessages(prev => prev.map(msg => 
-        msg.id === id ? { ...msg, status: 'resolved', resolved_at: new Date().toISOString() } : msg
+        msg.id === id ? { ...msg, status: 'resolved', resolvedAt: new Date().toISOString() } : msg
       ))
       
       // Dispatch event to update sidebar badge
@@ -243,7 +243,7 @@ export default function AdminMessages() {
 
                 <div className="flex items-center gap-3 flex-shrink-0">
                   <div className="text-right text-sm">
-                    <div className="text-text-secondary">{formatDate(msg.created_at)}</div>
+                    <div className="text-text-secondary">{formatDate(msg.createdAt)}</div>
                     <div className="text-xs text-text-secondary">{msg.email}</div>
                   </div>
                   {expandedId === msg.id ? (
@@ -290,13 +290,13 @@ export default function AdminMessages() {
                     <div className="flex gap-4 text-sm text-text-secondary">
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        Received: {formatDate(msg.created_at)}
+                        Received: {formatDate(msg.createdAt)}
                       </div>
-                      {msg.read_at && (
-                        <div>Read: {formatDate(msg.read_at)}</div>
+                      {msg.readAt && (
+                        <div>Read: {formatDate(msg.readAt)}</div>
                       )}
-                      {msg.resolved_at && (
-                        <div>Resolved: {formatDate(msg.resolved_at)}</div>
+                      {msg.resolvedAt && (
+                        <div>Resolved: {formatDate(msg.resolvedAt)}</div>
                       )}
                     </div>
 
