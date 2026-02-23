@@ -1,7 +1,7 @@
 // @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { leaderboardApi } from '@/lib/api'
 import { formatNumber } from '@/lib/utils'
 import { Users, Search, TrendingUp, Award, Calendar, Image } from 'lucide-react'
 
@@ -44,21 +44,17 @@ export default function ArtistsPage() {
         .order(orderColumn, { ascending: sortBy === 'newest' ? false : false })
         .limit(50)
 
-      if (usersError) throw usersError
-
       // For each user, get their entry count and latest entry
       const artistsWithStats = await Promise.all(
         (usersData || []).map(async (user: any) => {
           // Get entry count
-          const { count: entryCount } = await supabase
-            .from('entries')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('status', 'approved')
+          const entryCountResponse = await leaderboardApi.getEntries(user.id)
+          const entryCount = entryCountResponse.count || 0
 
           // Get latest entry image
-          const { data: latestEntries } = await supabase
-            .from('entries')
+          const latestEntriesResponse = await leaderboardApi.getLatestEntries(user.id)
+          const latestEntries = latestEntriesResponse.data || []
+          const latestEntryImage = latestEntries[0]?.phase_4_url || null
             .select('phase_4_url')
             .eq('user_id', user.id)
             .eq('status', 'approved')

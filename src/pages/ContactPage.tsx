@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { contactApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Mail, Send, CheckCircle, Instagram, Twitter, Github, HelpCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -23,18 +23,13 @@ export default function ContactPage() {
     setError('')
 
     try {
-      const { error: submitError } = await supabase
-        .from('contact_submissions')
-        .insert({
-          user_id: user?.id || null,
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject,
-          message: formData.message,
-          status: 'new'
-        })
-
-      if (submitError) throw submitError
+      await contactApi.submit({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        userId: user?.id || null,
+      })
 
       setSubmitted(true)
       setFormData({ name: '', email: '', subject: '', message: '' })

@@ -1,7 +1,7 @@
-// @ts-nocheck - Supabase type inference issues
+// @ts-nocheck - API type inference issues
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/stores/authStore'
-import { supabase } from '@/lib/supabase'
+import { useNavigate } from 'react-router-dom'
+import { usersApi, authApi } from '@/lib/api'
 import { Camera, Save, Loader } from 'lucide-react'
 
 type Tab = 'profile' | 'account' | 'notifications' | 'privacy'
@@ -85,34 +85,21 @@ export default function SettingsPage() {
         const fileName = `${Date.now()}.${fileExt}`
         const filePath = `${user.id}/${fileName}`
 
-        const { error: uploadError } = await supabase.storage
-          .from('user-avatars')
-          .upload(filePath, avatarFile, { upsert: true })
-
-        if (uploadError) throw uploadError
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('user-avatars')
-          .getPublicUrl(filePath)
+        const { data: { publicUrl } } = await usersApi.uploadAvatar(user.id, avatarFile)
 
         avatarUrl = publicUrl
       }
 
       // Update profile
-      const { error } = await supabase
-        .from('users')
-        .update({
-          username,
-          bio,
-          display_name: displayName,
-          instagram_url: instagramUrl,
-          twitter_url: twitterUrl,
-          portfolio_url: portfolioUrl,
-          avatar_url: avatarUrl,
-        } as any)
-        .eq('id', user.id)
-
-      if (error) throw error
+      await usersApi.update(user.id, {
+        username,
+        bio,
+        display_name: displayName,
+        instagram_url: instagramUrl,
+        twitter_url: twitterUrl,
+        portfolio_url: portfolioUrl,
+        avatar_url: avatarUrl,
+      })
 
       await fetchProfile()
       setMessage('Profile updated successfully!')
@@ -142,11 +129,7 @@ export default function SettingsPage() {
     setMessage('')
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      })
-
-      if (error) throw error
+      await authApi.changePassword(currentPassword, newPassword)
 
       setMessage('Password updated successfully!')
       setCurrentPassword('')
@@ -166,17 +149,12 @@ export default function SettingsPage() {
     setMessage('')
 
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          notify_reactions: notifyReactions,
-          notify_comments: notifyComments,
-          notify_artist_contests: notifyArtistContests,
-          notify_follows: notifyFollows,
-        } as any)
-        .eq('id', user.id)
-
-      if (error) throw error
+      await usersApi.update(user.id, {
+        notify_reactions: notifyReactions,
+        notify_comments: notifyComments,
+        notify_artist_contests: notifyArtistContests,
+        notify_follows: notifyFollows,
+      })
 
       await fetchProfile()
       setMessage('Notification preferences updated!')

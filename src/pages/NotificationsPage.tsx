@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { notificationsApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Heart, MessageCircle, Trophy, UserPlus, Bell } from 'lucide-react'
 import { formatTimeAgo } from '@/lib/utils'
@@ -31,15 +31,10 @@ export default function NotificationsPage() {
 
   const fetchNotifications = async () => {
     if (!user) return
-
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+      const response: any = await notificationsApi.list()
+      const data = response.notifications || []
 
-      if (error) throw error
       setNotifications(data || [])
     } catch (error) {
       console.error('Error fetching notifications:', error)
@@ -48,17 +43,12 @@ export default function NotificationsPage() {
     }
   }
 
-  const markAsRead = async (notificationId: string) => {
+  const markAsRead = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true } as any)
-        .eq('id', notificationId)
-
-      if (error) throw error
+      await notificationsApi.markAsRead(id)
 
       setNotifications(prev =>
-        prev.map(n => (n.id === notificationId ? { ...n, read: true } : n))
+        prev.map(n => (n.id === id ? { ...n, read: true } : n))
       )
     } catch (error) {
       console.error('Error marking notification as read:', error)

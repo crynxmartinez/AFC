@@ -1,7 +1,7 @@
 // @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { contestsApi } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import { Trophy, Medal, Award, Share2, ExternalLink } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
@@ -42,13 +42,9 @@ export default function WinnersPage() {
 
   const fetchWinners = async () => {
     try {
-      // Fetch ended contests (where end_date is in the past)
-      const now = new Date().toISOString()
-      const { data: contestsData, error: contestsError } = await supabase
-        .from('contests')
-        .select('*')
-        .lt('end_date', now) // end_date < now (contest has ended)
-        .order('end_date', { ascending: false })
+      // Fetch recent winners
+      const response: any = await contestsApi.getRecentWinners(30)
+      const winnersData = response.winners || []
 
       if (contestsError) throw contestsError
 
