@@ -11,7 +11,7 @@ type Notification = {
   type: 'reaction' | 'comment' | 'artist_contest' | 'reply' | 'follow'
   content: string
   read: boolean
-  created_at: string
+  createdAt: string
   link: string | null
 }
 
@@ -118,7 +118,7 @@ export default function NotificationsPage() {
                     {notif.content}
                   </p>
                   <p className="text-xs text-text-secondary mt-1">
-                    {formatTimeAgo(notif.created_at)}
+                    {formatTimeAgo(notif.createdAt)}
                   </p>
                 </div>
                 {!notif.read && (

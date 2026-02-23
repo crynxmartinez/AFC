@@ -10,13 +10,13 @@ type Artist = {
   username: string
   display_name: string | null
   avatar_url: string | null
-  cover_photo_url: string | null
+  coverPhotoUrl: string | null
   xp: number
   level: number
   profile_title: string | null
   created_at: string
-  total_entries?: number
-  latest_entry_image?: string | null
+  totalEntries?: number
+  latestEntryImage?: string | null
 }
 
 export default function ArtistsPage() {
@@ -40,7 +40,7 @@ export default function ArtistsPage() {
       // Fetch users
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select('id, username, display_name, avatar_url, cover_photo_url, xp, level, profile_title, created_at')
+        .select('id, username, display_name, avatar_url, coverPhotoUrl, xp, level, profile_title, created_at')
         .order(orderColumn, { ascending: sortBy === 'newest' ? false : false })
         .limit(50)
 
@@ -54,24 +54,24 @@ export default function ArtistsPage() {
           // Get latest entry image
           const latestEntriesResponse = await leaderboardApi.getLatestEntries(user.id)
           const latestEntries = latestEntriesResponse.data || []
-          const latestEntryImage = latestEntries[0]?.phase_4_url || null
-            .select('phase_4_url')
-            .eq('user_id', user.id)
+          const latestEntryImage = latestEntries[0]?.phase4Url || null
+            .select('phase4Url')
+            .eq('userId', user.id)
             .eq('status', 'approved')
             .order('created_at', { ascending: false })
             .limit(1)
 
           return {
             ...user,
-            total_entries: entryCount || 0,
-            latest_entry_image: latestEntries?.[0]?.phase_4_url || null,
+            totalEntries: entryCount || 0,
+            latestEntryImage: latestEntries?.[0]?.phase4Url || null,
           }
         })
       )
 
       // Sort by entries if needed (since we can't do it in the query)
       if (sortBy === 'entries') {
-        artistsWithStats.sort((a, b) => (b.total_entries || 0) - (a.total_entries || 0))
+        artistsWithStats.sort((a, b) => (b.totalEntries || 0) - (a.totalEntries || 0))
       }
 
       setArtists(artistsWithStats)
@@ -191,9 +191,9 @@ export default function ArtistsPage() {
             >
               {/* Cover Photo Banner */}
               <div className="h-32 bg-gradient-to-br from-primary/30 via-primary/20 to-secondary/30 relative overflow-hidden">
-                {artist.cover_photo_url ? (
+                {artist.coverPhotoUrl ? (
                   <img
-                    src={artist.cover_photo_url}
+                    src={artist.coverPhotoUrl}
                     alt={`${artist.username}'s cover`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
@@ -251,7 +251,7 @@ export default function ArtistsPage() {
                     <div className="text-xs text-text-secondary">XP</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-primary">{artist.total_entries}</div>
+                    <div className="text-lg font-bold text-primary">{artist.totalEntries}</div>
                     <div className="text-xs text-text-secondary">Entries</div>
                   </div>
                 </div>
