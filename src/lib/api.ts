@@ -82,6 +82,9 @@ export const usersApi = {
   getByUsername: async (username: string) => {
     return apiRequest(`/users/by-username/${username}`)
   },
+  search: async (query: string) => {
+    return apiRequest(`/users/search?q=${encodeURIComponent(query)}`)
+  },
   updateProfile: async (userId: string, data: any) => {
     return apiRequest(`/users/${userId}`, {
       method: 'PUT',
@@ -266,6 +269,29 @@ export const followsApi = {
 
 // Notifications API
 export const notificationsApi = {
+  list: async () => {
+    return apiRequest('/notifications')
+  },
+  markAsRead: async (notificationId: string) => {
+    return apiRequest(`/notifications/${notificationId}/read`, {
+      method: 'PUT',
+    })
+  },
+  markAllAsRead: async () => {
+    return apiRequest('/notifications/read-all', {
+      method: 'PUT',
+    })
+  },
+  delete: async (notificationId: string) => {
+    return apiRequest(`/notifications/${notificationId}`, {
+      method: 'DELETE',
+    })
+  },
+  deleteAll: async () => {
+    return apiRequest('/notifications', {
+      method: 'DELETE',
+    })
+  },
   list: async () => {
     return apiRequest('/notifications')
   },
