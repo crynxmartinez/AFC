@@ -125,6 +125,14 @@ export const contestsApi = {
       method: 'POST',
     })
   },
+
+  getRecentWinners: async (days: number = 7) => {
+    return apiRequest(`/contests/winners/recent?days=${days}`)
+  },
+
+  getContestWinners: async (id: string) => {
+    return apiRequest(`/contests/${id}/winners`)
+  },
 }
 
 // Entries API
