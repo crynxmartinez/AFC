@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { entriesApi } from '@/lib/api'
+import { entriesApi, commentsApi, contestsApi, usersApi, reactionsApi } from '@/lib/api'
 import ReactionPicker from '@/components/social/ReactionPicker'
 import Comments from '@/components/social/Comments'
 import ShareButton from '@/components/social/ShareButton'
@@ -52,19 +52,17 @@ export default function EntryDetailPage() {
   const fetchEntry = async () => {
     if (!id) return
     try {
-      const { data, error } = await supabase
-        .from('entries')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (error) throw error
-      
+      const response: any = await entriesApi.get(id)
+      const data = response.entry
+      setEntry(data)
       const entryRaw = data as any
       
       // Fetch related data separately
       const [{ data: userData }, { data: contestData }, { count: reactionCount }, { count: commentCount }] = await Promise.all([
-        supabase.from('users').select('username, display_name, avatar_url, level').eq('id', entryRaw.user_id).single(),
+        usersApi.get(entryRaw.user_id),
+        contestsApi.get(entryRaw.contest_id),
+        reactionsApi.getCount(entryRaw.id),
+        commentsApi.getCount(entryRaw.id)
         supabase.from('contests').select('title, category').eq('id', entryRaw.contest_id).single(),
         supabase.from('reactions').select('*', { count: 'exact', head: true }).eq('entry_id', id),
         supabase.from('comments').select('*', { count: 'exact', head: true }).eq('entry_id', id)

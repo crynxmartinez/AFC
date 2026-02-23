@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { formatDate, formatNumber } from '@/lib/utils'
-import { contestsApi } from '@/lib/api'
+import { contestsApi, entriesApi, usersApi, reactionsApi } from '@/lib/api'
 
 type Contest = {
   id: string
@@ -71,14 +71,9 @@ export default function ContestDetailPage() {
   const fetchContest = async () => {
     if (!id) return
     try {
-      const { data, error } = await supabase
-        .from('contests')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (error) throw error
-      console.log('Fetched contest:', (data as any)?.title, 'status:', (data as any)?.status)
+      const response: any = await contestsApi.get(id)
+      const data = response.contest
+      console.log('Fetched contest:', data?.title, 'status:', data?.status)
       setContest(data)
     } catch (error) {
       console.error('Error fetching contest:', error)
@@ -88,28 +83,18 @@ export default function ContestDetailPage() {
   const fetchEntries = async () => {
     if (!id) return
     try {
-      const { data, error } = await supabase
-        .from('entries')
-        .select('id, user_id, title, description, phase_4_url')
-        .eq('contest_id', id)
-        .eq('status', 'approved')
-
-      if (error) throw error
+      const response: any = await contestsApi.getEntries(id)
+      const data = response.entries || []
 
       // Fetch user data separately and get reaction counts for each entry
       const entriesWithVotes = await Promise.all(
-        (data || []).map(async (entry: any) => {
-          const { data: userData } = await supabase
-            .from('users')
-            .select('username, avatar_url')
-            .eq('id', entry.user_id)
-            .single()
-          const { count } = await supabase
-            .from('reactions')
-            .select('*', { count: 'exact', head: true })
-            .eq('entry_id', entry.id)
+        data.map(async (entry: any) => {
+          const userResponse: any = await usersApi.get(entry.userId)
+          const userData = userResponse.user
+          const reactionsResponse: any = await reactionsApi.getReactions(entry.id)
+          const reactions = reactionsResponse.reactions || []
 
-          return { ...entry, users: userData, vote_count: count || 0 }
+          return { ...entry, users: userData, vote_count: reactions.length }
         })
       )
 
@@ -126,20 +111,18 @@ export default function ContestDetailPage() {
   const fetchWinners = async () => {
     if (!id) return
     try {
-      const { data, error } = await supabase
-        .from('contest_winners')
-        .select('*')
-        .eq('contest_id', id)
-        .order('placement', { ascending: true })
+      const response: any = await contestsApi.getContestWinners(id)
+      const data = response.winners || []
+      setWinners(data)
 
-      if (error) throw error
-      
       // Fetch related data separately
       const winnersWithData = await Promise.all(
         (data || []).map(async (winner: any) => {
-          const [{ data: userData }, { data: entryData }] = await Promise.all([
-            supabase.from('users').select('username, avatar_url').eq('id', winner.user_id).single(),
-            supabase.from('entries').select('phase_4_url').eq('id', winner.entry_id).single()
+          const userDataResponse: any = await usersApi.get(winner.user_id)
+          const userData = userDataResponse.user
+          const entryDataResponse: any = await entriesApi.get(winner.entry_id)
+          const entryData = entryDataResponse.entry
+
           ])
           return { ...winner, users: userData, entries: entryData }
         })

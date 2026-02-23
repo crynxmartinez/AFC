@@ -1,8 +1,8 @@
 // @ts-nocheck - Supabase type inference issues
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { Search, Trophy, User, Image } from 'lucide-react'
+import { searchApi } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 
 type SearchResult = {
@@ -65,36 +65,6 @@ export default function SearchPage() {
           .limit(10)
 
         if (usersError) {
-          console.error('Error searching users:', usersError)
-        }
-
-        if (users) {
-          console.log('Found users:', users)
-          searchResults.push(
-            ...users.map((u) => ({
-              type: 'user' as const,
-              id: u.id,
-              username: u.username,
-              display_name: u.display_name,
-              avatar_url: u.avatar_url,
-              level: u.level,
-            }))
-          )
-        }
-      }
-
-      // Search entries (by contest title)
-      if (filter === 'all' || filter === 'entries') {
-        const { data: entries } = await supabase
-          .from('entries')
-          .select('id, phase_4_url, contest_id, user_id')
-          .eq('status', 'approved')
-          .limit(10)
-
-        // Fetch related data separately
-        const entriesWithData = await Promise.all(
-          (entries || []).map(async (e: any) => {
-            const [{ data: contest }, { data: user }] = await Promise.all([
               supabase.from('contests').select('title').eq('id', e.contest_id).single(),
               supabase.from('users').select('username').eq('id', e.user_id).single()
             ])

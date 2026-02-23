@@ -1,8 +1,8 @@
 // @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { formatNumber } from '@/lib/utils'
+import { leaderboardApi } from '@/lib/api'
 import { Trophy, Award, TrendingUp, Crown, Medal } from 'lucide-react'
 
 type LeaderboardUser = {
@@ -35,17 +35,12 @@ export default function LeaderboardPage() {
   const fetchLeaderboard = async () => {
     setLoading(true)
     try {
-      // Fetch top users
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('id, username, display_name, avatar_url, xp, level, profile_title')
-        .order('xp', { ascending: false })
-        .limit(50)
-
-      if (usersError) throw usersError
+      const response: any = await leaderboardApi.get(50, 'all')
+      const data = response.users || []
 
       // For each user, get comprehensive stats
       const usersWithStats = await Promise.all(
+        (data || []).map(async (user: any) => {
         (usersData || []).map(async (user: any) => {
           // Get entry count
           const { count: entryCount } = await supabase

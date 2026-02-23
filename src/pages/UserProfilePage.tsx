@@ -1,7 +1,7 @@
 // @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { usersApi, contestsApi, entriesApi, reactionsApi } from '@/lib/api'
 import { formatDate, formatNumber } from '@/lib/utils'
 import { Trophy, Award, Calendar, MapPin, Link as LinkIcon, Instagram, Twitter, ExternalLink, Users, Briefcase, Globe, Tag } from 'lucide-react'
 import FollowButton from '@/components/social/FollowButton'
@@ -96,21 +96,15 @@ export default function UserProfilePage() {
   const fetchProfile = async () => {
     try {
       // Fetch user profile
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .single()
+      const userResponse: any = await usersApi.getByUsername(username as string)
+      const userData = userResponse.user
 
-      if (userError) throw userError
+      if (!userData) throw new Error('User not found')
       setProfile(userData)
 
       // Fetch user's entries (ALL entries, not just approved)
-      const { data: entriesData, error: entriesError } = await supabase
-        .from('entries')
-        .select('id, contest_id, title, description, phase_4_url, created_at, status')
-        .eq('user_id', userData.id)
-        .order('created_at', { ascending: false })
+      const entriesResponse: any = await usersApi.getEntries(userData.id)
+      const entriesData = entriesResponse.entries || []
 
       if (entriesError) throw entriesError
       
@@ -174,30 +168,21 @@ export default function UserProfilePage() {
       setEntries(entriesWithRanking)
 
       // Fetch user's badges
-      const { data: badgesData, error: badgesError } = await supabase
-        .from('user_badges')
-        .select('id, badge_name, badge_icon, earned_at')
-        .eq('user_id', userData.id)
-        .order('earned_at', { ascending: false})
+      const badgesResponse: any = await usersApi.getBadges(userData.id)
+      const badgesData = badgesResponse.badges || []
 
       if (badgesError) throw badgesError
       setBadges(badgesData || [])
 
       // Fetch user's achievements
-      const { data: achievementsData } = await supabase
-        .from('user_achievements')
-        .select('*')
-        .eq('user_id', userData.id)
-        .order('earned_at', { ascending: false })
+      const achievementsResponse: any = await usersApi.getAchievements(userData.id)
+      const achievementsData = achievementsResponse.achievements || []
       
       setAchievements(achievementsData || [])
 
       // Fetch user's contest wins
-      const { data: winnersData, error: winnersError } = await supabase
-        .from('contest_winners')
-        .select('*')
-        .eq('user_id', userData.id)
-        .order('awarded_at', { ascending: false })
+      const statsResponse: any = await usersApi.getStats(userData.id)
+      const winnersData = statsResponse.wins || []
 
       if (winnersError) throw winnersError
       
@@ -233,16 +218,12 @@ export default function UserProfilePage() {
       }
 
       // Get follower count
-      const { count: followersCount } = await supabase
-        .from('follows')
-        .select('*', { count: 'exact', head: true })
-        .eq('following_id', userData.id)
+      const followersResponse: any = await usersApi.getFollowers(userData.id)
+      const followersCount = followersResponse.followers?.length || 0
 
       // Get following count
-      const { count: followingCount } = await supabase
-        .from('follows')
-        .select('*', { count: 'exact', head: true })
-        .eq('follower_id', userData.id)
+      const followingResponse: any = await usersApi.getFollowing(userData.id)
+      const followingCount = followingResponse.following?.length || 0
 
       // Calculate win rate and avg votes
       const winRate = totalEntries > 0 ? (contestsWon / totalEntries) * 100 : 0

@@ -1,7 +1,7 @@
 // @ts-nocheck - Supabase type inference issues
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { contestsApi, entriesApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Upload, Check, Save, Eye } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
@@ -45,13 +45,10 @@ export default function SubmitEntryPage() {
   const fetchContest = async () => {
     if (!id) return
     try {
-      const { data, error } = await supabase
-        .from('contests')
-        .select('*')
-        .eq('id', id)
-        .single()
+      const response: any = await contestsApi.get(id)
+      const data = response.contest
 
-      if (error) throw error
+      if (!data) throw new Error('Contest not found')
       setContest(data)
       
       // Initialize phases based on contest category
@@ -76,12 +73,8 @@ export default function SubmitEntryPage() {
   const fetchExistingEntry = async () => {
     if (!id || !user?.id) return
     try {
-      const { data, error } = await supabase
-        .from('entries')
-        .select('*')
-        .eq('contest_id', id)
-        .eq('user_id', user.id)
-        .single()
+      const response: any = await entriesApi.getByContestAndUser(id, user.id)
+      const data = response.entry
 
       if (error) {
         // Entry doesn't exist yet, that's fine
