@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { awardXP as awardXPApi, getLevelProgress as getLevelProgressApi } from './xp-system'
 
 /**
  * Award XP to a user for a specific action
@@ -17,22 +17,13 @@ export async function awardXP(
   error?: string
 }> {
   try {
-    const { data, error } = await supabase.rpc('award_xp', {
-      p_user_id: userId,
-      p_action_type: actionType,
-      p_reference_id: referenceId || null,
-      p_description: description || null,
-    } as any)
-
-    if (error) throw error
-
-    const result = data?.[0] as any
+    const result = await awardXPApi(userId, actionType, referenceId, description)
+    
     return {
-      success: true,
-      xpGained: result?.xp_gained,
-      newTotalXP: result?.new_total_xp,
-      newLevel: result?.new_level,
-      leveledUp: result?.leveled_up,
+      success: result.success,
+      xpGained: result.xpAwarded,
+      newLevel: result.newLevel,
+      leveledUp: result.newLevel !== undefined,
     }
   } catch (error: any) {
     console.error('Error awarding XP:', error)
@@ -55,13 +46,18 @@ export async function getLevelProgress(userId: string): Promise<{
   progressPercentage: number
 } | null> {
   try {
-    const { data, error } = await supabase.rpc('get_level_progress', {
-      p_user_id: userId,
-    } as any)
+    const progress = await getLevelProgressApi(userId)
+    
+    if (!progress) return null
 
-    if (error) throw error
-
-    return (data as any)?.[0] || null
+    return {
+      currentLevel: progress.user.level,
+      currentXP: progress.user.xp,
+      currentLevelXP: progress.currentLevel?.xpRequired || 0,
+      nextLevelXP: progress.nextLevel?.xpRequired || 0,
+      xpToNextLevel: progress.xpToNextLevel,
+      progressPercentage: progress.progressPercentage,
+    }
   } catch (error) {
     console.error('Error getting level progress:', error)
     return null
@@ -73,14 +69,14 @@ export async function getLevelProgress(userId: string): Promise<{
  */
 export async function getUserBadges(userId: string) {
   try {
-    const { data, error } = await supabase
-      .from('user_badges')
-      .select('*')
-      .eq('user_id', userId)
-      .order('earned_at', { ascending: false })
-
-    if (error) throw error
-    return data || []
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${userId}/badges`, {
+      credentials: 'include',
+    })
+    
+    if (!response.ok) return []
+    
+    const data = await response.json()
+    return data.badges || []
   } catch (error) {
     console.error('Error getting user badges:', error)
     return []
@@ -92,15 +88,14 @@ export async function getUserBadges(userId: string) {
  */
 export async function getXPHistory(userId: string, limit = 20) {
   try {
-    const { data, error } = await supabase
-      .from('xp_history')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(limit)
-
-    if (error) throw error
-    return data || []
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${userId}/xp-history?limit=${limit}`, {
+      credentials: 'include',
+    })
+    
+    if (!response.ok) return []
+    
+    const data = await response.json()
+    return data.history || []
   } catch (error) {
     console.error('Error getting XP history:', error)
     return []

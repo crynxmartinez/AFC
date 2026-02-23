@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 
 export function usePendingReviews() {
@@ -11,29 +10,17 @@ export function usePendingReviews() {
     if (profile?.role === 'admin') {
       fetchPendingCount()
       
-      // Set up real-time subscription - listen to ALL entry changes
-      // (not just pending_review, because we need to catch when status changes FROM pending_review)
-      const channel = supabase
-        .channel('pending-reviews')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'entries'
-          },
-          () => {
-            fetchPendingCount()
-          }
-        )
-        .subscribe()
+      // Poll every 60 seconds for updates
+      const interval = setInterval(() => {
+        fetchPendingCount()
+      }, 60000)
 
       // Listen for manual updates from AdminReviews page
       const handleUpdate = () => fetchPendingCount()
       window.addEventListener('pending-reviews-updated', handleUpdate)
 
       return () => {
-        supabase.removeChannel(channel)
+        clearInterval(interval)
         window.removeEventListener('pending-reviews-updated', handleUpdate)
       }
     }
@@ -41,13 +28,14 @@ export function usePendingReviews() {
 
   const fetchPendingCount = async () => {
     try {
-      const { count, error } = await supabase
-        .from('entries')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending_review')
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/entries?status=pending`, {
+        credentials: 'include',
+      })
 
-      if (error) throw error
-      setPendingCount(count || 0)
+      if (!response.ok) throw new Error('Failed to fetch pending count')
+
+      const data = await response.json()
+      setPendingCount(data.entries?.length || 0)
     } catch (error) {
       console.error('Error fetching pending count:', error)
     } finally {

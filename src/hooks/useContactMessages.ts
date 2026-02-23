@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 
 export function useContactMessages() {
@@ -11,28 +10,17 @@ export function useContactMessages() {
     if (profile?.role === 'admin') {
       fetchUnreadCount()
       
-      // Set up real-time subscription for new messages
-      const channel = supabase
-        .channel('contact-messages')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'contact_submissions'
-          },
-          () => {
-            fetchUnreadCount()
-          }
-        )
-        .subscribe()
+      // Poll every 60 seconds for updates
+      const interval = setInterval(() => {
+        fetchUnreadCount()
+      }, 60000)
 
       // Listen for manual updates from AdminMessages page
       const handleUpdate = () => fetchUnreadCount()
       window.addEventListener('contact-messages-updated', handleUpdate)
 
       return () => {
-        supabase.removeChannel(channel)
+        clearInterval(interval)
         window.removeEventListener('contact-messages-updated', handleUpdate)
       }
     }
@@ -40,13 +28,14 @@ export function useContactMessages() {
 
   const fetchUnreadCount = async () => {
     try {
-      const { count, error } = await supabase
-        .from('contact_submissions')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'new')
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/messages?status=new`, {
+        credentials: 'include',
+      })
 
-      if (error) throw error
-      setUnreadCount(count || 0)
+      if (!response.ok) throw new Error('Failed to fetch unread count')
+
+      const data = await response.json()
+      setUnreadCount(data.messages?.length || 0)
     } catch (error) {
       console.error('Error fetching unread messages count:', error)
     } finally {
