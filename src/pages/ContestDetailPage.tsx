@@ -123,7 +123,6 @@ export default function ContestDetailPage() {
           const entryDataResponse: any = await entriesApi.get(winner.entry_id)
           const entryData = entryDataResponse.entry
 
-          ])
           return { ...winner, users: userData, entries: entryData }
         })
       )

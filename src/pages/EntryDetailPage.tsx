@@ -58,15 +58,14 @@ export default function EntryDetailPage() {
       const entryRaw = data as any
       
       // Fetch related data separately
-      const [{ data: userData }, { data: contestData }, { count: reactionCount }, { count: commentCount }] = await Promise.all([
-        usersApi.get(entryRaw.user_id),
-        contestsApi.get(entryRaw.contest_id),
-        reactionsApi.getCount(entryRaw.id),
-        commentsApi.getCount(entryRaw.id)
-        supabase.from('contests').select('title, category').eq('id', entryRaw.contest_id).single(),
-        supabase.from('reactions').select('*', { count: 'exact', head: true }).eq('entry_id', id),
-        supabase.from('comments').select('*', { count: 'exact', head: true }).eq('entry_id', id)
-      ])
+      const userResponse: any = await usersApi.getById(entryRaw.userId)
+      const userData = userResponse.user
+      const contestResponse: any = await contestsApi.get(entryRaw.contestId)
+      const contestData = contestResponse.contest
+      const reactionsResponse: any = await entriesApi.getReactions(entryRaw.id)
+      const reactionCount = reactionsResponse.reactions?.length || 0
+      const commentsResponse: any = await commentsApi.list(entryRaw.id)
+      const commentCount = commentsResponse.comments?.length || 0
       
       const entryData = {
         ...entryRaw,

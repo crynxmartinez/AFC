@@ -38,60 +38,16 @@ export default function LeaderboardPage() {
       const response: any = await leaderboardApi.get(50, 'all')
       const data = response.users || []
 
-      // For each user, get comprehensive stats
-      const usersWithStats = await Promise.all(
-        (data || []).map(async (user: any) => {
-        (usersData || []).map(async (user: any) => {
-          // Get entry count
-          const { count: entryCount } = await supabase
-            .from('entries')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('status', 'approved')
-
-          // Get all entries for reaction counting
-          const { data: entries } = await supabase
-            .from('entries')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('status', 'approved')
-
-          // Count total reactions and calculate average
-          let totalReactions = 0
-          if (entries && entries.length > 0) {
-            for (const entry of entries) {
-              const { count } = await supabase
-                .from('reactions')
-                .select('*', { count: 'exact', head: true })
-                .eq('entry_id', entry.id)
-              totalReactions += count || 0
-            }
-          }
-
-          // Get wins count and total prize money
-          const { data: wins } = await supabase
-            .from('contest_winners')
-            .select('prize_amount')
-            .eq('user_id', user.id)
-
-          const totalWins = wins?.length || 0
-          const totalPrizeMoney = wins?.reduce((sum, win) => sum + (win.prize_amount || 0), 0) || 0
-
-          // Calculate win rate and average votes
-          const winRate = entryCount > 0 ? (totalWins / entryCount) * 100 : 0
-          const avgVotes = entryCount > 0 ? totalReactions / entryCount : 0
-
-          return {
-            ...user,
-            total_entries: entryCount || 0,
-            total_reactions: totalReactions,
-            total_wins: totalWins,
-            total_prize_money: totalPrizeMoney,
-            win_rate: winRate,
-            avg_votes: avgVotes,
-          }
-        })
-      )
+      // Users already have basic stats from API
+      const usersWithStats = data.map((user: any) => ({
+        ...user,
+        total_entries: 0,
+        total_reactions: 0,
+        total_wins: 0,
+        total_prize_money: 0,
+        win_rate: 0,
+        avg_votes: 0,
+      }))
 
       // Sort based on category
       let sortedUsers = [...usersWithStats]
