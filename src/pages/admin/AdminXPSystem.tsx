@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { adminApi } from '@/lib/api'
 import { Settings, Award, TrendingUp, Users } from 'lucide-react'
 
 type LevelConfig = {
@@ -69,21 +69,16 @@ export default function AdminXPSystem() {
   }
 
   const fetchLevels = async () => {
-    const { data, error } = await supabase
-      .from('level_config')
-      .select('*')
-      .order('level', { ascending: true })
-      .limit(50)
+    const response: any = await adminApi.getLevels()
+    const data = response.levels || []
 
     if (error) throw error
     setLevels(data || [])
   }
 
   const fetchXPRewards = async () => {
-    const { data, error } = await supabase
-      .from('xp_rewards')
-      .select('*')
-      .order('xp_amount', { ascending: false })
+    const response: any = await adminApi.getXPRewards()
+    const data = response.rewards || []
 
     if (error) throw error
     setXPRewards(data || [])
@@ -129,10 +124,7 @@ export default function AdminXPSystem() {
 
   const updateLevel = async (level: number, xp_required: number, title: string) => {
     try {
-      const { error } = await supabase
-        .from('level_config')
-        .update({ xp_required, title })
-        .eq('level', level)
+      await adminApi.updateLevel(level, xp_required)
 
       if (error) throw error
       
@@ -146,10 +138,7 @@ export default function AdminXPSystem() {
 
   const updateXPReward = async (id: string, xp_amount: number, enabled: boolean) => {
     try {
-      const { error } = await supabase
-        .from('xp_rewards')
-        .update({ xp_amount, enabled })
-        .eq('id', id)
+      await adminApi.updateXPReward(id, xp_amount)
 
       if (error) throw error
       
