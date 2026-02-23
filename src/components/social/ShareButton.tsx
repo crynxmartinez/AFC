@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import { Share2, Facebook, X } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
-import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 
 interface ShareButtonProps {
@@ -62,68 +61,15 @@ export default function ShareButton({
     }
   }
 
-  // Track share and award XP
+  // Track share (simplified - XP tracking will be handled by API)
   const trackShare = async (platform: string) => {
     if (!user) return
 
     try {
       setIsSharing(true)
-
-      // 1. Record the share
-      const { error: shareError } = await supabase
-        .from('shares')
-        .insert({
-          user_id: user.id,
-          entry_id: entry.id,
-          contest_id: entry.contest_id,
-          platform: platform
-        })
-
-      if (shareError) throw shareError
-
-      // 2. Check if user already claimed daily share XP
-      const today = new Date().toISOString().split('T')[0]
-      const { data: existingClaim } = await supabase
-        .from('daily_xp_claims')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('claim_type', 'share')
-        .eq('claim_date', today)
-        .single()
-
-      // 3. Award XP if first share of the day
-      if (!existingClaim) {
-        // Award 10 XP
-        const { error: xpError } = await supabase.rpc('award_xp', {
-          user_uuid: user.id,
-          xp_amount: 10,
-          reason: 'Daily Share'
-        })
-
-        if (xpError) console.error('XP award error:', xpError)
-
-        // Record the claim
-        await supabase.from('daily_xp_claims').insert({
-          user_id: user.id,
-          claim_type: 'share',
-          claim_date: today,
-          xp_amount: 10,
-          platform: platform
-        })
-
-        // Show notification
-        toast.success('🎉 +10 XP for sharing!')
-      }
-
-      // 4. Update user share stats
-      await supabase.rpc('update_user_share_stats', {
-        user_uuid: user.id,
-        share_date: today
-      })
-
-      // 5. Callback to refresh share count
+      // TODO: Add API endpoint for tracking shares
+      // await sharesApi.create(entry.id, platform)
       onShareComplete?.()
-
     } catch (error) {
       console.error('Share tracking error:', error)
     } finally {

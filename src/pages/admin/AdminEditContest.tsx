@@ -1,7 +1,7 @@
 // @ts-nocheck - Supabase type inference issues
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { contestsApi } from '@/lib/api'
 import { useToastStore } from '@/stores/toastStore'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -106,52 +106,12 @@ export default function AdminEditContest() {
     setError('')
 
     try {
-      let thumbnailUrl = existingThumbnailUrl
+      // TODO: File uploads will be replaced with URL inputs
+      const thumbnailUrl = thumbnailPreview || existingThumbnailUrl
+      const sponsorLogoUrl = sponsorLogoPreview || existingSponsorLogoUrl
 
-      // Upload new thumbnail if provided
-      if (thumbnail) {
-        const fileExt = thumbnail.name.split('.').pop()
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-        const filePath = `${fileName}`
-
-        const { error: uploadError } = await supabase.storage
-          .from('contest-thumbnails')
-          .upload(filePath, thumbnail)
-
-        if (uploadError) throw uploadError
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('contest-thumbnails')
-          .getPublicUrl(filePath)
-
-        thumbnailUrl = publicUrl
-      }
-
-      let sponsorLogoUrl = existingSponsorLogoUrl
-
-      // Upload new sponsor logo if provided
-      if (sponsorLogo && hasSponsor) {
-        const fileExt = sponsorLogo.name.split('.').pop()
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-        const filePath = `${fileName}`
-
-        const { error: uploadError } = await supabase.storage
-          .from('sponsor-logos')
-          .upload(filePath, sponsorLogo)
-
-        if (uploadError) throw uploadError
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('sponsor-logos')
-          .getPublicUrl(filePath)
-
-        sponsorLogoUrl = publicUrl
-      }
-
-      // Update contest
-      const { error: updateError } = await supabase
-        .from('contests')
-        .update({
+      // Update contest via API
+      await contestsApi.update(id!, {
           title,
           description,
           start_date: new Date(startDate + 'T00:00:00+08:00').toISOString(),
@@ -161,10 +121,7 @@ export default function AdminEditContest() {
           sponsor_name: hasSponsor ? sponsorName : null,
           sponsor_prize_amount: hasSponsor && sponsorPrizeAmount ? parseFloat(sponsorPrizeAmount) : null,
           sponsor_logo_url: hasSponsor ? sponsorLogoUrl : null,
-        } as any)
-        .eq('id', id)
-
-      if (updateError) throw updateError
+        })
 
       toast.success('Contest updated successfully!')
       navigate('/admin/contests')

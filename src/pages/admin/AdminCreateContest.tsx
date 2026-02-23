@@ -1,7 +1,7 @@
 // @ts-nocheck - Supabase type inference issues
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { contestsApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { useToastStore } from '@/stores/toastStore'
 import type { ContestCategory } from '@/types/contest'
@@ -68,63 +68,12 @@ export default function AdminCreateContest() {
     console.log('Creating contest...', { title, description, startDate, endDate, user: user.id })
 
     try {
-      let thumbnailUrl = null
+      // TODO: File uploads will be replaced with URL inputs
+      const thumbnailUrl = thumbnailPreview
+      const sponsorLogoUrl = sponsorLogoPreview
 
-      // Upload thumbnail if provided
-      if (thumbnail) {
-        console.log('Uploading thumbnail...', thumbnail.name)
-        const fileExt = thumbnail.name.split('.').pop()
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-        const filePath = `${fileName}`
-
-        const { error: uploadError } = await supabase.storage
-          .from('contest-thumbnails')
-          .upload(filePath, thumbnail)
-
-        if (uploadError) {
-          console.error('Upload error:', uploadError)
-          throw uploadError
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('contest-thumbnails')
-          .getPublicUrl(filePath)
-
-        thumbnailUrl = publicUrl
-        console.log('Thumbnail uploaded:', publicUrl)
-      }
-
-      let sponsorLogoUrl = null
-
-      // Upload sponsor logo if provided
-      if (sponsorLogo && hasSponsor) {
-        console.log('Uploading sponsor logo...', sponsorLogo.name)
-        const fileExt = sponsorLogo.name.split('.').pop()
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-        const filePath = `${fileName}`
-
-        const { error: uploadError } = await supabase.storage
-          .from('sponsor-logos')
-          .upload(filePath, sponsorLogo)
-
-        if (uploadError) {
-          console.error('Sponsor logo upload error:', uploadError)
-          throw uploadError
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('sponsor-logos')
-          .getPublicUrl(filePath)
-
-        sponsorLogoUrl = publicUrl
-        console.log('Sponsor logo uploaded:', publicUrl)
-      }
-
-      // Create contest
-      console.log('Inserting contest into database...')
-      const { data, error: insertError } = await supabase
-        .from('contests')
-        .insert({
+      // Create contest via API
+      await contestsApi.create({
           title,
           description,
           category,
@@ -137,15 +86,9 @@ export default function AdminCreateContest() {
           sponsor_name: hasSponsor ? sponsorName : null,
           sponsor_prize_amount: hasSponsor && sponsorPrizeAmount ? parseFloat(sponsorPrizeAmount) : null,
           sponsor_logo_url: hasSponsor ? sponsorLogoUrl : null,
-        } as any)
-        .select()
+        })
 
-      if (insertError) {
-        console.error('Insert error:', insertError)
-        throw insertError
-      }
-
-      console.log('Contest created successfully:', data)
+      console.log('Contest created successfully')
       success('Contest created successfully!')
       navigate('/admin/contests')
     } catch (err: any) {

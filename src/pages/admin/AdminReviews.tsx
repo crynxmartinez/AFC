@@ -41,31 +41,7 @@ export default function AdminReviews() {
     try {
       const response: any = await adminApi.getPendingEntries()
       const data = response.entries || []
-
-      if (filter === 'pending_review') {
-        query = query.eq('status', 'pending_review')
-      }
-
-      const { data, error } = await query
-
-      if (error) throw error
-      
-      // Fetch related data separately
-      const entriesWithData = await Promise.all(
-        (data || []).map(async (entry: any) => {
-          const [{ data: userData }, { data: contestData }] = await Promise.all([
-            supabase.from('users').select('username, avatar_url').eq('id', entry.user_id).single(),
-            supabase.from('contests').select('title').eq('id', entry.contest_id).single()
-          ])
-          return {
-            ...entry,
-            users: userData,
-            contests: contestData
-          }
-        })
-      )
-      
-      setEntries(entriesWithData || [])
+      setEntries(data)
     } catch (error) {
       console.error('Error fetching entries:', error)
     } finally {
@@ -76,8 +52,6 @@ export default function AdminReviews() {
   const approveEntry = async (id: string) => {
     try {
       await adminApi.reviewEntry(id, 'approved', null)
-
-      if (error) throw error
 
       setEntries(entries.filter((e) => e.id !== id))
       toast.success('Entry approved!')

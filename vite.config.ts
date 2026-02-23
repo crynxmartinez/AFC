@@ -20,7 +20,6 @@ export default defineConfig({
         manualChunks: {
           // Vendor chunks - split large dependencies
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-supabase': ['@supabase/supabase-js'],
           'vendor-ui': ['lucide-react', 'zustand'],
           // Feature chunks
           'admin': [

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { contestsApi, entriesApi } from '@/lib/api'
 import { Trophy, Medal, Award, ArrowLeft, AlertCircle, X } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
 
@@ -105,22 +105,15 @@ export default function AdminFinalizeContest() {
     setFinalizing(true)
 
     try {
-      // Call the SQL function to finalize contest
-      const { data, error } = await supabase.rpc('finalize_contest_and_select_winners', {
-        p_contest_id: id,
-      })
-
-      if (error) throw error
-
-      if (data && data.length > 0) {
-        const result = data[0]
-        if (result.success) {
-          toast.success(`🎉 Contest finalized! Prizes distributed to winners.`)
-          // Small delay to show toast before navigating
-          setTimeout(() => navigate('/admin/contests'), 1500)
-        } else {
-          toast.error(`Error: ${result.message}`)
-        }
+      // Call API to finalize contest
+      const response: any = await contestsApi.finalize(id)
+      
+      if (response.success) {
+        toast.success(`🎉 Contest finalized! Prizes distributed to winners.`)
+        // Small delay to show toast before navigating
+        setTimeout(() => navigate('/admin/contests'), 1500)
+      } else {
+        toast.error(`Error: ${response.message || 'Failed to finalize contest'}`)
       }
     } catch (error) {
       console.error('Error finalizing contest:', error)

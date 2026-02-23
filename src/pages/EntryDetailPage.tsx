@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { entriesApi, commentsApi, contestsApi, usersApi, reactionsApi } from '@/lib/api'
+import { entriesApi, commentsApi, contestsApi, usersApi } from '@/lib/api'
 import ReactionPicker from '@/components/social/ReactionPicker'
 import Comments from '@/components/social/Comments'
 import ShareButton from '@/components/social/ShareButton'
