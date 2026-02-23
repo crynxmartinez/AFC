@@ -157,6 +157,10 @@ export const contestsApi = {
   getContestWinners: async (id: string) => {
     return apiRequest(`/contests/${id}/winners`)
   },
+
+  getEntries: async (id: string) => {
+    return apiRequest(`/contests/${id}/entries`)
+  },
 }
 
 // Entries API

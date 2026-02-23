@@ -34,25 +34,18 @@ export default function HomePage() {
 
   const fetchContests = async () => {
     try {
-      const { data, error } = await supabase
-        .from('contests')
-        .select('*')
-        .in('status', ['active', 'voting'])
-        .order('start_date', { ascending: false })
-
-      if (error) throw error
+      const response: any = await contestsApi.list('active')
+      const contests = response.contests || []
 
       // Get entry counts separately
       const contestsWithCounts = await Promise.all(
-        (data || []).map(async (contest: any) => {
-          const { count } = await supabase
-            .from('entries')
-            .select('*', { count: 'exact', head: true })
-            .eq('contest_id', contest.id)
+        contests.map(async (contest: any) => {
+          const entriesResponse: any = await contestsApi.getEntries(contest.id)
+          const entries = entriesResponse.entries || []
 
           return {
             ...contest,
-            entry_count: count || 0,
+            entry_count: entries.length,
           }
         })
       )

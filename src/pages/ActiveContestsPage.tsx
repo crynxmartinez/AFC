@@ -1,8 +1,8 @@
 // @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { formatDate, getContestStatus, getPhaseTimeRemaining } from '@/lib/utils'
+import { contestsApi } from '@/lib/api'
 import { Clock, Users, Trophy } from 'lucide-react'
 import type { ContestCategory } from '@/types/contest'
 import CategoryBadge from '@/components/contests/CategoryBadge'
@@ -33,27 +33,20 @@ export default function ActiveContestsPage() {
 
   const fetchContests = async () => {
     try {
-      // Fetch all contests (status is calculated from dates)
-      const { data, error } = await supabase
-        .from('contests')
-        .select('*')
-        .order('start_date', { ascending: false })
-
-      if (error) throw error
+      const response: any = await contestsApi.list('active')
+      const data = response.contests || []
 
       // Get entry counts and calculate status for each contest
       const contestsWithCounts = await Promise.all(
-        (data || []).map(async (contest: any) => {
-          const { count } = await supabase
-            .from('entries')
-            .select('*', { count: 'exact', head: true })
-            .eq('contest_id', contest.id)
+        data.map(async (contest: any) => {
+          const entriesResponse: any = await contestsApi.getEntries(contest.id)
+          const entries = entriesResponse.entries || []
 
-          const calculatedStatus = getContestStatus(contest.start_date, contest.end_date)
+          const calculatedStatus = getContestStatus(contest.startDate, contest.endDate)
           return {
             ...contest,
             status: calculatedStatus,
-            entry_count: count || 0,
+            entry_count: entries.length,
           }
         })
       )
