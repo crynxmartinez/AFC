@@ -10,13 +10,13 @@ type SearchResult = {
   id: string
   title?: string
   username?: string
-  display_name?: string
-  avatar_url?: string
-  thumbnail_url?: string
-  phase_4_url?: string
+  displayName?: string
+  avatarUrl?: string
+  thumbnailUrl?: string
+  phase4Url?: string
   description?: string
   level?: number
-  contest_title?: string
+  contestTitle?: string
 }
 
 export default function SearchPage() {
@@ -42,7 +42,7 @@ export default function SearchPage() {
             id: c.id,
             title: c.title,
             description: c.description,
-            thumbnail_url: c.thumbnailUrl,
+            thumbnailUrl: c.thumbnailUrl,
           }))
         )
       }
@@ -54,8 +54,8 @@ export default function SearchPage() {
             type: 'user' as const,
             id: u.id,
             username: u.username,
-            display_name: u.displayName,
-            avatar_url: u.avatarUrl,
+            displayName: u.displayName,
+            avatarUrl: u.avatarUrl,
             level: u.level,
           }))
         )
@@ -67,8 +67,8 @@ export default function SearchPage() {
           ...response.entries.map((e: any) => ({
             type: 'entry' as const,
             id: e.id,
-            phase_4_url: e.phase4Url,
-            contest_title: e.contestTitle,
+            phase4Url: e.phase4Url,
+            contestTitle: e.contestTitle,
             username: e.username,
           }))
         )
@@ -194,9 +194,9 @@ export default function SearchPage() {
                       {result.description}
                     </p>
                   </div>
-                  {result.thumbnail_url && (
+                  {result.thumbnailUrl && (
                     <img
-                      src={result.thumbnail_url}
+                      src={result.thumbnailUrl}
                       alt={result.title}
                       className="w-16 h-16 rounded object-cover flex-shrink-0"
                     />
@@ -213,9 +213,9 @@ export default function SearchPage() {
                   className="flex items-center gap-4 p-4 bg-surface rounded-lg border border-border hover:border-primary transition-all"
                 >
                   <div className="relative flex-shrink-0">
-                    {result.avatar_url ? (
+                    {result.avatarUrl ? (
                       <img
-                        src={result.avatar_url}
+                        src={result.avatarUrl}
                         alt={result.username}
                         className="w-12 h-12 rounded-full object-cover"
                       />
@@ -236,7 +236,7 @@ export default function SearchPage() {
                         ARTIST
                       </span>
                       <h3 className="font-bold truncate">
-                        {result.display_name || result.username}
+                        {result.displayName || result.username}
                       </h3>
                     </div>
                     <p className="text-sm text-text-secondary">@{result.username}</p>
@@ -260,13 +260,13 @@ export default function SearchPage() {
                       <span className="px-2 py-0.5 bg-success/20 text-success rounded text-xs font-semibold">
                         ENTRY
                       </span>
-                      <h3 className="font-bold truncate">{result.contest_title}</h3>
+                      <h3 className="font-bold truncate">{result.contestTitle}</h3>
                     </div>
                     <p className="text-sm text-text-secondary">by @{result.username}</p>
                   </div>
-                  {result.phase_4_url && (
+                  {result.phase4Url && (
                     <img
-                      src={result.phase_4_url}
+                      src={result.phase4Url}
                       alt="Entry"
                       className="w-16 h-16 rounded object-cover flex-shrink-0"
                     />
