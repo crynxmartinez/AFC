@@ -9,10 +9,10 @@ import { useToastStore } from '@/stores/toastStore'
 type Winner = {
   id: string
   title: string
-  artwork_url: string
+  artworkUrl: string
   artist: {
     username: string
-    avatar_url: string | null
+    avatarUrl: string | null
   }
   votes: number
   rank: number
@@ -22,13 +22,13 @@ type Contest = {
   id: string
   title: string
   description: string
-  thumbnail_url: string | null
-  end_date: string
+  thumbnailUrl: string | null
+  endDate: string
   winners: Winner[]
-  has_sponsor: boolean
-  sponsor_name: string | null
-  sponsor_logo_url: string | null
-  sponsor_prize_amount: number | null
+  hasSponsor: boolean
+  sponsorName: string | null
+  sponsorLogoUrl: string | null
+  sponsorPrizeAmount: number | null
 }
 
 export default function WinnersPage() {
@@ -68,7 +68,7 @@ export default function WinnersPage() {
             (entriesData || []).map(async (entry: any) => {
               const { data: userData } = await supabase
                 .from('users')
-                .select('username, avatar_url')
+                .select('username, avatarUrl')
                 .eq('id', entry.user_id)
                 .single()
               const { count, error: countError } = await supabase
@@ -92,10 +92,10 @@ export default function WinnersPage() {
             id: entry.id,
             title: entry.title || 'Untitled',
             // Use the highest available phase URL as the artwork
-            artwork_url: entry.phase_4_url || entry.phase_3_url || entry.phase_2_url || entry.phase_1_url || '',
+            artworkUrl: entry.phase_4_url || entry.phase_3_url || entry.phase_2_url || entry.phase_1_url || '',
             artist: {
               username: entry.users?.username || 'Unknown',
-              avatar_url: entry.users?.avatar_url || null,
+              avatarUrl: entry.users?.avatarUrl || null,
             },
             votes: entry.votes,
             rank: index + 1,
@@ -191,9 +191,9 @@ export default function WinnersPage() {
               {/* Contest Header */}
               <div className="p-6 border-b border-border">
                 <div className="flex items-start gap-4">
-                  {contest.thumbnail_url && (
+                  {contest.thumbnailUrl && (
                     <img
-                      src={contest.thumbnail_url}
+                      src={contest.thumbnailUrl}
                       alt={contest.title}
                       className="w-20 h-20 rounded-lg object-cover"
                     />
@@ -202,22 +202,22 @@ export default function WinnersPage() {
                     <h2 className="text-2xl font-bold mb-2">{contest.title}</h2>
                     
                     {/* Sponsor Badge */}
-                    {contest.has_sponsor && contest.sponsor_name && (
+                    {contest.hasSponsor && contest.sponsorName && (
                       <div className="flex items-center gap-2 mb-2 p-2 bg-primary/10 rounded border border-primary/30 inline-flex">
-                        {contest.sponsor_logo_url && (
+                        {contest.sponsorLogoUrl && (
                           <img 
-                            src={contest.sponsor_logo_url} 
-                            alt={contest.sponsor_name}
+                            src={contest.sponsorLogoUrl} 
+                            alt={contest.sponsorName}
                             className="h-5 w-auto object-contain"
                           />
                         )}
                         <div>
                           <span className="text-xs text-text-secondary">Sponsored by </span>
-                          <span className="text-sm font-semibold text-primary">{contest.sponsor_name}</span>
+                          <span className="text-sm font-semibold text-primary">{contest.sponsorName}</span>
                         </div>
-                        {contest.sponsor_prize_amount && contest.sponsor_prize_amount > 0 && (
+                        {contest.sponsorPrizeAmount && contest.sponsorPrizeAmount > 0 && (
                           <span className="text-xs font-bold text-success ml-2">
-                            +₱{contest.sponsor_prize_amount.toLocaleString()}
+                            +₱{contest.sponsorPrizeAmount.toLocaleString()}
                           </span>
                         )}
                       </div>
@@ -225,7 +225,7 @@ export default function WinnersPage() {
                     
                     <p className="text-text-secondary mb-2">{contest.description}</p>
                     <p className="text-sm text-text-secondary">
-                      Ended: {formatDate(contest.end_date)}
+                      Ended: {formatDate(contest.endDate)}
                     </p>
                   </div>
                 </div>
@@ -290,7 +290,7 @@ export default function WinnersPage() {
                         <Link to={`/entries/${winner.id}`}>
                           <div className="aspect-square bg-background overflow-hidden">
                             <img
-                              src={winner.artwork_url}
+                              src={winner.artworkUrl}
                               alt={winner.title}
                               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                             />
@@ -310,9 +310,9 @@ export default function WinnersPage() {
                             to={`/users/${winner.artist.username}`}
                             className="flex items-center gap-2 mb-3 hover:text-primary transition-colors"
                           >
-                            {winner.artist.avatar_url ? (
+                            {winner.artist.avatarUrl ? (
                               <img
-                                src={winner.artist.avatar_url}
+                                src={winner.artist.avatarUrl}
                                 alt={winner.artist.username}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
