@@ -149,23 +149,23 @@ export default function HomePage() {
                 </div>
                 
                 {/* Sponsor Badge */}
-                {contest.has_sponsor && contest.sponsor_name && (
+                {contest.hasSponsor && contest.sponsorName && (
                   <div className="flex items-center gap-2 mb-2 p-2 bg-primary/10 rounded border border-primary/30">
-                    {contest.sponsor_logo_url && (
+                    {contest.sponsorLogoUrl && (
                       <img 
-                        src={contest.sponsor_logo_url} 
-                        alt={contest.sponsor_name}
+                        src={contest.sponsorLogoUrl} 
+                        alt={contest.sponsorName}
                         className="h-5 w-auto object-contain"
                       />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-text-secondary">Sponsored by</p>
-                      <p className="text-sm font-semibold text-primary truncate">{contest.sponsor_name}</p>
+                      <p className="text-sm font-semibold text-primary truncate">{contest.sponsorName}</p>
                     </div>
-                    {contest.sponsor_prize_amount && contest.sponsor_prize_amount > 0 && (
+                    {contest.sponsorPrizeAmount && contest.sponsorPrizeAmount > 0 && (
                       <div className="text-right">
                         <p className="text-xs font-bold text-success">
-                          +₱{contest.sponsor_prize_amount.toLocaleString()}
+                          +₱{contest.sponsorPrizeAmount.toLocaleString()}
                         </p>
                       </div>
                     )}

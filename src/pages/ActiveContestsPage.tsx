@@ -12,15 +12,15 @@ type Contest = {
   title: string
   description: string
   category: ContestCategory
-  thumbnail_url: string | null
-  start_date: string
-  end_date: string
+  thumbnailUrl: string | null
+  startDate: string
+  endDate: string
   status: string
-  entry_count?: number
-  has_sponsor: boolean
-  sponsor_name: string | null
-  sponsor_logo_url: string | null
-  sponsor_prize_amount: number | null
+  entryCount?: number
+  hasSponsor: boolean
+  sponsorName: string | null
+  sponsorLogoUrl: string | null
+  sponsorPrizeAmount: number | null
 }
 
 export default function ActiveContestsPage() {
@@ -105,9 +105,9 @@ export default function ActiveContestsPage() {
             >
               {/* Thumbnail */}
               <div className="aspect-square bg-background flex items-center justify-center overflow-hidden relative">
-                {contest.thumbnail_url ? (
+                {contest.thumbnailUrl ? (
                   <img
-                    src={contest.thumbnail_url}
+                    src={contest.thumbnailUrl}
                     alt={contest.title}
                     className="w-full h-full object-cover"
                   />
@@ -136,23 +136,23 @@ export default function ActiveContestsPage() {
                 </div>
                 
                 {/* Sponsor Badge */}
-                {contest.has_sponsor && contest.sponsor_name && (
+                {contest.hasSponsor && contest.sponsorName && (
                   <div className="flex items-center gap-2 mb-2 p-2 bg-primary/10 rounded border border-primary/30">
-                    {contest.sponsor_logo_url && (
+                    {contest.sponsorLogoUrl && (
                       <img 
-                        src={contest.sponsor_logo_url} 
-                        alt={contest.sponsor_name}
+                        src={contest.sponsorLogoUrl} 
+                        alt={contest.sponsorName}
                         className="h-6 w-auto object-contain"
                       />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-text-secondary">Sponsored by</p>
-                      <p className="text-sm font-semibold text-primary truncate">{contest.sponsor_name}</p>
+                      <p className="text-sm font-semibold text-primary truncate">{contest.sponsorName}</p>
                     </div>
-                    {contest.sponsor_prize_amount && contest.sponsor_prize_amount > 0 && (
+                    {contest.sponsorPrizeAmount && contest.sponsorPrizeAmount > 0 && (
                       <div className="text-right">
                         <p className="text-xs font-bold text-success">
-                          +₱{contest.sponsor_prize_amount.toLocaleString()}
+                          +₱{contest.sponsorPrizeAmount.toLocaleString()}
                         </p>
                       </div>
                     )}
@@ -167,12 +167,12 @@ export default function ActiveContestsPage() {
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center gap-2 text-sm text-text-secondary">
                     <Users className="w-4 h-4" />
-                    <span>{contest.entry_count || 0} entries</span>
+                    <span>{contest.entryCount || 0} entries</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="w-4 h-4 text-primary" />
                     <span className="text-primary font-semibold">
-                      {getPhaseTimeRemaining(contest.start_date, contest.end_date)}
+                      {getPhaseTimeRemaining(contest.startDate, contest.endDate)}
                     </span>
                   </div>
                 </div>
@@ -180,10 +180,10 @@ export default function ActiveContestsPage() {
                 {/* Dates */}
                 <div className="text-xs text-text-secondary border-t border-border pt-3">
                   <div className="flex justify-between">
-                    <span>Started: {formatDate(contest.start_date)}</span>
+                    <span>Started: {formatDate(contest.startDate)}</span>
                   </div>
                   <div className="flex justify-between mt-1">
-                    <span>Ends: {formatDate(contest.end_date)}</span>
+                    <span>Ends: {formatDate(contest.endDate)}</span>
                   </div>
                 </div>
 
