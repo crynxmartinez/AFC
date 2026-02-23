@@ -197,9 +197,9 @@ export default function MentionInput({
                 index === selectedIndex ? 'bg-primary/10' : 'hover:bg-background'
               }`}
             >
-              {user.avatarUrl ? (
+              {user.avatar_url ? (
                 <img
-                  src={user.avatarUrl}
+                  src={user.avatar_url}
                   alt={user.username}
                   className="w-8 h-8 rounded-full object-cover"
                 />

@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom'
 export default function ContactPage() {
   const { user } = useAuthStore()
   const [formData, setFormData] = useState({
-    name: user?.user_metadata?.displayName || '',
+    name: user?.user_metadata?.display_name || '',
     email: user?.email || '',
     subject: '',
     message: ''

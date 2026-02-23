@@ -329,9 +329,9 @@ export default function ContestDetailPage() {
                     to={`/users/${winner.users.username}`}
                     className="flex items-center gap-2 mb-2 hover:text-primary transition-colors"
                   >
-                    {winner.users.avatarUrl ? (
+                    {winner.users.avatar_url ? (
                       <img
-                        src={winner.users.avatarUrl}
+                        src={winner.users.avatar_url}
                         alt={winner.users.username}
                         className="w-8 h-8 rounded-full"
                       />
@@ -406,9 +406,9 @@ export default function ContestDetailPage() {
                 )}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {entry.users.avatarUrl && (
+                    {entry.users.avatar_url && (
                       <img
-                        src={entry.users.avatarUrl}
+                        src={entry.users.avatar_url}
                         alt={entry.users.username}
                         className="w-6 h-6 rounded-full"
                       />

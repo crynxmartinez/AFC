@@ -123,7 +123,7 @@ export default function EntryDetailPage() {
   })).filter(phase => phase.url) // Only show phases that have been uploaded
 
   const entryUrl = `${window.location.origin}/entries/${entry.id}`
-  const entryTitle = entry.title || `Entry by ${entry.users.displayName || entry.users.username}`
+  const entryTitle = entry.title || `Entry by ${entry.users.display_name || entry.users.username}`
   const entryDescription = entry.description || `Check out this amazing artwork in ${entry.contests.title}!`
   const entryImage = entry.phase_4_url || entry.phase_3_url || entry.phase_2_url || entry.phase_1_url || ''
 
@@ -218,9 +218,9 @@ export default function EntryDetailPage() {
             to={`/users/${entry.users.username}`}
             className="flex items-center gap-3 mb-4 hover:opacity-80 transition-opacity"
           >
-            {entry.users.avatarUrl ? (
+            {entry.users.avatar_url ? (
               <img
-                src={entry.users.avatarUrl}
+                src={entry.users.avatar_url}
                 alt={entry.users.username}
                 className="w-12 h-12 rounded-full"
               />

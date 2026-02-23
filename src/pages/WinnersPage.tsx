@@ -99,7 +99,7 @@ export default function WinnersPage() {
             artwork_url: entry.phase_4_url || entry.phase_3_url || entry.phase_2_url || entry.phase_1_url || '',
             artist: {
               username: entry.users?.username || 'Unknown',
-              avatar_url: entry.users?.avatarUrl || null,
+              avatar_url: entry.users?.avatar_url || null,
             },
             votes: entry.votes,
             rank: index + 1,
@@ -314,9 +314,9 @@ export default function WinnersPage() {
                             to={`/users/${winner.artist.username}`}
                             className="flex items-center gap-2 mb-3 hover:text-primary transition-colors"
                           >
-                            {winner.artist.avatarUrl ? (
+                            {winner.artist.avatar_url ? (
                               <img
-                                src={winner.artist.avatarUrl}
+                                src={winner.artist.avatar_url}
                                 alt={winner.artist.username}
                                 className="w-8 h-8 rounded-full object-cover"
                               />

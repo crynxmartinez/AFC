@@ -112,7 +112,7 @@ export default function FeedPage() {
             winners: (winners || []).map((w: any) => ({
               placement: w.placement,
               username: w.users?.username || 'Unknown',
-              avatar_url: w.users?.avatarUrl,
+              avatar_url: w.users?.avatar_url,
               prize_amount: w.prize_amount,
               entry_image: w.entries?.phase_4_url
             }))
@@ -374,9 +374,9 @@ export default function FeedPage() {
 
                       {/* Avatar & Name */}
                       <div className="flex items-center gap-2 mb-1">
-                        {winner.avatarUrl ? (
+                        {winner.avatar_url ? (
                           <img
-                            src={winner.avatarUrl}
+                            src={winner.avatar_url}
                             alt={winner.username}
                             className="w-6 h-6 rounded-full"
                           />
@@ -456,9 +456,9 @@ export default function FeedPage() {
               {/* Artist Info */}
               <div className="p-4 flex items-center gap-3">
                 <Link to={`/users/${entry.users.username}`}>
-                  {entry.users.avatarUrl ? (
+                  {entry.users.avatar_url ? (
                     <img
-                      src={entry.users.avatarUrl}
+                      src={entry.users.avatar_url}
                       alt={entry.users.username}
                       className="w-10 h-10 rounded-full"
                     />
@@ -477,9 +477,9 @@ export default function FeedPage() {
                   </Link>
                   <p className="text-sm text-text-secondary">
                     Submitted to <Link to={`/contests/${entry.contest_id}`} className="hover:text-primary">{entry.contests.title}</Link> • 
-                    {filter === 'latest' && entry.lastActivityAt !== entry.createdAt
-                      ? `Active ${formatTimeAgo(entry.lastActivityAt)}`
-                      : formatTimeAgo(entry.createdAt)
+                    {filter === 'latest' && entry.last_activity_at !== entry.created_at
+                      ? `Active ${formatTimeAgo(entry.last_activity_at)}`
+                      : formatTimeAgo(entry.created_at)
                     }
                   </p>
                 </div>
