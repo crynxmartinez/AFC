@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
+import { contestsApi } from '@/lib/api'
 import HeroSection from '@/components/home/HeroSection'
 import FeaturesSection from '@/components/home/FeaturesSection'
 import StatsSection from '@/components/home/StatsSection'

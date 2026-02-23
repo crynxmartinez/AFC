@@ -64,7 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         xp: 0,
         level: 1,
         totalXp: 0,
-        emailVerified: false, // Can implement email verification later
+        emailVerified: true, // No email verification for now
       },
     })
 

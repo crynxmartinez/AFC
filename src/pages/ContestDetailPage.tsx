@@ -1,8 +1,8 @@
 import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { formatDate, formatNumber } from '@/lib/utils'
+import { contestsApi } from '@/lib/api'
 
 type Contest = {
   id: string

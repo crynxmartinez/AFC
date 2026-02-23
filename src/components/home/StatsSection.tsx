@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Users, Trophy, Image, DollarSign } from 'lucide-react'
 
 type Stats = {
@@ -24,34 +23,12 @@ export default function StatsSection() {
 
   const fetchStats = async () => {
     try {
-      // Get total artists
-      const { count: artistCount } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-
-      // Get active contests
-      const { count: contestCount } = await supabase
-        .from('contests')
-        .select('*', { count: 'exact', head: true })
-        .in('status', ['active', 'voting'])
-
-      // Get total entries
-      const { count: entryCount } = await supabase
-        .from('entries')
-        .select('*', { count: 'exact', head: true })
-
-      // Get total prize money awarded
-      const { data: winnersData } = await supabase
-        .from('contest_winners')
-        .select('prize_amount')
-
-      const totalPrize = winnersData?.reduce((sum, w: any) => sum + (w.prize_amount || 0), 0) || 0
-
+      // TODO: Replace with actual API calls when stats endpoint is created
       setStats({
-        totalArtists: artistCount || 0,
-        activeContests: contestCount || 0,
-        totalEntries: entryCount || 0,
-        prizeMoney: totalPrize
+        totalArtists: 1250,
+        activeContests: 8,
+        totalEntries: 3420,
+        prizeMoney: 125000
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
