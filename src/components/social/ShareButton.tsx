@@ -9,12 +9,12 @@ interface ShareButtonProps {
     id: string
     title: string | null
     description: string | null
-    phase_4_url: string | null
-    user_id: string
-    contest_id: string
+    phase4Url: string | null
+    userId: string
+    contestId: string
     users: {
       username: string
-      display_name: string | null
+      displayName: string | null
     }
     contests: {
       title: string
@@ -39,10 +39,10 @@ export default function ShareButton({
   const toast = useToastStore()
 
   const entryUrl = `${window.location.origin}/entries/${entry.id}`
-  const artistName = entry.users.display_name || entry.users.username
+  const artistName = entry.users.displayName || entry.users.username
   const entryTitle = entry.title || 'Untitled Entry'
   const entryDescription = entry.description || ''
-  const imageUrl = entry.phase_4_url || ''
+  const imageUrl = entry.phase4Url || ''
 
   // Share text templates
   const getShareText = (platform: string) => {

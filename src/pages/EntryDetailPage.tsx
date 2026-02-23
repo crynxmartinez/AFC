@@ -11,23 +11,23 @@ import { getPhasesForCategory } from '@/constants/phases'
 
 type Entry = {
   id: string
-  user_id: string
-  contest_id: string
+  userId: string
+  contestId: string
   title: string | null
   description: string | null
-  phase_1_url: string | null
-  phase_2_url: string | null
-  phase_3_url: string | null
-  phase_4_url: string | null
-  vote_count: number
-  share_count: number
-  comment_count: number
-  final_rank: number | null
+  phase1Url: string | null
+  phase2Url: string | null
+  phase3Url: string | null
+  phase4Url: string | null
+  voteCount: number
+  shareCount: number
+  commentCount: number
+  finalRank: number | null
   status: string
   users: {
     username: string
-    display_name: string | null
-    avatar_url: string | null
+    displayName: string | null
+    avatarUrl: string | null
     level: number
   }
   contests: {
@@ -69,8 +69,8 @@ export default function EntryDetailPage() {
       
       const entryData = {
         ...entryRaw,
-        vote_count: reactionCount || 0,
-        comment_count: commentCount || 0,
+        voteCount: reactionCount || 0,
+        commentCount: commentCount || 0,
         users: userData,
         contests: contestData
       }
@@ -78,9 +78,9 @@ export default function EntryDetailPage() {
       setEntry(entryData)
       
       // Set initial phase to the highest available
-      if (entryData.phase_4_url) setSelectedPhase(4)
-      else if (entryData.phase_3_url) setSelectedPhase(3)
-      else if (entryData.phase_2_url) setSelectedPhase(2)
+      if (entryData.phase4Url) setSelectedPhase(4)
+      else if (entryData.phase3Url) setSelectedPhase(3)
+      else if (entryData.phase2Url) setSelectedPhase(2)
       else setSelectedPhase(1)
     } catch (error) {
       console.error('Error fetching entry:', error)
@@ -92,10 +92,10 @@ export default function EntryDetailPage() {
   const getPhaseUrl = (phaseNum: number) => {
     if (!entry) return null
     switch (phaseNum) {
-      case 1: return entry.phase_1_url
-      case 2: return entry.phase_2_url
-      case 3: return entry.phase_3_url
-      case 4: return entry.phase_4_url
+      case 1: return entry.phase1Url
+      case 2: return entry.phase2Url
+      case 3: return entry.phase3Url
+      case 4: return entry.phase4Url
       default: return null
     }
   }
@@ -120,9 +120,9 @@ export default function EntryDetailPage() {
   })).filter(phase => phase.url) // Only show phases that have been uploaded
 
   const entryUrl = `${window.location.origin}/entries/${entry.id}`
-  const entryTitle = entry.title || `Entry by ${entry.users.display_name || entry.users.username}`
+  const entryTitle = entry.title || `Entry by ${entry.users.displayName || entry.users.username}`
   const entryDescription = entry.description || `Check out this amazing artwork in ${entry.contests.title}!`
-  const entryImage = entry.phase_4_url || entry.phase_3_url || entry.phase_2_url || entry.phase_1_url || ''
+  const entryImage = entry.phase4Url || entry.phase3Url || entry.phase2Url || entry.phase1Url || ''
 
   return (
     <>
@@ -215,9 +215,9 @@ export default function EntryDetailPage() {
             to={`/users/${entry.users.username}`}
             className="flex items-center gap-3 mb-4 hover:opacity-80 transition-opacity"
           >
-            {entry.users.avatar_url ? (
+            {entry.users.avatarUrl ? (
               <img
-                src={entry.users.avatar_url}
+                src={entry.users.avatarUrl}
                 alt={entry.users.username}
                 className="w-12 h-12 rounded-full"
               />
@@ -233,7 +233,7 @@ export default function EntryDetailPage() {
           </Link>
 
           <p className="text-text-secondary mb-4">
-            Contest: <Link to={`/contests/${entry.contest_id}`} className="text-primary hover:underline">{entry.contests.title}</Link>
+            Contest: <Link to={`/contests/${entry.contestId}`} className="text-primary hover:underline">{entry.contests.title}</Link>
           </p>
 
           <span
@@ -252,7 +252,7 @@ export default function EntryDetailPage() {
           <div className="flex items-center gap-4 text-sm text-text-secondary mb-6 pb-4 border-b border-border">
             <div className="flex items-center gap-1.5">
               <Heart className="w-4 h-4" />
-              <span>{entry.vote_count} votes</span>
+              <span>{entry.voteCount} votes</span>
             </div>
             <div className="flex items-center gap-1.5">
               <MessageCircle className="w-4 h-4" />
@@ -260,7 +260,7 @@ export default function EntryDetailPage() {
             </div>
             <div className="flex items-center gap-1.5">
               <Share2 className="w-4 h-4" />
-              <span>{entry.share_count || 0} shares</span>
+              <span>{entry.shareCount || 0} shares</span>
             </div>
           </div>
 
@@ -276,24 +276,24 @@ export default function EntryDetailPage() {
               entry={entry}
               variant="button"
               showCount={false}
-              shareCount={entry.share_count || 0}
+              shareCount={entry.shareCount || 0}
               onShareComplete={fetchEntry}
             />
           </div>
 
           {/* Stats */}
           <div className="bg-surface rounded-lg p-4 mb-6">
-            {entry.final_rank && (
+            {entry.finalRank && (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-text-secondary">Current Rank</span>
-                <span className="font-semibold text-lg text-primary">#{entry.final_rank}</span>
+                <span className="font-semibold text-lg text-primary">#{entry.finalRank}</span>
               </div>
             )}
           </div>
 
           {/* Comments Section */}
           <div>
-            <Comments entryId={entry.id} entryOwnerId={entry.user_id} onCommentCountChange={setCommentCount} />
+            <Comments entryId={entry.id} entryOwnerId={entry.userId} onCommentCountChange={setCommentCount} />
           </div>
         </div>
       </div>
