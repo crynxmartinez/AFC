@@ -1,8 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import prisma from '../lib/prisma'
 import { requireAuth } from '../lib/auth'
+import { handleCors } from '../lib/cors'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (handleCors(req, res)) return
   if (req.method === 'GET') {
     const user = requireAuth(req, res)
     if (!user) return

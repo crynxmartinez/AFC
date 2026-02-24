@@ -1,8 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import prisma from '../lib/prisma'
 import { hashPassword, generateToken, setSessionCookie } from '../lib/auth'
+import { handleCors } from '../lib/cors'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (handleCors(req, res)) return
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
