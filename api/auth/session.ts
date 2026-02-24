@@ -1,7 +1,7 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getSessionFromRequest } from '../lib/auth'
-import prisma from '../lib/prisma'
-import { handleCors } from '../lib/cors'
+﻿import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { getSessionFromRequest } from '../lib/auth.js'
+import prisma from '../lib/prisma.js'
+import { handleCors } from '../lib/cors.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return
@@ -43,3 +43,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+

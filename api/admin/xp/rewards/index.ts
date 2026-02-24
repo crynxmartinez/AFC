@@ -1,6 +1,6 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
-import prisma from '../../../lib/prisma'
-import { verifyToken } from '../../../lib/auth'
+﻿import type { VercelRequest, VercelResponse } from '@vercel/node'
+import prisma from '../../../lib/prisma.js'
+import { verifyToken } from '../../../lib/auth.js'
 import cookie from 'cookie'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -34,3 +34,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
