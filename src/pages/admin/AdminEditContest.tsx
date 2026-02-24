@@ -12,15 +12,15 @@ export default function AdminEditContest() {
   const [description, setDescription] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
-  const [existingThumbnailUrl, setExistingThumbnailUrl] = useState<string | null>(null)
+  const [thumbnailUrl, setThumbnailUrl] = useState('')
+  const [thumbnailError, setThumbnailError] = useState(false)
   
   // Sponsor fields
   const [hasSponsor, setHasSponsor] = useState(false)
   const [sponsorName, setSponsorName] = useState('')
   const [sponsorPrizeAmount, setSponsorPrizeAmount] = useState('')
-  const [sponsorLogoPreview, setSponsorLogoPreview] = useState<string | null>(null)
-  const [existingSponsorLogoUrl, setExistingSponsorLogoUrl] = useState<string | null>(null)
+  const [sponsorLogoUrl, setSponsorLogoUrl] = useState('')
+  const [sponsorLogoError, setSponsorLogoError] = useState(false)
   
   const [loading, setLoading] = useState(false)
   const toast = useToastStore()
@@ -44,44 +44,18 @@ export default function AdminEditContest() {
       setDescription(data.description)
       setStartDate((data.startDate || data.start_date || '').split('T')[0])
       setEndDate((data.endDate || data.end_date || '').split('T')[0])
-      setExistingThumbnailUrl(data.thumbnailUrl || data.thumbnail_url)
-      setThumbnailPreview(data.thumbnailUrl || data.thumbnail_url)
+      setThumbnailUrl(data.thumbnailUrl || data.thumbnail_url || '')
       
       // Load sponsor data
       setHasSponsor(data.hasSponsor || data.has_sponsor || false)
       setSponsorName(data.sponsorName || data.sponsor_name || '')
       setSponsorPrizeAmount((data.sponsorPrizeAmount || data.sponsor_prize_amount)?.toString() || '')
-      setExistingSponsorLogoUrl(data.sponsorLogoUrl || data.sponsor_logo_url)
-      setSponsorLogoPreview(data.sponsorLogoUrl || data.sponsor_logo_url)
+      setSponsorLogoUrl(data.sponsorLogoUrl || data.sponsor_logo_url || '')
     } catch (err: any) {
       console.error('Error fetching contest:', err)
       setError('Failed to load contest')
     } finally {
       setFetchLoading(false)
-    }
-  }
-
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image must be less than 5MB')
-        return
-      }
-      setThumbnailPreview(URL.createObjectURL(file))
-      setError('')
-    }
-  }
-
-  const handleSponsorLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        setError('Sponsor logo must be less than 2MB')
-        return
-      }
-      setSponsorLogoPreview(URL.createObjectURL(file))
-      setError('')
     }
   }
 
@@ -96,17 +70,13 @@ export default function AdminEditContest() {
     setError('')
 
     try {
-      // TODO: File uploads will be replaced with URL inputs
-      const thumbnailUrl = thumbnailPreview || existingThumbnailUrl
-      const sponsorLogoUrl = sponsorLogoPreview || existingSponsorLogoUrl
-
       // Update contest via API
       await contestsApi.update(id!, {
           title,
           description,
           start_date: new Date(startDate + 'T00:00:00+08:00').toISOString(),
           end_date: new Date(endDate + 'T23:59:59+08:00').toISOString(),
-          thumbnail_url: thumbnailUrl,
+          thumbnail_url: thumbnailUrl.trim() || null,
           has_sponsor: hasSponsor,
           sponsor_name: hasSponsor ? sponsorName : null,
           sponsor_prize_amount: hasSponsor && sponsorPrizeAmount ? parseFloat(sponsorPrizeAmount) : null,
@@ -198,30 +168,35 @@ export default function AdminEditContest() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Contest Thumbnail (Optional)</label>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={handleThumbnailChange}
-            className="hidden"
-            id="thumbnail-upload"
-          />
-          <label
-            htmlFor="thumbnail-upload"
-            className="block border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
-          >
-            {thumbnailPreview ? (
-              <div className="space-y-2">
-                <img src={thumbnailPreview} alt="Preview" className="max-h-48 mx-auto rounded" />
-                <p className="text-sm text-text-secondary">Click to change image</p>
+          <label className="block text-sm font-medium mb-2">Contest Thumbnail URL (Optional)</label>
+          <div className="space-y-3">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
               </div>
-            ) : (
-              <>
-                <p className="text-text-secondary">Click to upload or drag and drop</p>
-                <p className="text-xs text-text-secondary mt-1">PNG, JPG, WEBP, GIF up to 5MB</p>
-              </>
+              <input
+                type="url"
+                value={thumbnailUrl}
+                onChange={(e) => { setThumbnailUrl(e.target.value); setThumbnailError(false) }}
+                placeholder="https://example.com/contest-thumbnail.jpg"
+                className="w-full pl-10 pr-10 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all text-sm"
+              />
+              {thumbnailUrl && (
+                <button type="button" onClick={() => { setThumbnailUrl(''); setThumbnailError(false) }} className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-text transition-colors">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              )}
+            </div>
+            {thumbnailUrl.trim() && !thumbnailError && (
+              <div className="border border-border rounded-lg p-3 bg-surface">
+                <img src={thumbnailUrl.trim()} alt="Preview" className="max-h-48 mx-auto rounded" onError={() => setThumbnailError(true)} />
+              </div>
             )}
-          </label>
+            {thumbnailError && (
+              <p className="text-xs text-error">Could not load image. Please check the URL.</p>
+            )}
+            <p className="text-xs text-text-secondary">Paste a direct image link (JPG, PNG, WebP, GIF)</p>
+          </div>
         </div>
 
         {/* Sponsor Section */}
@@ -273,30 +248,35 @@ export default function AdminEditContest() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Sponsor Logo</label>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/svg+xml"
-                  onChange={handleSponsorLogoChange}
-                  className="hidden"
-                  id="sponsor-logo-upload"
-                />
-                <label
-                  htmlFor="sponsor-logo-upload"
-                  className="block border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer"
-                >
-                  {sponsorLogoPreview ? (
-                    <div className="space-y-2">
-                      <img src={sponsorLogoPreview} alt="Sponsor Logo" className="max-h-24 mx-auto" />
-                      <p className="text-sm text-text-secondary">Click to change logo</p>
+                <label className="block text-sm font-medium mb-2">Sponsor Logo URL</label>
+                <div className="space-y-3">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="w-4 h-4 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                     </div>
-                  ) : (
-                    <>
-                      <p className="text-text-secondary">Click to upload sponsor logo</p>
-                      <p className="text-xs text-text-secondary mt-1">PNG, JPG, WEBP, SVG up to 2MB</p>
-                    </>
+                    <input
+                      type="url"
+                      value={sponsorLogoUrl}
+                      onChange={(e) => { setSponsorLogoUrl(e.target.value); setSponsorLogoError(false) }}
+                      placeholder="https://example.com/sponsor-logo.png"
+                      className="w-full pl-10 pr-10 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all text-sm"
+                    />
+                    {sponsorLogoUrl && (
+                      <button type="button" onClick={() => { setSponsorLogoUrl(''); setSponsorLogoError(false) }} className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-text transition-colors">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    )}
+                  </div>
+                  {sponsorLogoUrl.trim() && !sponsorLogoError && (
+                    <div className="border border-border rounded-lg p-3 bg-surface">
+                      <img src={sponsorLogoUrl.trim()} alt="Sponsor Logo" className="max-h-24 mx-auto" onError={() => setSponsorLogoError(true)} />
+                    </div>
                   )}
-                </label>
+                  {sponsorLogoError && (
+                    <p className="text-xs text-error">Could not load image. Please check the URL.</p>
+                  )}
+                  <p className="text-xs text-text-secondary">Paste a direct image link (PNG, JPG, WebP, SVG)</p>
+                </div>
               </div>
             </div>
           )}

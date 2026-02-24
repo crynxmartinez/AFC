@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usersApi, authApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
-import { Camera, Save, Loader } from 'lucide-react'
+import { Link2, Save, Loader, ImageIcon, X } from 'lucide-react'
 
 type Tab = 'profile' | 'account' | 'notifications' | 'privacy'
 
@@ -20,8 +20,9 @@ export default function SettingsPage() {
   const [instagramUrl, setInstagramUrl] = useState('')
   const [twitterUrl, setTwitterUrl] = useState('')
   const [portfolioUrl, setPortfolioUrl] = useState('')
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState('')
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [avatarError, setAvatarError] = useState(false)
 
   // Account form
   const [currentPassword, setCurrentPassword] = useState('')
@@ -47,6 +48,7 @@ export default function SettingsPage() {
       setInstagramUrl(profile.instagramUrl || '')
       setTwitterUrl(profile.twitterUrl || '')
       setPortfolioUrl(profile.portfolioUrl || '')
+      setAvatarUrl(profile.avatarUrl || '')
       setAvatarPreview(profile.avatarUrl || null)
       setProfileVisibility(profile.profileVisibility || 'public')
       setNotifyReactions(profile.notifyReactions ?? true)
@@ -58,15 +60,13 @@ export default function SettingsPage() {
     }
   }, [profile])
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setAvatarFile(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+  const handleAvatarUrlChange = (url: string) => {
+    setAvatarUrl(url)
+    setAvatarError(false)
+    if (url.trim()) {
+      setAvatarPreview(url.trim())
+    } else {
+      setAvatarPreview(null)
     }
   }
 
@@ -78,18 +78,7 @@ export default function SettingsPage() {
     setMessage('')
 
     try {
-      let avatarUrl = profile?.avatar_url
-
-      // Upload avatar if changed
-      if (avatarFile) {
-        const fileExt = avatarFile.name.split('.').pop()
-        const fileName = `${Date.now()}.${fileExt}`
-        const filePath = `${user.id}/${fileName}`
-
-        const { data: { publicUrl } } = await usersApi.uploadAvatar(user.id, avatarFile)
-
-        avatarUrl = publicUrl
-      }
+      const finalAvatarUrl = avatarUrl.trim() || profile?.avatar_url
 
       // Update profile
       await usersApi.update(user.id, {
@@ -99,12 +88,11 @@ export default function SettingsPage() {
         instagram_url: instagramUrl,
         twitter_url: twitterUrl,
         portfolio_url: portfolioUrl,
-        avatar_url: avatarUrl,
+        avatar_url: finalAvatarUrl,
       })
 
       await fetchProfile()
       setMessage('Profile updated successfully!')
-      setAvatarFile(null)
     } catch (error: any) {
       setMessage('Error: ' + error.message)
     } finally {
@@ -231,35 +219,50 @@ export default function SettingsPage() {
       {/* Profile Tab */}
       {activeTab === 'profile' && (
         <form onSubmit={handleProfileUpdate} className="space-y-6">
-          {/* Avatar Upload */}
+          {/* Avatar URL */}
           <div>
-            <label className="block text-sm font-medium mb-2">Profile Picture</label>
-            <div className="flex items-center gap-6">
-              <div className="relative">
-                {avatarPreview ? (
+            <label className="block text-sm font-medium mb-3">Profile Picture</label>
+            <div className="flex items-start gap-6">
+              <div className="shrink-0">
+                {avatarPreview && !avatarError ? (
                   <img
                     src={avatarPreview}
                     alt="Avatar"
-                    className="w-24 h-24 rounded-full object-cover"
+                    className="w-24 h-24 rounded-full object-cover border-2 border-border"
+                    onError={() => setAvatarError(true)}
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-2xl font-bold">
-                    {username[0]?.toUpperCase() || 'U'}
+                  <div className="w-24 h-24 rounded-full bg-surface border-2 border-dashed border-border flex items-center justify-center">
+                    <ImageIcon className="w-8 h-8 text-text-secondary" />
                   </div>
                 )}
-                <label className="absolute bottom-0 right-0 bg-primary hover:bg-primary-hover p-2 rounded-full cursor-pointer transition-colors">
-                  <Camera className="w-4 h-4" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarChange}
-                    className="hidden"
-                  />
-                </label>
               </div>
-              <div className="text-sm text-text-secondary">
-                <p>Click the camera icon to upload a new profile picture</p>
-                <p>JPG, PNG or GIF. Max 5MB.</p>
+              <div className="flex-1 space-y-2">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Link2 className="w-4 h-4 text-text-secondary" />
+                  </div>
+                  <input
+                    type="url"
+                    value={avatarUrl}
+                    onChange={(e) => handleAvatarUrlChange(e.target.value)}
+                    placeholder="https://example.com/your-photo.jpg"
+                    className="w-full pl-10 pr-10 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all text-sm"
+                  />
+                  {avatarUrl && (
+                    <button
+                      type="button"
+                      onClick={() => handleAvatarUrlChange('')}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-text transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-text-secondary">Paste a direct link to your profile image (JPG, PNG, GIF, WebP)</p>
+                {avatarError && avatarUrl && (
+                  <p className="text-xs text-error">Could not load image from this URL. Please check the link.</p>
+                )}
               </div>
             </div>
           </div>
