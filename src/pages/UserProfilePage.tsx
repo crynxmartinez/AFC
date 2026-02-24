@@ -1,9 +1,8 @@
-// @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { usersApi, contestsApi, entriesApi, reactionsApi } from '@/lib/api'
+import { usersApi } from '@/lib/api'
 import { formatDate, formatNumber } from '@/lib/utils'
-import { Trophy, Award, Calendar, MapPin, Link as LinkIcon, Instagram, Twitter, ExternalLink, Users, Briefcase, Globe, Tag } from 'lucide-react'
+import { Trophy, Award, Calendar, Instagram, Twitter, ExternalLink, Users, Globe, Tag } from 'lucide-react'
 import FollowButton from '@/components/social/FollowButton'
 import ProfileStats from '@/components/profile/ProfileStats'
 import Achievements from '@/components/profile/Achievements'
@@ -36,8 +35,9 @@ type UserProfile = {
 type Entry = {
   id: string
   contestId: string
+  title?: string
   phase4Url: string | null
-  createdA: string
+  createdAt: string
   status: string
   contests: {
     title: string
@@ -97,135 +97,63 @@ export default function UserProfilePage() {
     try {
       // Fetch user profile
       const userResponse: any = await usersApi.getByUsername(username as string)
-      const userData = userResponse.user
+      const userData = userResponse.data?.user || userResponse.user || userResponse.data
 
       if (!userData) throw new Error('User not found')
       setProfile(userData)
 
-      // Fetch user's entries (ALL entries, not just approved)
+      // Fetch user's entries
       const entriesResponse: any = await usersApi.getEntries(userData.id)
-      const entriesData = entriesResponse.entries || []
+      const entriesData = entriesResponse.data?.entries || entriesResponse.entries || entriesResponse.data || []
 
-      if (entriesError) throw entriesError
-      
-      console.log('Fetched entries for user:', userData.username, entriesData)
-      
-      // Fetch contest info separately for each entry
-      const entriesWithContests = await Promise.all(
-        (entriesData || []).map(async (entry: any) => {
-          const { data: contestData } = await supabase
-            .from('contests')
-            .select('title, status')
-            .eq('id', entry.contest_id)
-            .single()
-          
-          return {
-            ...entry,
-            contests: contestData
-          }
-        })
-      )
+      // Entries from API should already include contest info and reaction counts
+      const processedEntries = entriesData.map((entry: any) => ({
+        ...entry,
+        contests: entry.contest || entry.contests || { title: 'Contest', status: 'ended' },
+        totalVotes: entry.reactionCount || entry.totalVotes || entry.total_votes || 0,
+        ranking: entry.ranking || null,
+      }))
 
-      // For each entry, calculate ranking based on votes
-      const entriesWithRanking = await Promise.all(
-        (entriesWithContests || []).map(async (entry: any) => {
-          // Get vote count for this entry
-          const { count: voteCount } = await supabase
-            .from('reactions')
-            .select('*', { count: 'exact', head: true })
-            .eq('entry_id', entry.id)
-
-          // Get all entries in the same contest with their vote counts
-          const { data: contestEntries } = await supabase
-            .from('entries')
-            .select('id')
-            .eq('contest_id', entry.contest_id)
-            .eq('status', 'approved')
-
-          // Calculate ranking
-          let ranking = 1
-          if (contestEntries && entry.status === 'approved') {
-            for (const otherEntry of contestEntries) {
-              const { count: otherVotes } = await supabase
-                .from('reactions')
-                .select('*', { count: 'exact', head: true })
-                .eq('entry_id', otherEntry.id)
-              
-              if ((otherVotes || 0) > (voteCount || 0)) {
-                ranking++
-              }
-            }
-          }
-
-          return {
-            ...entry,
-            total_votes: voteCount || 0,
-            ranking: entry.status === 'approved' ? ranking : null,
-          }
-        })
-      )
-
-      setEntries(entriesWithRanking)
+      setEntries(processedEntries)
 
       // Fetch user's badges
-      const badgesResponse: any = await usersApi.getBadges(userData.id)
-      const badgesData = badgesResponse.badges || []
-
-      if (badgesError) throw badgesError
-      setBadges(badgesData || [])
+      try {
+        const badgesResponse: any = await usersApi.getBadges(userData.id)
+        const badgesData = badgesResponse.data?.badges || badgesResponse.badges || badgesResponse.data || []
+        setBadges(badgesData)
+      } catch { setBadges([]) }
 
       // Fetch user's achievements
-      const achievementsResponse: any = await usersApi.getAchievements(userData.id)
-      const achievementsData = achievementsResponse.achievements || []
-      
-      setAchievements(achievementsData || [])
+      try {
+        const achievementsResponse: any = await usersApi.getAchievements(userData.id)
+        const achievementsData = achievementsResponse.data?.achievements || achievementsResponse.achievements || achievementsResponse.data || []
+        setAchievements(achievementsData)
+      } catch { setAchievements([]) }
 
-      // Fetch user's contest wins
-      const statsResponse: any = await usersApi.getStats(userData.id)
-      const winnersData = statsResponse.wins || []
+      // Fetch user's stats (includes wins)
+      try {
+        const statsResponse: any = await usersApi.getStats(userData.id)
+        const statsData = statsResponse.data || statsResponse
+        const winnersData = statsData.wins || []
+        setWinners(winnersData)
+      } catch { setWinners([]) }
 
-      if (winnersError) throw winnersError
-      
-      // Fetch contest titles separately
-      const winnersWithContests = await Promise.all(
-        (winnersData || []).map(async (winner: any) => {
-          const { data: contestData } = await supabase
-            .from('contests')
-            .select('title')
-            .eq('id', winner.contest_id)
-            .single()
-          return { ...winner, contests: contestData }
-        })
-      )
-      
-      setWinners(winnersWithContests)
+      // Get follower/following counts
+      let followersCount = 0
+      let followingCount = 0
+      try {
+        const followersResponse: any = await usersApi.getFollowers(userData.id)
+        followersCount = followersResponse.data?.followers?.length || followersResponse.followers?.length || 0
+      } catch { /* ignore */ }
+      try {
+        const followingResponse: any = await usersApi.getFollowing(userData.id)
+        followingCount = followingResponse.data?.following?.length || followingResponse.following?.length || 0
+      } catch { /* ignore */ }
 
       // Calculate stats
-      const totalEntries = entriesData?.length || 0
-      const contestsWon = winnersData?.length || 0
-      const totalPrizeMoney = winnersData?.reduce((sum, win) => sum + win.prize_amount, 0) || 0
-
-      // Get total reactions across all entries
-      let totalReactions = 0
-      if (entriesData && entriesData.length > 0) {
-        for (const entry of entriesData) {
-          const { count } = await supabase
-            .from('reactions')
-            .select('*', { count: 'exact', head: true })
-            .eq('entry_id', entry.id)
-          totalReactions += count || 0
-        }
-      }
-
-      // Get follower count
-      const followersResponse: any = await usersApi.getFollowers(userData.id)
-      const followersCount = followersResponse.followers?.length || 0
-
-      // Get following count
-      const followingResponse: any = await usersApi.getFollowing(userData.id)
-      const followingCount = followingResponse.following?.length || 0
-
-      // Calculate win rate and avg votes
+      const totalEntries = entriesData.length
+      const contestsWon = winners.length
+      const totalReactions = processedEntries.reduce((sum: number, e: any) => sum + (e.totalVotes || 0), 0)
       const winRate = totalEntries > 0 ? (contestsWon / totalEntries) * 100 : 0
       const avgVotes = totalEntries > 0 ? totalReactions / totalEntries : 0
 
@@ -234,8 +162,8 @@ export default function UserProfilePage() {
         totalWins: contestsWon,
         totalVotes: totalReactions,
         winRate,
-        followers: followersCount || 0,
-        following: followingCount || 0,
+        followers: followersCount,
+        following: followingCount,
         avgVotes,
         bestRank: undefined
       })
@@ -337,9 +265,9 @@ export default function UserProfilePage() {
 
             {/* Social Links */}
             <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-4">
-              {profile.instagram_url && (
+              {profile.instagramUrl && (
                 <a
-                  href={profile.instagram_url}
+                  href={profile.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 bg-background hover:bg-border rounded-lg text-sm transition-colors"
@@ -348,9 +276,9 @@ export default function UserProfilePage() {
                   Instagram
                 </a>
               )}
-              {profile.twitter_url && (
+              {profile.twitterUrl && (
                 <a
-                  href={profile.twitter_url}
+                  href={profile.twitterUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 bg-background hover:bg-border rounded-lg text-sm transition-colors"
@@ -359,9 +287,9 @@ export default function UserProfilePage() {
                   Twitter
                 </a>
               )}
-              {profile.portfolio_url && (
+              {profile.portfolioUrl && (
                 <a
-                  href={profile.portfolio_url}
+                  href={profile.portfolioUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 bg-background hover:bg-border rounded-lg text-sm transition-colors"
@@ -535,8 +463,8 @@ export default function UserProfilePage() {
                     <p className="text-sm text-text-secondary mb-2 line-clamp-1">{entry.contests.title}</p>
                     <div className="flex items-center justify-between text-sm text-text-secondary">
                       <span>{formatDate(entry.createdAt)}</span>
-                      {entry.total_votes !== undefined && (
-                        <span className="font-semibold text-primary">{entry.total_votes} votes</span>
+                      {entry.totalVotes !== undefined && (
+                        <span className="font-semibold text-primary">{entry.totalVotes} votes</span>
                       )}
                     </div>
                   </div>
@@ -564,7 +492,7 @@ export default function UserProfilePage() {
                   key={badge.id}
                   className="bg-surface rounded-lg p-6 text-center border border-border hover:border-primary transition-colors"
                 >
-                  <div className="text-5xl mb-3">{badge.badge_icon}</div>
+                  <div className="text-5xl mb-3">{badge.badgeIcon}</div>
                   <h3 className="font-semibold mb-1">{badge.badgeName}</h3>
                   <p className="text-xs text-text-secondary">
                     Earned {formatDate(badge.earnedAt)}
@@ -604,7 +532,7 @@ export default function UserProfilePage() {
                       </div>
                       <div>
                         <Link
-                          to={`/contests/${winner.contest_id}`}
+                          to={`/contests/${winner.contestId}`}
                           className="text-xl font-bold hover:text-primary transition-colors"
                         >
                           {winner.contests.title}
@@ -616,7 +544,7 @@ export default function UserProfilePage() {
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-primary">
-                        +{formatNumber(winner.prize_amount)} pts
+                        +{formatNumber(winner.prizeAmount)} pts
                       </div>
                       <p className="text-sm text-text-secondary">Prize Money</p>
                     </div>
@@ -628,7 +556,7 @@ export default function UserProfilePage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
-                      <span>Won {formatDate(winner.awarded_at)}</span>
+                      <span>Won {formatDate(winner.awardedAt)}</span>
                     </div>
                   </div>
                 </div>

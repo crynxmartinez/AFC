@@ -1,8 +1,6 @@
-// @ts-nocheck - Supabase type inference issues
-import { Link } from 'react-router-dom'
-import { Plus, AlertTriangle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Plus, AlertTriangle } from 'lucide-react'
 import { contestsApi } from '@/lib/api'
 import { formatDate, getContestStatus } from '@/lib/utils'
 import { useToastStore } from '@/stores/toastStore'
@@ -34,14 +32,16 @@ export default function AdminContests() {
   const fetchContests = async () => {
     try {
       const response: any = await contestsApi.list()
-      const data = response.contests || []
-
-      if (error) throw error
+      const data = response.data?.contests || response.contests || response.data || []
 
       // Get entry counts and calculate actual status based on dates
       const contestsWithCounts = await Promise.all(
         (data || []).map(async (contest: any) => {
-          const { count } = await contestsApi.getEntryCount(contest.id)
+          let entryCount = 0
+          try {
+            const entriesRes: any = await contestsApi.getEntries(contest.id)
+            entryCount = entriesRes.data?.length || entriesRes.entries?.length || 0
+          } catch (e) { /* ignore */ }
 
           // Calculate actual status based on dates
           const calculatedStatus = getContestStatus(contest.startDate, contest.endDate)
@@ -53,7 +53,7 @@ export default function AdminContests() {
           return {
             ...contest,
             status: actualStatus,
-            entryCount: count || 0,
+            entryCount,
           }
         })
       )
@@ -71,8 +71,6 @@ export default function AdminContests() {
     try {
       await contestsApi.delete(id)
 
-      if (error) throw error
-
       setContests(contests.filter((c) => c.id !== id))
       toast.success('Contest deleted')
     } catch (error: any) {
@@ -82,12 +80,7 @@ export default function AdminContests() {
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('contests')
-        .update({ status: newStatus } as any)
-        .eq('id', id)
-
-      if (error) throw error
+      await contestsApi.update(id, { status: newStatus })
 
       setContests(contests.map((c) => (c.id === id ? { ...c, status: newStatus } : c)))
       toast.success('Status updated')
@@ -179,7 +172,7 @@ export default function AdminContests() {
                 >
                   Edit
                 </Link>
-                {contest.status === 'ended' && !contest.prize_pool_distributed && (
+                {contest.status === 'ended' && !contest.prizePoolDistributed && (
                   <Link
                     to={`/admin/contests/finalize/${contest.id}`}
                     className="px-4 py-2 bg-success hover:bg-success/80 rounded-lg text-sm font-medium transition-colors"

@@ -1,4 +1,3 @@
-// @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { contestsApi } from '@/lib/api'
@@ -42,66 +41,53 @@ export default function WinnersPage() {
 
   const fetchWinners = async () => {
     try {
-      // Fetch recent winners
-      const response: any = await contestsApi.getRecentWinners(30)
-      const winnersData = response.winners || []
+      // Fetch ended contests
+      const contestsResponse: any = await contestsApi.list('ended')
+      const contestsData = contestsResponse.data?.contests || contestsResponse.contests || contestsResponse.data || []
 
-      if (contestsError) throw contestsError
-
-      // For each contest, fetch top 3 entries based on reaction count
+      // For each contest, fetch winners via API
       const contestsWithWinners = await Promise.all(
-        (contestsData || []).map(async (contest) => {
-          // Get all approved entries for this contest
-          const { data: entriesData, error: entriesError } = await supabase
-            .from('entries')
-            .select('id, title, phase_4_url, phase_3_url, phase_2_url, phase_1_url, user_id')
-            .eq('contest_id', contest.id)
-            .eq('status', 'approved')
+        contestsData.map(async (contest: any) => {
+          try {
+            const winnersRes: any = await contestsApi.getContestWinners(contest.id)
+            const winnersData = winnersRes.data?.winners || winnersRes.winners || winnersRes.data || []
 
-          if (entriesError) {
-            console.error('Error fetching entries:', entriesError)
-            return { ...contest, winners: [] }
+            const winners = winnersData.slice(0, 3).map((w: any, index: number) => ({
+              id: w.entryId || w.id,
+              title: w.title || w.entryTitle || 'Untitled',
+              artworkUrl: w.phase4Url || w.phase3Url || w.phase2Url || w.phase1Url || w.artworkUrl || '',
+              artist: {
+                username: w.username || w.artist?.username || 'Unknown',
+                avatarUrl: w.avatarUrl || w.artist?.avatarUrl || null,
+              },
+              votes: w.votesReceived || w.votes || 0,
+              rank: w.placement || index + 1,
+            }))
+
+            return { ...contest, winners }
+          } catch (err) {
+            // If no winners endpoint, try entries endpoint
+            try {
+              const entriesRes: any = await contestsApi.getEntries(contest.id)
+              const entries = entriesRes.data?.entries || entriesRes.entries || entriesRes.data || []
+              
+              const winners = entries.slice(0, 3).map((entry: any, index: number) => ({
+                id: entry.id,
+                title: entry.title || 'Untitled',
+                artworkUrl: entry.phase4Url || entry.phase3Url || entry.phase2Url || entry.phase1Url || '',
+                artist: {
+                  username: entry.user?.username || entry.username || 'Unknown',
+                  avatarUrl: entry.user?.avatarUrl || entry.avatarUrl || null,
+                },
+                votes: entry.reactionCount || entry.voteCount || 0,
+                rank: index + 1,
+              }))
+
+              return { ...contest, winners }
+            } catch {
+              return { ...contest, winners: [] }
+            }
           }
-
-          // Fetch user data separately and get reaction counts for each entry
-          const entriesWithVotes = await Promise.all(
-            (entriesData || []).map(async (entry: any) => {
-              const { data: userData } = await supabase
-                .from('users')
-                .select('username, avatarUrl')
-                .eq('id', entry.user_id)
-                .single()
-              const { count, error: countError } = await supabase
-                .from('reactions')
-                .select('*', { count: 'exact', head: true })
-                .eq('entry_id', entry.id)
-
-              if (countError) {
-                console.error('Error counting reactions:', countError)
-                return { ...entry, users: userData, votes: 0 }
-              }
-
-              return { ...entry, users: userData, votes: count || 0 }
-            })
-          )
-
-          // Sort by votes and get top 3
-          const sortedEntries = entriesWithVotes.sort((a, b) => b.votes - a.votes).slice(0, 3)
-
-          const winners = sortedEntries.map((entry, index) => ({
-            id: entry.id,
-            title: entry.title || 'Untitled',
-            // Use the highest available phase URL as the artwork
-            artworkUrl: entry.phase_4_url || entry.phase_3_url || entry.phase_2_url || entry.phase_1_url || '',
-            artist: {
-              username: entry.users?.username || 'Unknown',
-              avatarUrl: entry.users?.avatarUrl || null,
-            },
-            votes: entry.votes,
-            rank: index + 1,
-          }))
-
-          return { ...contest, winners }
         })
       )
 

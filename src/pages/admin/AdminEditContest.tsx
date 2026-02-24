@@ -1,4 +1,3 @@
-// @ts-nocheck - Supabase type inference issues
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { contestsApi } from '@/lib/api'
@@ -38,29 +37,24 @@ export default function AdminEditContest() {
 
   const fetchContest = async () => {
     try {
-      const { data, error } = await supabase
-        .from('contests')
-        .select('*')
-        .eq('id', id)
-        .single()
+      const response: any = await contestsApi.get(id!)
+      const data = response.data?.contest || response.contest || response.data
 
-      if (error) throw error
+      if (!data) throw new Error('Contest not found')
 
-      if (data) {
-        setTitle(data.title)
-        setDescription(data.description)
-        setStartDate(data.start_date.split('T')[0])
-        setEndDate(data.end_date.split('T')[0])
-        setExistingThumbnailUrl(data.thumbnail_url)
-        setThumbnailPreview(data.thumbnail_url)
-        
-        // Load sponsor data
-        setHasSponsor(data.has_sponsor || false)
-        setSponsorName(data.sponsor_name || '')
-        setSponsorPrizeAmount(data.sponsor_prize_amount?.toString() || '')
-        setExistingSponsorLogoUrl(data.sponsor_logo_url)
-        setSponsorLogoPreview(data.sponsor_logo_url)
-      }
+      setTitle(data.title)
+      setDescription(data.description)
+      setStartDate((data.startDate || data.start_date || '').split('T')[0])
+      setEndDate((data.endDate || data.end_date || '').split('T')[0])
+      setExistingThumbnailUrl(data.thumbnailUrl || data.thumbnail_url)
+      setThumbnailPreview(data.thumbnailUrl || data.thumbnail_url)
+      
+      // Load sponsor data
+      setHasSponsor(data.hasSponsor || data.has_sponsor || false)
+      setSponsorName(data.sponsorName || data.sponsor_name || '')
+      setSponsorPrizeAmount((data.sponsorPrizeAmount || data.sponsor_prize_amount)?.toString() || '')
+      setExistingSponsorLogoUrl(data.sponsorLogoUrl || data.sponsor_logo_url)
+      setSponsorLogoPreview(data.sponsorLogoUrl || data.sponsor_logo_url)
     } catch (err: any) {
       console.error('Error fetching contest:', err)
       setError('Failed to load contest')

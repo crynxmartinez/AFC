@@ -1,20 +1,17 @@
-// @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { contestsApi, entriesApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
-import { Upload, Check, Save, Eye } from 'lucide-react'
+import { Link as LinkIcon, Check, Save, Eye } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
-import { awardXP } from '@/lib/xp'
 import EntryPreviewModal from '@/components/entry/EntryPreviewModal'
 import ProgressStepper from '@/components/entry/ProgressStepper'
 import type { ContestCategory } from '@/types/contest'
 import { getPhasesForCategory } from '@/constants/phases'
 
-type PhaseFile = {
-  file: File | null
-  preview: string | null
-  uploaded: boolean
+type PhaseUrl = {
+  url: string
+  hasValue: boolean
 }
 
 export default function SubmitEntryPage() {
@@ -28,7 +25,7 @@ export default function SubmitEntryPage() {
   const [showPreview, setShowPreview] = useState(false)
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0)
   
-  const [phases, setPhases] = useState<PhaseFile[]>([])
+  const [phases, setPhases] = useState<PhaseUrl[]>([])
   const [phaseConfigs, setPhaseConfigs] = useState<any[]>([])
   
   const [title, setTitle] = useState('')
@@ -46,27 +43,24 @@ export default function SubmitEntryPage() {
     if (!id) return
     try {
       const response: any = await contestsApi.get(id)
-      const data = response.contest
+      const data = response.data?.contest || response.contest || response.data
 
       if (!data) throw new Error('Contest not found')
       setContest(data)
       
       // Initialize phases based on contest category
       const category = (data.category || 'art') as ContestCategory
-      console.log('Contest category:', category, 'from data:', data.category)
       const configs = getPhasesForCategory(category)
-      console.log('Phase configs for', category, ':', configs.length, 'phases')
       setPhaseConfigs(configs)
       
-      // Initialize phase files array
+      // Initialize phase URL array
       const initialPhases = configs.map(() => ({
-        file: null,
-        preview: null,
-        uploaded: false
+        url: '',
+        hasValue: false
       }))
       setPhases(initialPhases)
-    } catch (error) {
-      console.error('Error fetching contest:', error)
+    } catch (err) {
+      console.error('Error fetching contest:', err)
     }
   }
 
@@ -74,87 +68,42 @@ export default function SubmitEntryPage() {
     if (!id || !user?.id) return
     try {
       const response: any = await entriesApi.getByContestAndUser(id, user.id)
-      const data = response.entry
+      const data = response.data?.entry || response.entry || response.data
 
-      if (error) {
-        // Entry doesn't exist yet, that's fine
-        console.log('No existing entry found')
-        return
-      }
+      if (!data) return
 
-      if (data) {
-        const entryData = data as any
-        console.log('Found existing entry:', entryData)
-        setExistingEntry(entryData)
-        
-        // Load title and description
-        if (entryData.title) setTitle(entryData.title)
-        if (entryData.description) setDescription(entryData.description)
-        
-        // Load existing phase images
-        const newPhases = [...phases]
-        if (entryData.phase_1_url) {
-          console.log('Loading phase 1:', entryData.phase_1_url)
-          newPhases[0] = { file: null, preview: entryData.phase_1_url, uploaded: true }
+      setExistingEntry(data)
+      
+      // Load title and description
+      if (data.title) setTitle(data.title)
+      if (data.description) setDescription(data.description)
+      
+      // Load existing phase URLs
+      const newPhases = [...phases]
+      const phaseKeys = ['phase1Url', 'phase2Url', 'phase3Url', 'phase4Url']
+      const phaseKeysSnake = ['phase_1_url', 'phase_2_url', 'phase_3_url', 'phase_4_url']
+      
+      for (let i = 0; i < 4; i++) {
+        const url = data[phaseKeys[i]] || data[phaseKeysSnake[i]] || ''
+        if (url) {
+          newPhases[i] = { url, hasValue: true }
         }
-        if (entryData.phase_2_url) {
-          console.log('Loading phase 2:', entryData.phase_2_url)
-          newPhases[1] = { file: null, preview: entryData.phase_2_url, uploaded: true }
-        }
-        if (entryData.phase_3_url) {
-          console.log('Loading phase 3:', entryData.phase_3_url)
-          newPhases[2] = { file: null, preview: entryData.phase_3_url, uploaded: true }
-        }
-        if (entryData.phase_4_url) {
-          console.log('Loading phase 4:', entryData.phase_4_url)
-          newPhases[3] = { file: null, preview: entryData.phase_4_url, uploaded: true }
-        }
-        setPhases(newPhases)
-        console.log('Phases set:', newPhases)
       }
+      setPhases(newPhases)
     } catch (err) {
       console.error('Error fetching existing entry:', err)
     }
   }
 
-  const handleFileChange = (phaseIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        setError('Image must be less than 10MB')
-        return
-      }
-
-      setCurrentPhaseIndex(phaseIndex)
-      const newPhases = [...phases]
-      newPhases[phaseIndex] = {
-        file,
-        preview: URL.createObjectURL(file),
-        uploaded: false,
-      }
-      setPhases(newPhases)
-      setError('')
+  const handleUrlChange = (phaseIndex: number, url: string) => {
+    setCurrentPhaseIndex(phaseIndex)
+    const newPhases = [...phases]
+    newPhases[phaseIndex] = {
+      url,
+      hasValue: url.trim().length > 0,
     }
-  }
-
-  const uploadPhase = async (phaseIndex: number): Promise<string | null> => {
-    const phase = phases[phaseIndex]
-    if (!phase.file || !user) return null
-
-    const fileExt = phase.file.name.split('.').pop()
-    const fileName = `${user.id}/${id}/phase-${phaseIndex + 1}-${Date.now()}.${fileExt}`
-
-    const { error: uploadError } = await supabase.storage
-      .from('entry-artworks')
-      .upload(fileName, phase.file)
-
-    if (uploadError) throw uploadError
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('entry-artworks')
-      .getPublicUrl(fileName)
-
-    return publicUrl
+    setPhases(newPhases)
+    setError('')
   }
 
   const handleSaveDraft = async () => {
@@ -164,37 +113,22 @@ export default function SubmitEntryPage() {
     setError('')
 
     try {
-      // Upload any new phase files
-      const phaseUrls = await Promise.all(
-        phases.map(async (phase, index) => {
-          if (phase.file) {
-            return await uploadPhase(index)
-          }
-          return phase.uploaded ? phase.preview : null
-        })
-      )
-
-      const draftData = {
-        contest_id: id,
-        user_id: user.id,
+      const draftData: any = {
+        contestId: id,
         title: title || null,
         description: description || null,
-        phase_1_url: phaseUrls[0],
-        phase_2_url: phaseUrls[1],
-        phase_3_url: phaseUrls[2],
-        phase_4_url: phaseUrls[3],
+        phase1Url: phases[0]?.url || null,
+        phase2Url: phases[1]?.url || null,
+        phase3Url: phases[2]?.url || null,
+        phase4Url: phases[3]?.url || null,
         status: 'draft',
       }
 
       if (existingEntry) {
-        await supabase
-          .from('entries')
-          .update(draftData as any)
-          .eq('id', existingEntry.id)
+        await entriesApi.update(existingEntry.id, draftData)
       } else {
-        await supabase
-          .from('entries')
-          .insert(draftData as any)
+        const response: any = await entriesApi.create(draftData)
+        if (response.data?.entry) setExistingEntry(response.data.entry)
       }
 
       toast.success('Draft saved successfully!')
@@ -206,10 +140,9 @@ export default function SubmitEntryPage() {
   }
 
   const handlePreview = () => {
-    // Check if at least one phase is uploaded
-    const hasAnyPhase = phases.some(p => p.file || p.uploaded)
+    const hasAnyPhase = phases.some(p => p.hasValue)
     if (!hasAnyPhase) {
-      setError('Please upload at least one phase to preview')
+      setError('Please provide at least one phase image URL to preview')
       return
     }
     setShowPreview(true)
@@ -219,15 +152,13 @@ export default function SubmitEntryPage() {
     if (e) e.preventDefault()
     if (!user || !id) return
 
-    // Check if title is provided
     if (!title.trim()) {
       setError('Please provide a title for your entry')
       return
     }
 
-    // Check if at least phase 1 is uploaded
-    if (!phases[0].file && !phases[0].uploaded) {
-      setError('Please upload at least Phase 1 (Sketch)')
+    if (!phases[0]?.url?.trim()) {
+      setError('Please provide at least Phase 1 image URL')
       return
     }
 
@@ -235,56 +166,24 @@ export default function SubmitEntryPage() {
     setError('')
 
     try {
-      // Upload new phase files
-      const phaseUrls = await Promise.all(
-        phases.map(async (phase, index) => {
-          if (phase.file) {
-            return await uploadPhase(index)
-          }
-          return phase.uploaded ? phase.preview : null
-        })
-      )
-
-      const entryData = {
-        contest_id: id,
-        user_id: user.id,
+      const entryData: any = {
+        contestId: id,
         title: title.trim(),
         description: description.trim() || null,
-        phase_1_url: phaseUrls[0],
-        phase_2_url: phaseUrls[1],
-        phase_3_url: phaseUrls[2],
-        phase_4_url: phaseUrls[3],
+        phase1Url: phases[0]?.url || null,
+        phase2Url: phases[1]?.url || null,
+        phase3Url: phases[2]?.url || null,
+        phase4Url: phases[3]?.url || null,
         status: 'pending_review',
-        submitted_at: new Date().toISOString(),
       }
-
-      let entryId = existingEntry?.id
 
       if (existingEntry) {
-        // Update existing entry
-        const { error: updateError } = await supabase
-          .from('entries')
-          .update(entryData as any)
-          .eq('id', existingEntry.id)
-
-        if (updateError) throw updateError
+        await entriesApi.update(existingEntry.id, entryData)
       } else {
-        // Create new entry
-        const { data: newEntry, error: insertError } = await supabase
-          .from('entries')
-          .insert(entryData as any)
-          .select()
-          .single()
-
-        if (insertError) throw insertError
-        entryId = newEntry?.id
-
-        // Award XP for submitting entry (only for new entries)
-        if (user.id && entryId) {
-          await awardXP(user.id, 'submit_entry', entryId, 'Submitted contest entry')
-        }
+        await entriesApi.create(entryData)
       }
 
+      toast.success(existingEntry ? 'Entry updated!' : 'Entry submitted for review!')
       navigate(`/contests/${id}`)
     } catch (err: any) {
       setError(err.message || 'Failed to submit entry')
@@ -297,11 +196,11 @@ export default function SubmitEntryPage() {
     return <div className="text-center py-12">Loading...</div>
   }
 
-  const phaseLabels = phaseConfigs.map((config, i) => `Phase ${i + 1}: ${config.name}`)
-  const completedPhases = phases.map(p => p.file !== null || p.uploaded)
+  const phaseLabels = phaseConfigs.map((config: any, i: number) => `Phase ${i + 1}: ${config.name}`)
+  const completedPhases = phases.map(p => p.hasValue)
   const previewPhases = phases.map(p => ({
-    file: p.file,
-    url: p.preview || ''
+    file: null,
+    url: p.url || ''
   }))
 
   return (
@@ -309,7 +208,7 @@ export default function SubmitEntryPage() {
       <h1 className="text-3xl font-bold mb-2">Submit Your Entry</h1>
       <p className="text-text-secondary mb-2">Contest: {contest.title}</p>
       <p className="text-text-secondary text-sm mb-8">
-        Upload your entry in {phaseConfigs.length} phases: {phaseConfigs.map(c => c.name).join(' → ')}
+        Provide image URLs for your entry in {phaseConfigs.length} phases: {phaseConfigs.map((c: any) => c.name).join(' → ')}
       </p>
 
       {/* Progress Stepper */}
@@ -323,7 +222,7 @@ export default function SubmitEntryPage() {
 
       {existingEntry && (
         <div className="bg-warning/10 border border-warning text-warning px-4 py-3 rounded-lg mb-4">
-          You already have an entry for this contest. Uploading new phases will update your existing entry.
+          You already have an entry for this contest. Updating will modify your existing entry.
           <br />
           <span className="text-sm">Status: {existingEntry.status}</span>
         </div>
@@ -364,41 +263,38 @@ export default function SubmitEntryPage() {
             </div>
           </div>
 
-          {/* Phase Uploads */}
+          {/* Phase URL Inputs */}
           {phases.map((phase, i) => (
             <div key={i}>
               <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                 {phaseLabels[i]}
-                {phase.uploaded && <Check className="w-4 h-4 text-success" />}
+                {phase.hasValue && <Check className="w-4 h-4 text-success" />}
                 {phaseConfigs[i]?.required && <span className="text-error">*</span>}
               </label>
               {phaseConfigs[i]?.description && (
                 <p className="text-xs text-text-secondary mb-2">{phaseConfigs[i].description}</p>
               )}
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={(e) => handleFileChange(i, e)}
-                className="hidden"
-                id={`phase-${i}`}
-              />
-              <label
-                htmlFor={`phase-${i}`}
-                className="block border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
-              >
-                {phase.preview ? (
-                  <div className="space-y-2">
-                    <img src={phase.preview} alt={`Phase ${i + 1}`} className="max-h-48 mx-auto rounded" />
-                    <p className="text-sm text-text-secondary">Click to change image</p>
-                  </div>
-                ) : (
-                  <>
-                    <Upload className="w-8 h-8 mx-auto mb-2 text-text-secondary" />
-                    <p className="text-text-secondary">Click to upload or drag and drop</p>
-                    <p className="text-xs text-text-secondary mt-1">PNG, JPG, WEBP up to 10MB</p>
-                  </>
-                )}
-              </label>
+              <div className="flex items-center gap-2">
+                <LinkIcon className="w-5 h-5 text-text-secondary flex-shrink-0" />
+                <input
+                  type="url"
+                  value={phase.url}
+                  onChange={(e) => handleUrlChange(i, e.target.value)}
+                  placeholder="https://example.com/your-artwork-image.png"
+                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
+                />
+              </div>
+              {phase.url && (
+                <div className="mt-2">
+                  <img 
+                    src={phase.url} 
+                    alt={`Phase ${i + 1} preview`} 
+                    className="max-h-48 rounded border border-border"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                    onLoad={(e) => { (e.target as HTMLImageElement).style.display = 'block' }}
+                  />
+                </div>
+              )}
             </div>
           ))}
         </div>

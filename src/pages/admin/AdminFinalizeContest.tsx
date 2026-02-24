@@ -1,7 +1,6 @@
-// @ts-nocheck
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { contestsApi, entriesApi } from '@/lib/api'
+import { contestsApi } from '@/lib/api'
 import { Trophy, Medal, Award, ArrowLeft, AlertCircle, X } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
 
@@ -21,6 +20,7 @@ type Contest = {
   title: string
   description: string
   status: string
+  endDate: string
   prize_pool: number
   prize_pool_distributed: boolean
 }
@@ -44,47 +44,26 @@ export default function AdminFinalizeContest() {
   const fetchContestAndEntries = async () => {
     try {
       // Fetch contest
-      const { data: contestData, error: contestError } = await supabase
-        .from('contests')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (contestError) throw contestError
+      const contestRes: any = await contestsApi.get(id!)
+      const contestData = contestRes.data?.contest || contestRes.contest || contestRes.data
+      if (!contestData) throw new Error('Contest not found')
       setContest(contestData)
 
-      // Fetch top entries with vote counts
-      const { data: entriesData, error: entriesError } = await supabase
-        .from('entries')
-        .select('id, user_id, phase_4_url')
-        .eq('contest_id', id)
-        .eq('status', 'approved')
+      // Fetch entries for this contest (API should include user data and reaction counts)
+      const entriesRes: any = await contestsApi.getEntries(id!)
+      const entriesData = entriesRes.data?.entries || entriesRes.entries || entriesRes.data || []
 
-      if (entriesError) throw entriesError
-
-      // Fetch user data and count votes for each entry
-      const entriesWithVotes = await Promise.all(
-        (entriesData || []).map(async (entry: any) => {
-          const { data: userData } = await supabase
-            .from('users')
-            .select('username, avatar_url')
-            .eq('id', entry.user_id)
-            .single()
-          const { count } = await supabase
-            .from('reactions')
-            .select('*', { count: 'exact', head: true })
-            .eq('entry_id', entry.id)
-
-          return {
-            ...entry,
-            users: userData,
-            vote_count: count || 0,
-          }
-        })
-      )
+      // Map entries to expected format
+      const entriesWithVotes = entriesData.map((entry: any) => ({
+        id: entry.id,
+        user_id: entry.userId || entry.user_id,
+        phase_4_url: entry.phase4Url || entry.phase_4_url,
+        users: entry.user || entry.users || { username: 'Unknown', avatar_url: null },
+        vote_count: entry.reactionCount || entry.voteCount || entry.vote_count || 0,
+      }))
 
       // Sort by votes and get top 3
-      const sorted = entriesWithVotes.sort((a, b) => b.vote_count - a.vote_count)
+      const sorted = entriesWithVotes.sort((a: any, b: any) => b.vote_count - a.vote_count)
       setTopEntries(sorted.slice(0, 3))
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -146,7 +125,7 @@ export default function AdminFinalizeContest() {
   }
 
   // Check by DATE instead of status
-  const contestEnded = new Date(contest.end_date) < new Date()
+  const contestEnded = new Date(contest.endDate) < new Date()
   
   if (!contestEnded) {
     return (
@@ -155,7 +134,7 @@ export default function AdminFinalizeContest() {
           <AlertCircle className="w-12 h-12 text-warning mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">Contest Not Ended</h2>
           <p className="text-text-secondary mb-4">
-            This contest's end date ({new Date(contest.end_date).toLocaleDateString()}) has not passed yet.
+            This contest's end date ({new Date(contest.endDate).toLocaleDateString()}) has not passed yet.
           </p>
           <Link
             to="/admin/contests"

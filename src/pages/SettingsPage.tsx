@@ -172,16 +172,11 @@ export default function SettingsPage() {
     setMessage('')
 
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          profile_visibility: profileVisibility,
-          show_contests_joined: showContestsJoined,
-          show_contests_won: showContestsWon,
-        } as any)
-        .eq('id', user.id)
-
-      if (error) throw error
+      await usersApi.update(user.id, {
+        profileVisibility,
+        showContestsJoined,
+        showContestsWon,
+      })
 
       await fetchProfile()
       setMessage('Privacy settings updated!')

@@ -1,20 +1,19 @@
-// @ts-nocheck - Supabase type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { leaderboardApi } from '@/lib/api'
+import { leaderboardApi, usersApi } from '@/lib/api'
 import { formatNumber } from '@/lib/utils'
 import { Users, Search, TrendingUp, Award, Calendar, Image } from 'lucide-react'
 
 type Artist = {
   id: string
   username: string
-  display_name: string | null
-  avatar_url: string | null
+  displayName: string | null
+  avatarUrl: string | null
   coverPhotoUrl: string | null
   xp: number
   level: number
-  profile_title: string | null
-  created_at: string
+  profileTitle: string | null
+  createdAt: string
   totalEntries?: number
   latestEntryImage?: string | null
 }
@@ -32,47 +31,41 @@ export default function ArtistsPage() {
   const fetchArtists = async () => {
     setLoading(true)
     try {
-      // Determine sort column
-      let orderColumn = 'xp'
-      if (sortBy === 'level') orderColumn = 'level'
-      else if (sortBy === 'newest') orderColumn = 'created_at'
+      // Use leaderboard API which returns users sorted by XP
+      const response: any = await leaderboardApi.get(50)
+      const usersData = response.data?.users || response.data || response.users || []
 
-      // Fetch users
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('id, username, display_name, avatar_url, coverPhotoUrl, xp, level, profile_title, created_at')
-        .order(orderColumn, { ascending: sortBy === 'newest' ? false : false })
-        .limit(50)
-
-      // For each user, get their entry count and latest entry
+      // For each user, get their entry count
       const artistsWithStats = await Promise.all(
-        (usersData || []).map(async (user: any) => {
-          // Get entry count
-          const entryCountResponse = await leaderboardApi.getEntries(user.id)
-          const entryCount = entryCountResponse.count || 0
-
-          // Get latest entry image
-          const latestEntriesResponse = await leaderboardApi.getLatestEntries(user.id)
-          const latestEntries = latestEntriesResponse.data || []
-          const latestEntryImage = latestEntries[0]?.phase4Url || null
-            .select('phase4Url')
-            .eq('userId', user.id)
-            .eq('status', 'approved')
-            .order('created_at', { ascending: false })
-            .limit(1)
+        usersData.map(async (user: any) => {
+          let totalEntries = 0
+          let latestEntryImage = null
+          try {
+            const entriesRes: any = await usersApi.getEntries(user.id)
+            const entries = entriesRes.data?.entries || entriesRes.entries || entriesRes.data || []
+            totalEntries = entries.length
+            if (entries.length > 0) {
+              latestEntryImage = entries[0]?.phase4Url || entries[0]?.phase_4_url || null
+            }
+          } catch (e) { /* ignore */ }
 
           return {
             ...user,
-            totalEntries: entryCount || 0,
-            latestEntryImage: latestEntries?.[0]?.phase4Url || null,
+            totalEntries,
+            latestEntryImage,
           }
         })
       )
 
-      // Sort by entries if needed (since we can't do it in the query)
-      if (sortBy === 'entries') {
-        artistsWithStats.sort((a, b) => (b.totalEntries || 0) - (a.totalEntries || 0))
+      // Sort based on selected criteria
+      if (sortBy === 'level') {
+        artistsWithStats.sort((a: any, b: any) => b.level - a.level)
+      } else if (sortBy === 'entries') {
+        artistsWithStats.sort((a: any, b: any) => (b.totalEntries || 0) - (a.totalEntries || 0))
+      } else if (sortBy === 'newest') {
+        artistsWithStats.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       }
+      // Default 'xp' sort comes from API
 
       setArtists(artistsWithStats)
     } catch (error) {
@@ -88,7 +81,7 @@ export default function ArtistsPage() {
     const query = searchQuery.toLowerCase()
     return (
       artist.username.toLowerCase().includes(query) ||
-      artist.display_name?.toLowerCase().includes(query)
+      artist.displayName?.toLowerCase().includes(query)
     )
   })
 
@@ -206,9 +199,9 @@ export default function ArtistsPage() {
               <div className="relative px-4 pb-4 -mt-8">
                 <div className="flex items-end gap-3">
                   <div className="relative flex-shrink-0">
-                    {artist.avatar_url ? (
+                    {artist.avatarUrl ? (
                       <img
-                        src={artist.avatar_url}
+                        src={artist.avatarUrl}
                         alt={artist.username}
                         className="w-16 h-16 rounded-full object-cover border-4 border-surface shadow-lg"
                       />
@@ -225,7 +218,7 @@ export default function ArtistsPage() {
                   </div>
                   <div className="flex-1 min-w-0 mb-1">
                     <h3 className="font-bold text-text-primary truncate">
-                      {artist.display_name || artist.username}
+                      {artist.displayName || artist.username}
                     </h3>
                     <p className="text-xs text-text-secondary">@{artist.username}</p>
                   </div>
@@ -234,10 +227,10 @@ export default function ArtistsPage() {
 
               {/* Stats */}
               <div className="p-4">
-                {artist.profile_title && (
+                {artist.profileTitle && (
                   <div className="mb-2">
                     <span className="px-2 py-1 bg-primary/20 text-primary rounded text-xs font-semibold">
-                      {artist.profile_title}
+                      {artist.profileTitle}
                     </span>
                   </div>
                 )}

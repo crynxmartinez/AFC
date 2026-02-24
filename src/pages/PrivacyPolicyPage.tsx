@@ -145,7 +145,7 @@ export default function PrivacyPolicyPage() {
               <strong className="text-success">We do NOT sell your data.</strong> We only share information with:
             </p>
             <ul className="list-disc list-inside space-y-2 text-text-secondary mt-3 text-sm">
-              <li><strong>Supabase</strong> - Our database and authentication provider</li>
+              <li><strong>Prisma / PostgreSQL</strong> - Our database provider</li>
               <li><strong>Email service</strong> - For sending notifications (if configured)</li>
               <li><strong>Legal authorities</strong> - If required by law</li>
             </ul>
@@ -207,7 +207,7 @@ export default function PrivacyPolicyPage() {
             <li><strong>Password hashing</strong> - Passwords are never stored in plain text</li>
             <li><strong>Row Level Security (RLS)</strong> - Database access controls</li>
             <li><strong>Regular backups</strong> - Data recovery capabilities</li>
-            <li><strong>Secure authentication</strong> - Powered by Supabase Auth</li>
+            <li><strong>Secure authentication</strong> - JWT-based session authentication</li>
           </ul>
 
           <h3 className="text-xl font-semibold mb-3">5.2 Your Responsibility</h3>

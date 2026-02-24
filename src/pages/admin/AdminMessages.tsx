@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react'
 import { adminApi } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
@@ -76,16 +75,10 @@ export default function AdminMessages() {
 
   const markAsResolved = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('contact_submissions')
-        .update({ 
-          status: 'resolved',
-          resolvedAt: new Date().toISOString(),
-          adminNotes: adminNotes[id] || null
-        })
-        .eq('id', id)
-
-      if (error) throw error
+      await adminApi.updateMessage(id, { 
+        status: 'resolved',
+        adminNotes: adminNotes[id] || null
+      })
       
       setMessages(prev => prev.map(msg => 
         msg.id === id ? { ...msg, status: 'resolved', resolvedAt: new Date().toISOString() } : msg
@@ -103,8 +96,6 @@ export default function AdminMessages() {
   const saveNotes = async (id: string) => {
     try {
       await adminApi.updateMessage(id, { adminNotes: adminNotes[id] || null })
-
-      if (error) throw error
       toast.success('Notes saved')
     } catch (error) {
       console.error('Error saving notes:', error)
