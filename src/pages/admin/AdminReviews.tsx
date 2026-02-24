@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { adminApi, entriesApi } from '@/lib/api'
+import { adminApi } from '@/lib/api'
 import { formatTimeAgo } from '@/lib/utils'
 import { Check, X } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'

@@ -9,7 +9,7 @@ import { CATEGORY_LABELS, CATEGORY_DESCRIPTIONS, getPhaseCount } from '@/constan
 export default function AdminCreateContest() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const { success, error: showError } = useToastStore()
+  const { success } = useToastStore()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState<ContestCategory>('art')
