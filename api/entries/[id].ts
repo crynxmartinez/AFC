@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import prisma from '../lib/prisma'
-import { requireAuth } from '../lib/auth'
-import { handleCors } from '../lib/cors'
+import prisma from '../lib/prisma.js'
+import { requireAuth } from '../lib/auth.js'
+import { handleCors } from '../lib/cors.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import prisma from '../../lib/prisma'
-import { requireAdmin } from '../../lib/auth'
+import prisma from '../../lib/prisma.js'
+import { requireAdmin } from '../../lib/auth.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query
