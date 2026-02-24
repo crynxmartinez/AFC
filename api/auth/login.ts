@@ -4,7 +4,9 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { serialize } from 'cookie'
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  datasourceUrl: process.env.DATABASE_URL,
+})
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'fallback-secret-change-in-production'
 const COOKIE_NAME = 'afc-session'
 
