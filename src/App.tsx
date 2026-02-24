@@ -7,6 +7,7 @@ import ToastContainer from './components/ui/ToastContainer'
 import SoftLaunchModal from './components/modals/SoftLaunchModal'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import AdminRoute from './components/auth/AdminRoute'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Loading component for lazy loaded pages
 const PageLoader = () => (
@@ -58,11 +59,12 @@ const DMCAPage = lazy(() => import('./pages/DMCAPage'))
 
 function App() {
   return (
-    <Router>
-      <ToastContainer />
-      <SoftLaunchModal />
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
+    <ErrorBoundary>
+      <Router>
+        <ToastContainer />
+        <SoftLaunchModal />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
           {/* Auth Routes */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<LoginPage />} />
@@ -120,6 +122,7 @@ function App() {
         </Routes>
       </Suspense>
     </Router>
+    </ErrorBoundary>
   )
 }
 

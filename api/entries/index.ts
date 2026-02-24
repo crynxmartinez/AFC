@@ -2,6 +2,7 @@
 import prisma from '../lib/prisma.js'
 import { requireAuth } from '../lib/auth.js'
 import { handleCors } from '../lib/cors.js'
+import { validateImageUrls } from '../lib/imageValidator.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return
@@ -22,6 +23,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (!contestId) {
         return res.status(400).json({ error: 'Contest ID required' })
+      }
+
+      // Validate all provided image URLs
+      const phaseUrls = [phase1Url, phase2Url, phase3Url, phase4Url].filter(Boolean)
+      if (phaseUrls.length > 0) {
+        const validationResults = await validateImageUrls(phaseUrls)
+        const invalidUrls = validationResults
+          .map((result, index) => ({ result, url: phaseUrls[index] }))
+          .filter(({ result }) => !result.valid)
+
+        if (invalidUrls.length > 0) {
+          return res.status(400).json({
+            error: 'Invalid image URLs',
+            details: invalidUrls.map(({ url, result }) => ({
+              url,
+              error: result.error,
+            })),
+          })
+        }
       }
 
       // Check if user already has an entry for this contest

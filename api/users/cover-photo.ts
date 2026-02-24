@@ -1,6 +1,7 @@
 ﻿import type { VercelRequest, VercelResponse } from '@vercel/node'
 import prisma from '../lib/prisma.js'
 import { requireAuth } from '../lib/auth.js'
+import { validateImageUrl } from '../lib/imageValidator.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'POST') {
@@ -9,6 +10,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
       const { coverPhotoUrl } = req.body
+
+      // Validate cover photo URL if provided
+      if (coverPhotoUrl && coverPhotoUrl.trim()) {
+        const validation = await validateImageUrl(coverPhotoUrl)
+        if (!validation.valid) {
+          return res.status(400).json({ error: validation.error })
+        }
+      }
 
       const updated = await prisma.user.update({
         where: { id: user.id },
