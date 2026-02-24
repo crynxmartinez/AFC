@@ -196,15 +196,47 @@ export default function SubmitEntryPage() {
     return <div className="text-center py-12">Loading...</div>
   }
 
+  // Check if contest allows submissions/edits
+  const isVotingOrCompleted = contest.status === 'voting' || contest.status === 'completed' || contest.status === 'cancelled'
+
   const phaseLabels = phaseConfigs.map((config: any, i: number) => `Phase ${i + 1}: ${config.name}`)
   const completedPhases = phases.map(p => p.hasValue)
   const previewPhases = phases.map(p => ({
     url: p.url || ''
   }))
 
+  // If contest is in voting/completed and user has existing entry, show read-only view
+  if (isVotingOrCompleted && existingEntry) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-2">Your Entry</h1>
+        <p className="text-text-secondary mb-2">Contest: {contest.title}</p>
+        <div className="bg-info/10 border border-info text-info px-4 py-3 rounded-lg mb-6">
+          This contest is now in {contest.status} phase. Entries can no longer be edited.
+        </div>
+        <div className="bg-surface rounded-lg p-6">
+          <h2 className="text-xl font-bold mb-4">{existingEntry.title || 'Untitled Entry'}</h2>
+          {existingEntry.description && (
+            <p className="text-text-secondary mb-6">{existingEntry.description}</p>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[existingEntry.phase1Url, existingEntry.phase2Url, existingEntry.phase3Url, existingEntry.phase4Url]
+              .filter(Boolean)
+              .map((url, i) => (
+                <div key={i} className="border border-border rounded-lg p-3">
+                  <p className="text-sm font-medium mb-2">Phase {i + 1}</p>
+                  <img src={url} alt={`Phase ${i + 1}`} className="w-full rounded" />
+                </div>
+              ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2">Submit Your Entry</h1>
+      <h1 className="text-3xl font-bold mb-2">{existingEntry ? 'Edit Your Entry' : 'Submit Your Entry'}</h1>
       <p className="text-text-secondary mb-2">Contest: {contest.title}</p>
       <p className="text-text-secondary text-sm mb-8">
         Provide image URLs for your entry in {phaseConfigs.length} phases: {phaseConfigs.map((c: any) => c.name).join(' → ')}
