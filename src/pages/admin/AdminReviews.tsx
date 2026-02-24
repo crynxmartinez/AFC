@@ -1,4 +1,4 @@
-// @ts-nocheck - Supabase type inference issues
+// @ts-nocheck - API type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { adminApi, entriesApi } from '@/lib/api'

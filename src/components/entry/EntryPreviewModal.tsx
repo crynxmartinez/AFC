@@ -2,7 +2,6 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 
 type Phase = {
-  file: File | null
   url: string
 }
 
@@ -16,8 +15,8 @@ type EntryPreviewModalProps = {
 export default function EntryPreviewModal({ phases, onClose, onConfirm, loading }: EntryPreviewModalProps) {
   const [currentPhase, setCurrentPhase] = useState(0)
 
-  const hasAllPhases = phases.every(p => p.file || p.url)
-  const validPhases = phases.filter(p => p.file || p.url)
+  const hasAllPhases = phases.every(p => p.url)
+  const validPhases = phases.filter(p => p.url)
 
   const nextPhase = () => {
     if (currentPhase < validPhases.length - 1) {
@@ -116,7 +115,7 @@ export default function EntryPreviewModal({ phases, onClose, onConfirm, loading 
           {!hasAllPhases && (
             <div className="mb-4 p-4 bg-warning/10 border border-warning/30 rounded-lg">
               <p className="text-warning text-sm">
-                ⚠️ Not all phases are uploaded. You can submit anyway, but it's recommended to complete all 4 phases.
+                ⚠️ Not all phases have been provided. You can submit anyway, but it's recommended to complete all phases.
               </p>
             </div>
           )}

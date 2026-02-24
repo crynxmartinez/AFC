@@ -58,10 +58,3 @@ export interface Entry {
     category: ContestCategory
   }
 }
-
-// Phase upload data
-export interface PhaseUpload {
-  phaseNumber: number
-  file: File | null
-  url: string | null
-}

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { contestsApi, entriesApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
-import { Link as LinkIcon, Check, Save, Eye } from 'lucide-react'
+import { Link as LinkIcon, Check, Save, Eye, X } from 'lucide-react'
 import { useToastStore } from '@/stores/toastStore'
 import EntryPreviewModal from '@/components/entry/EntryPreviewModal'
 import ProgressStepper from '@/components/entry/ProgressStepper'
@@ -199,7 +199,6 @@ export default function SubmitEntryPage() {
   const phaseLabels = phaseConfigs.map((config: any, i: number) => `Phase ${i + 1}: ${config.name}`)
   const completedPhases = phases.map(p => p.hasValue)
   const previewPhases = phases.map(p => ({
-    file: null,
     url: p.url || ''
   }))
 
@@ -274,22 +273,33 @@ export default function SubmitEntryPage() {
               {phaseConfigs[i]?.description && (
                 <p className="text-xs text-text-secondary mb-2">{phaseConfigs[i].description}</p>
               )}
-              <div className="flex items-center gap-2">
-                <LinkIcon className="w-5 h-5 text-text-secondary flex-shrink-0" />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <LinkIcon className="w-4 h-4 text-text-secondary" />
+                </div>
                 <input
                   type="url"
                   value={phase.url}
                   onChange={(e) => handleUrlChange(i, e.target.value)}
                   placeholder="https://example.com/your-artwork-image.png"
-                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary"
+                  className="w-full pl-10 pr-10 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all text-sm"
                 />
+                {phase.url && (
+                  <button
+                    type="button"
+                    onClick={() => handleUrlChange(i, '')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-text transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
               {phase.url && (
-                <div className="mt-2">
+                <div className="mt-3 border border-border rounded-lg p-3 bg-surface/50">
                   <img 
                     src={phase.url} 
                     alt={`Phase ${i + 1} preview`} 
-                    className="max-h-48 rounded border border-border"
+                    className="max-h-48 rounded mx-auto"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                     onLoad={(e) => { (e.target as HTMLImageElement).style.display = 'block' }}
                   />

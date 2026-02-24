@@ -1,4 +1,4 @@
-// @ts-nocheck - API type inference issues
+// @ts-nocheck - User type needs expanding for profile fields
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usersApi, authApi } from '@/lib/api'

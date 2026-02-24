@@ -1,4 +1,4 @@
-// @ts-nocheck - Supabase type inference issues
+// @ts-nocheck - API type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatNumber } from '@/lib/utils'
@@ -178,7 +178,7 @@ export default function LeaderboardPage() {
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[1].level}</p>
               {category === 'xp' && <p className="text-lg font-bold text-primary">{formatNumber(topUsers[1].xp)} XP</p>}
-              {category === 'earners' && <p className="text-lg font-bold text-success">{formatNumber(topUsers[1].total_prize_money || 0)} pts</p>}
+              {category === 'earners' && <p className="text-lg font-bold text-success">{formatNumber(topUsers[1].totalPrizeMoney || 0)} pts</p>}
               {category === 'winners' && <p className="text-lg font-bold text-warning">{topUsers[1].totalWins} Wins</p>}
             </Link>
           </div>
@@ -191,9 +191,9 @@ export default function LeaderboardPage() {
             >
               <Crown className="w-8 h-8 text-yellow-500 mb-2 animate-pulse" />
               <div className="relative mb-3">
-                {topUsers[0].avatar_url ? (
+                {topUsers[0].avatarUrl ? (
                   <img
-                    src={topUsers[0].avatar_url}
+                    src={topUsers[0].avatarUrl}
                     alt={topUsers[0].username}
                     className="w-24 h-24 rounded-full object-cover border-4 border-yellow-500 group-hover:scale-110 transition-transform"
                   />
@@ -213,7 +213,7 @@ export default function LeaderboardPage() {
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[0].level}</p>
               {category === 'xp' && <p className="text-xl font-bold text-primary">{formatNumber(topUsers[0].xp)} XP</p>}
-              {category === 'earners' && <p className="text-xl font-bold text-success">{formatNumber(topUsers[0].total_prize_money || 0)} pts</p>}
+              {category === 'earners' && <p className="text-xl font-bold text-success">{formatNumber(topUsers[0].totalPrizeMoney || 0)} pts</p>}
               {category === 'winners' && <p className="text-xl font-bold text-warning">{topUsers[0].totalWins} Wins</p>}
             </Link>
           </div>
@@ -225,9 +225,9 @@ export default function LeaderboardPage() {
               className="flex flex-col items-center group"
             >
               <div className="relative mb-3">
-                {topUsers[2].avatar_url ? (
+                {topUsers[2].avatarUrl ? (
                   <img
-                    src={topUsers[2].avatar_url}
+                    src={topUsers[2].avatarUrl}
                     alt={topUsers[2].username}
                     className="w-20 h-20 rounded-full object-cover border-4 border-amber-600 group-hover:scale-110 transition-transform"
                   />
@@ -247,7 +247,7 @@ export default function LeaderboardPage() {
               </h3>
               <p className="text-sm text-text-secondary mb-2">Level {topUsers[2].level}</p>
               {category === 'xp' && <p className="text-lg font-bold text-primary">{formatNumber(topUsers[2].xp)} XP</p>}
-              {category === 'earners' && <p className="text-lg font-bold text-success">{formatNumber(topUsers[2].total_prize_money || 0)} pts</p>}
+              {category === 'earners' && <p className="text-lg font-bold text-success">{formatNumber(topUsers[2].totalPrizeMoney || 0)} pts</p>}
               {category === 'winners' && <p className="text-lg font-bold text-warning">{topUsers[2].totalWins} Wins</p>}
             </Link>
           </div>
@@ -273,9 +273,9 @@ export default function LeaderboardPage() {
 
               {/* Avatar */}
               <div className="relative">
-                {user.avatar_url ? (
+                {user.avatarUrl ? (
                   <img
-                    src={user.avatar_url}
+                    src={user.avatarUrl}
                     alt={user.username}
                     className="w-12 h-12 rounded-full object-cover"
                   />
@@ -313,7 +313,7 @@ export default function LeaderboardPage() {
                       <div className="text-text-secondary text-xs">XP</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold">{user.total_entries}</div>
+                      <div className="font-bold">{user.totalEntries}</div>
                       <div className="text-text-secondary text-xs">Entries</div>
                     </div>
                     <div className="text-center">
@@ -325,7 +325,7 @@ export default function LeaderboardPage() {
                 {category === 'earners' && (
                   <>
                     <div className="text-center">
-                      <div className="font-bold text-success">{formatNumber(user.total_prize_money || 0)} pts</div>
+                      <div className="font-bold text-success">{formatNumber(user.totalPrizeMoney || 0)} pts</div>
                       <div className="text-text-secondary text-xs">Prize Points</div>
                     </div>
                     <div className="text-center">
@@ -333,7 +333,7 @@ export default function LeaderboardPage() {
                       <div className="text-text-secondary text-xs">Wins</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold">{user.total_entries}</div>
+                      <div className="font-bold">{user.totalEntries}</div>
                       <div className="text-text-secondary text-xs">Entries</div>
                     </div>
                   </>
@@ -349,7 +349,7 @@ export default function LeaderboardPage() {
                       <div className="text-text-secondary text-xs">Win Rate</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold">{user.total_entries}</div>
+                      <div className="font-bold">{user.totalEntries}</div>
                       <div className="text-text-secondary text-xs">Entries</div>
                     </div>
                   </>

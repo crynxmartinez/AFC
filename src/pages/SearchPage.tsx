@@ -1,4 +1,4 @@
-// @ts-nocheck - Supabase type inference issues
+// @ts-nocheck - API type inference issues
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Trophy, User, Image } from 'lucide-react'

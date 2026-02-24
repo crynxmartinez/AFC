@@ -457,9 +457,9 @@ export default function CommentSection({ entryId, entryOwnerId, onCommentCountCh
           <div className="flex gap-3">
             {user && (
               <div className="flex-shrink-0">
-                {user.user_metadata?.avatar_url ? (
+                {user.avatarUrl ? (
                   <img
-                    src={user.user_metadata.avatar_url}
+                    src={user.avatarUrl}
                     alt="Your avatar"
                     className="w-10 h-10 rounded-full"
                   />
