@@ -1,6 +1,4 @@
-// @ts-nocheck - User type needs expanding for profile fields
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { usersApi, authApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'
 import { Link2, Save, Loader, ImageIcon, X } from 'lucide-react'
@@ -36,7 +34,7 @@ export default function SettingsPage() {
   const [notifyFollows, setNotifyFollows] = useState(true)
 
   // Privacy settings
-  const [profileVisibility, setProfileVisibility] = useState<'public' | 'private'>('public')
+  const [profileVisibility, setProfileVisibility] = useState<string>('public')
   const [showContestsJoined, setShowContestsJoined] = useState(true)
   const [showContestsWon, setShowContestsWon] = useState(true)
 
@@ -78,7 +76,7 @@ export default function SettingsPage() {
     setMessage('')
 
     try {
-      const finalAvatarUrl = avatarUrl.trim() || profile?.avatar_url
+      const finalAvatarUrl = avatarUrl.trim() || profile?.avatarUrl
 
       // Update profile
       await usersApi.update(user.id, {

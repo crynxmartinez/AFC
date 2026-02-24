@@ -1,4 +1,3 @@
-// @ts-nocheck - API type inference issues
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { contestsApi } from '@/lib/api'

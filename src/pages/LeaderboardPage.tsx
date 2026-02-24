@@ -1,9 +1,8 @@
-// @ts-nocheck - API type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatNumber } from '@/lib/utils'
 import { leaderboardApi } from '@/lib/api'
-import { Trophy, Award, TrendingUp, Crown, Medal } from 'lucide-react'
+import { Trophy, TrendingUp, Crown, Medal } from 'lucide-react'
 
 type LeaderboardUser = {
   id: string
@@ -35,30 +34,11 @@ export default function LeaderboardPage() {
   const fetchLeaderboard = async () => {
     setLoading(true)
     try {
-      const response: any = await leaderboardApi.get(50, 'all')
+      const response: any = await leaderboardApi.get(50, 'all', category)
       const data = response.users || []
-
-      // Users already have basic stats from API
-      const usersWithStats = data.map((user: any) => ({
-        ...user,
-        totalEntries: 0,
-        totalReactions: 0,
-        totalWins: 0,
-        totalPrizeMoney: 0,
-        winRate: 0,
-        avgVotes: 0,
-      }))
-
-      // Sort based on category
-      let sortedUsers = [...usersWithStats]
-      if (category === 'earners') {
-        sortedUsers.sort((a, b) => (b.totalPrizeMoney || 0) - (a.totalPrizeMoney || 0))
-      } else if (category === 'winners') {
-        sortedUsers.sort((a, b) => (b.totalWins || 0) - (a.totalWins || 0))
-      }
-      // 'xp' is already sorted from the query
-
-      setTopUsers(sortedUsers)
+      
+      // API now returns complete stats, no need for client-side aggregation
+      setTopUsers(data)
     } catch (error) {
       console.error('Error fetching leaderboard:', error)
     } finally {

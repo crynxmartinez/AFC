@@ -1,4 +1,3 @@
-// @ts-nocheck - API type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { adminApi } from '@/lib/api'
@@ -30,8 +29,6 @@ export default function AdminUsers() {
     try {
       const response: any = await adminApi.getUsers()
       const data = response.users || []
-
-      if (error) throw error
       setUsers(data || [])
     } catch (error) {
       console.error('Error fetching users:', error)
@@ -43,8 +40,6 @@ export default function AdminUsers() {
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
       await adminApi.updateUserRole(userId, newRole)
-
-      if (error) throw error
       
       // Refresh users list
       fetchUsers()

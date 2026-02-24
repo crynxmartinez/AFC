@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from 'react'
 import { contactApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'

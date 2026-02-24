@@ -1,4 +1,3 @@
-// @ts-nocheck - API type inference issues
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { adminApi, entriesApi } from '@/lib/api'
@@ -71,9 +70,6 @@ export default function AdminReviews() {
 
     try {
       await adminApi.reviewEntry(id, 'rejected', rejectionReason)
-
-      if (error) throw error
-
       setEntries(entries.filter((e) => e.id !== id))
       setRejectingId(null)
       setRejectionReason('')

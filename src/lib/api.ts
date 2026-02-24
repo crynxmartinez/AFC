@@ -344,10 +344,11 @@ export const contactApi = {
 
 // Leaderboard API
 export const leaderboardApi = {
-  get: async (limit?: number, timeframe?: string) => {
+  get: async (limit?: number, timeframe?: string, category?: string) => {
     const params = new URLSearchParams()
     if (limit) params.append('limit', limit.toString())
     if (timeframe) params.append('timeframe', timeframe)
+    if (category) params.append('category', category)
     return apiRequest(`/leaderboard?${params.toString()}`)
   },
 }

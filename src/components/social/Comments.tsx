@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-nocheck - Complex type issues with Comment interface, will fix in Phase 1.7
 import { useState, useEffect } from 'react'
 import { commentsApi, commentReactionsApi, usersApi } from '@/lib/api'
 import { useAuthStore } from '@/stores/authStore'

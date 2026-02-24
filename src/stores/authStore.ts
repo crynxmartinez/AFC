@@ -8,10 +8,34 @@ interface User {
   role: string
   displayName: string | null
   avatarUrl: string | null
-  level: number
-  xp: number
+  coverPhotoUrl: string | null
+  bio: string | null
+  profileTitle: string | null
   pointsBalance: number
+  totalSpent: number
+  xp: number
+  level: number
+  totalXp: number
+  instagramUrl: string | null
+  twitterUrl: string | null
+  portfolioUrl: string | null
+  website: string | null
+  location: string | null
+  skills: string[]
+  specialties: string[]
+  yearsExperience: number | null
+  availableForWork: boolean
+  profileVisibility: string
+  notifyReactions: boolean
+  notifyComments: boolean
+  notifyArtistContests: boolean
+  notifyFollows: boolean
+  showContestsJoined: boolean
+  showContestsWon: boolean
+  lastActiveAt: string | null
   emailVerified: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 type UserProfile = User
