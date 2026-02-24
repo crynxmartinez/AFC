@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usersApi, authApi } from '@/lib/api'
+import { useAuthStore } from '@/stores/authStore'
 import { Camera, Save, Loader } from 'lucide-react'
 
 type Tab = 'profile' | 'account' | 'notifications' | 'privacy'
