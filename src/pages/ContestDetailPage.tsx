@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { formatDate, formatNumber } from '@/lib/utils'
 import { contestsApi, entriesApi, usersApi, reactionsApi } from '@/lib/api'
+import CountdownTimer from '@/components/ui/CountdownTimer'
+import { Heart } from 'lucide-react'
 
 type Contest = {
   id: string
@@ -133,21 +135,6 @@ export default function ContestDetailPage() {
     }
   }
 
-  const getTimeRemaining = () => {
-    if (!contest) return ''
-    const now = new Date()
-    const end = new Date(contest.endDate)
-    const diff = end.getTime() - now.getTime()
-    
-    if (diff < 0) return 'Ended'
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-    
-    if (days > 0) return `${days} day${days > 1 ? 's' : ''}`
-    return `${hours} hour${hours > 1 ? 's' : ''}`
-  }
-
   const canSubmit = () => {
     if (!user || !contest) return false
     const now = new Date()
@@ -229,28 +216,30 @@ export default function ContestDetailPage() {
           </div>
         )}
 
-        <div className="flex gap-8 text-sm">
-          <div>
-            <span className="text-text-secondary">Entries:</span>
-            <span className="font-semibold ml-2">{entries.length}</span>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+          <div className="bg-background rounded-lg p-3">
+            <div className="text-text-secondary mb-1">Entries</div>
+            <div className="text-2xl font-bold">{entries.length}</div>
           </div>
-          <div>
-            <span className="text-text-secondary">Total Votes:</span>
-            <span className="font-semibold ml-2">
+          <div className="bg-background rounded-lg p-3">
+            <div className="text-text-secondary mb-1 flex items-center gap-1">
+              <Heart className="w-3 h-3" />
+              Total Votes
+            </div>
+            <div className="text-2xl font-bold text-primary">
               {formatNumber(entries.reduce((sum, e) => sum + e.voteCount, 0))}
-            </span>
+            </div>
           </div>
-          <div>
-            <span className="text-text-secondary">Start:</span>
-            <span className="font-semibold ml-2">{formatDate(contest.startDate)}</span>
+          <div className="bg-background rounded-lg p-3">
+            <div className="text-text-secondary mb-1">Start Date</div>
+            <div className="font-semibold">{formatDate(contest.startDate)}</div>
           </div>
-          <div>
-            <span className="text-text-secondary">End:</span>
-            <span className="font-semibold ml-2">{formatDate(contest.endDate)}</span>
+          <div className="bg-background rounded-lg p-3">
+            <div className="text-text-secondary mb-1">End Date</div>
+            <div className="font-semibold">{formatDate(contest.endDate)}</div>
           </div>
-          <div>
-            <span className="text-text-secondary">Time Remaining:</span>
-            <span className="font-semibold ml-2 text-primary">{getTimeRemaining()}</span>
+          <div className="bg-background rounded-lg p-3">
+            <CountdownTimer endDate={contest.endDate} label="Time Left" compact={false} />
           </div>
         </div>
       </div>
@@ -369,15 +358,36 @@ export default function ContestDetailPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {entries.map((entry) => (
+          {entries.map((entry, index) => (
             <Link
               key={entry.id}
               to={`/entries/${entry.id}`}
-              className="bg-surface rounded-lg overflow-hidden border border-border hover:border-primary transition-colors"
+              className="bg-surface rounded-lg overflow-hidden border border-border hover:border-primary transition-all hover:shadow-lg group relative"
             >
-              <div className="aspect-square bg-background flex items-center justify-center">
+              {/* Ranking Badge */}
+              {index < 3 && (
+                <div className="absolute top-3 left-3 z-10">
+                  <div className={`px-3 py-1 rounded-full font-bold text-sm ${
+                    index === 0 ? 'bg-yellow-500 text-black' :
+                    index === 1 ? 'bg-gray-300 text-black' :
+                    'bg-orange-600 text-white'
+                  }`}>
+                    #{index + 1}
+                  </div>
+                </div>
+              )}
+              
+              {/* Vote Count Badge */}
+              <div className="absolute top-3 right-3 z-10">
+                <div className="bg-black/70 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                  <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+                  <span className="font-bold text-white">{formatNumber(entry.voteCount)}</span>
+                </div>
+              </div>
+
+              <div className="aspect-square bg-background flex items-center justify-center overflow-hidden">
                 {entry.phase4Url ? (
-                  <img src={entry.phase4Url} alt={entry.title || "Entry"} className="w-full h-full object-cover" />
+                  <img src={entry.phase4Url} alt={entry.title || "Entry"} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                 ) : (
                   <p className="text-text-secondary">No final artwork yet</p>
                 )}
@@ -386,20 +396,19 @@ export default function ContestDetailPage() {
                 {entry.title && (
                   <h3 className="font-bold mb-2 line-clamp-1">{entry.title}</h3>
                 )}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {entry.users.avatarUrl && (
-                      <img
-                        src={entry.users.avatarUrl}
-                        alt={entry.users.username}
-                        className="w-6 h-6 rounded-full"
-                      />
-                    )}
-                    <span className="font-semibold text-sm">@{entry.users.username}</span>
-                  </div>
-                  <span className="text-sm text-text-secondary">
-                    🔥 {formatNumber(entry.voteCount)} votes
-                  </span>
+                <div className="flex items-center gap-2">
+                  {entry.users.avatarUrl ? (
+                    <img
+                      src={entry.users.avatarUrl}
+                      alt={entry.users.username}
+                      className="w-6 h-6 rounded-full"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs">
+                      {entry.users.username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span className="font-semibold text-sm">@{entry.users.username}</span>
                 </div>
               </div>
             </Link>
