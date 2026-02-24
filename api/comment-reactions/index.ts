@@ -22,14 +22,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ error: 'Invalid token' })
     }
 
-    const { commentId, type } = req.body
+    const { commentId, type: reactionType } = req.body
 
-    if (!commentId || !type) {
+    if (!commentId || !reactionType) {
       return res.status(400).json({ error: 'Missing required fields' })
     }
 
     const validTypes = ['like', 'love', 'haha', 'fire', 'wow', 'sad', 'cry', 'angry']
-    if (!validTypes.includes(type)) {
+    if (!validTypes.includes(reactionType)) {
       return res.status(400).json({ error: 'Invalid reaction type' })
     }
 
@@ -37,7 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       data: {
         commentId,
         userId: decoded.id,
-        type,
+        reactionType,
       },
       include: {
         user: {
