@@ -1,7 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import prisma from '../lib/prisma'
+import { PrismaClient } from '@prisma/client'
 import { verifyPassword, generateToken, setSessionCookie } from '../lib/auth'
 import { handleCors } from '../lib/cors'
+
+const prisma = new PrismaClient()
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) return
