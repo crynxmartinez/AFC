@@ -12,7 +12,6 @@ export default function AdminEditContest() {
   const [description, setDescription] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [thumbnail, setThumbnail] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [existingThumbnailUrl, setExistingThumbnailUrl] = useState<string | null>(null)
   
@@ -20,7 +19,6 @@ export default function AdminEditContest() {
   const [hasSponsor, setHasSponsor] = useState(false)
   const [sponsorName, setSponsorName] = useState('')
   const [sponsorPrizeAmount, setSponsorPrizeAmount] = useState('')
-  const [sponsorLogo, setSponsorLogo] = useState<File | null>(null)
   const [sponsorLogoPreview, setSponsorLogoPreview] = useState<string | null>(null)
   const [existingSponsorLogoUrl, setExistingSponsorLogoUrl] = useState<string | null>(null)
   
@@ -70,7 +68,6 @@ export default function AdminEditContest() {
         setError('Image must be less than 5MB')
         return
       }
-      setThumbnail(file)
       setThumbnailPreview(URL.createObjectURL(file))
       setError('')
     }
@@ -83,7 +80,6 @@ export default function AdminEditContest() {
         setError('Sponsor logo must be less than 2MB')
         return
       }
-      setSponsorLogo(file)
       setSponsorLogoPreview(URL.createObjectURL(file))
       setError('')
     }

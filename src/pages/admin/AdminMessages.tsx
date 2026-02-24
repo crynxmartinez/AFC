@@ -37,14 +37,14 @@ export default function AdminMessages() {
       let data = response.messages || []
 
       if (filter !== 'all') {
-        data = data.filter(msg => msg.status === filter)
+        data = data.filter((msg: any) => msg.status === filter)
       }
 
       setMessages(data || [])
 
       // Initialize admin notes
       const notes: Record<string, string> = {}
-      data?.forEach(msg => {
+      data?.forEach((msg: any) => {
         notes[msg.id] = msg.admin_notes || ''
       })
       setAdminNotes(notes)
@@ -129,7 +129,7 @@ export default function AdminMessages() {
   }
 
   const getStatusBadge = (status: string) => {
-    const styles = {
+    const styles: Record<string, string> = {
       new: 'bg-primary/20 text-primary',
       read: 'bg-warning/20 text-warning',
       resolved: 'bg-success/20 text-success'

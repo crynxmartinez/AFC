@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { usersApi } from '@/lib/api'
 import { formatDate, formatNumber } from '@/lib/utils'
-import { Trophy, Award, Calendar, Instagram, Twitter, ExternalLink, Users, Globe, Tag } from 'lucide-react'
+import { Trophy, Calendar, Instagram, Twitter, ExternalLink, Users, Globe, Tag } from 'lucide-react'
 import FollowButton from '@/components/social/FollowButton'
 import ProfileStats from '@/components/profile/ProfileStats'
 import Achievements from '@/components/profile/Achievements'
@@ -71,7 +71,7 @@ export default function UserProfilePage() {
   const { user } = useAuthStore()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [entries, setEntries] = useState<Entry[]>([])
-  const [badges, setBadges] = useState<Badge[]>([])
+  const [, setBadges] = useState<Badge[]>([])
   const [achievements, setAchievements] = useState<any[]>([])
   const [winners, setWinners] = useState<Winner[]>([])
   const [stats, setStats] = useState({
@@ -476,31 +476,6 @@ export default function UserProfilePage() {
       ) : activeTab === 'achievements' ? (
         <div>
           <Achievements achievements={achievements} />
-        </div>
-      ) : activeTab === 'badges' ? (
-        <div>
-          {badges.length === 0 ? (
-            <div className="text-center py-12 bg-surface rounded-lg">
-              <Award className="w-16 h-16 mx-auto mb-4 text-text-secondary" />
-              <h3 className="text-xl font-bold mb-2">No badges yet</h3>
-              <p className="text-text-secondary">This user hasn't earned any badges.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {badges.map((badge) => (
-                <div
-                  key={badge.id}
-                  className="bg-surface rounded-lg p-6 text-center border border-border hover:border-primary transition-colors"
-                >
-                  <div className="text-5xl mb-3">{badge.badgeIcon}</div>
-                  <h3 className="font-semibold mb-1">{badge.badgeName}</h3>
-                  <p className="text-xs text-text-secondary">
-                    Earned {formatDate(badge.earnedAt)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       ) : (
         <div>

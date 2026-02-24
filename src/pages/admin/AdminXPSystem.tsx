@@ -89,7 +89,7 @@ export default function AdminXPSystem() {
     setStats([])
   }
 
-  const updateLevel = async (level: number, xp_required: number, title: string) => {
+  const updateLevel = async (level: number, xp_required: number, _title: string) => {
     try {
       await adminApi.updateLevel(level, xp_required)
       
@@ -101,7 +101,7 @@ export default function AdminXPSystem() {
     }
   }
 
-  const updateXPReward = async (id: string, xpAmount: number, enabled: boolean) => {
+  const updateXPReward = async (id: string, xpAmount: number, _enabled: boolean) => {
     try {
       await adminApi.updateXPReward(id, xpAmount)
       
@@ -113,7 +113,7 @@ export default function AdminXPSystem() {
     }
   }
 
-  const updateLevelReward = async (id: string, reward_value: string, auto_grant: boolean) => {
+  const updateLevelReward = async (_id: string, _reward_value: string, _auto_grant: boolean) => {
     try {
       // Level reward update not yet available via API
       console.warn('Level reward update API not yet implemented')
@@ -287,7 +287,7 @@ export default function AdminXPSystem() {
                     <tr key={reward.id} className="border-t border-border">
                       {editingXPReward === reward.id ? (
                         <>
-                          <td className="px-4 py-3 font-mono text-sm">{reward.action_type}</td>
+                          <td className="px-4 py-3 font-mono text-sm">{reward.actionType}</td>
                           <td className="px-4 py-3 text-sm">{reward.description}</td>
                           <td className="px-4 py-3">
                             <input
