@@ -326,6 +326,10 @@ export const xpApi = {
       body: JSON.stringify(data),
     })
   },
+
+  getHistory: async (userId: string, limit = 20) => {
+    return apiRequest(`/users/${userId}/xp-history?limit=${limit}`)
+  },
 }
 
 // Contact API

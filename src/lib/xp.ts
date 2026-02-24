@@ -1,3 +1,5 @@
+import { xpApi, usersApi } from './api'
+
 /**
  * Award XP to a user for a specific action
  */
@@ -15,18 +17,8 @@ export async function awardXP(
   error?: string
 }> {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/xp/award`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ userId, actionType, referenceId, description }),
-    })
-    
-    if (!response.ok) {
-      return { success: false, error: 'Failed to award XP' }
-    }
-    
-    const result = await response.json()
+    const res: any = await xpApi.awardXP({ userId, actionType, referenceId, description })
+    const result = res.data || res
     
     return {
       success: result.success,
@@ -55,23 +47,18 @@ export async function getLevelProgress(userId: string): Promise<{
   progressPercentage: number
 } | null> {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/xp/progress/${userId}`, {
-      credentials: 'include',
-    })
-    
-    if (!response.ok) return null
-    
-    const progress = await response.json()
+    const res: any = await xpApi.getProgress(userId)
+    const progress = res.data || res
     
     if (!progress) return null
 
     return {
-      currentLevel: progress.user.level,
-      currentXP: progress.user.xp,
+      currentLevel: progress.user?.level ?? 1,
+      currentXP: progress.user?.xp ?? 0,
       currentLevelXP: progress.currentLevel?.xpRequired || 0,
       nextLevelXP: progress.nextLevel?.xpRequired || 0,
-      xpToNextLevel: progress.xpToNextLevel,
-      progressPercentage: progress.progressPercentage,
+      xpToNextLevel: progress.xpToNextLevel ?? 0,
+      progressPercentage: progress.progressPercentage ?? 0,
     }
   } catch (error) {
     console.error('Error getting level progress:', error)
@@ -84,13 +71,8 @@ export async function getLevelProgress(userId: string): Promise<{
  */
 export async function getUserBadges(userId: string) {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${userId}/badges`, {
-      credentials: 'include',
-    })
-    
-    if (!response.ok) return []
-    
-    const data = await response.json()
+    const res: any = await usersApi.getBadges(userId)
+    const data = res.data || res
     return data.badges || []
   } catch (error) {
     console.error('Error getting user badges:', error)
@@ -103,13 +85,8 @@ export async function getUserBadges(userId: string) {
  */
 export async function getXPHistory(userId: string, limit = 20) {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${userId}/xp-history?limit=${limit}`, {
-      credentials: 'include',
-    })
-    
-    if (!response.ok) return []
-    
-    const data = await response.json()
+    const res: any = await xpApi.getHistory(userId, limit)
+    const data = res.data || res
     return data.history || []
   } catch (error) {
     console.error('Error getting XP history:', error)
