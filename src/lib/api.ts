@@ -399,6 +399,10 @@ export const adminApi = {
     })
   },
 
+  getAnalytics: async (days: number = 30) => {
+    return apiRequest(`/admin/analytics?days=${days}`)
+  },
+
   getXPRewards: async () => {
     return apiRequest('/admin/xp/rewards')
   },
