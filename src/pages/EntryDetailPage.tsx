@@ -8,6 +8,7 @@ import ShareButton from '@/components/social/ShareButton'
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
 import type { ContestCategory } from '@/types/contest'
 import { getPhasesForCategory } from '@/constants/phases'
+import { useRealtimePolling } from '@/hooks/useRealtimePolling'
 
 type Entry = {
   id: string
@@ -48,6 +49,24 @@ export default function EntryDetailPage() {
       fetchEntry()
     }
   }, [id])
+
+  // Real-time polling for vote count updates
+  useRealtimePolling(
+    async () => {
+      if (!id) return
+      const reactionsResponse: any = await entriesApi.getReactions(id)
+      return reactionsResponse.reactions?.length || 0
+    },
+    {
+      interval: 10000, // Poll every 10 seconds
+      enabled: !!id && !!entry,
+      onUpdate: (voteCount) => {
+        if (entry && voteCount !== entry.voteCount) {
+          setEntry({ ...entry, voteCount })
+        }
+      },
+    }
+  )
 
   const fetchEntry = async () => {
     if (!id) return

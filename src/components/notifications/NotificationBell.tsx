@@ -49,8 +49,19 @@ export default function NotificationBell() {
         fetchNotifications()
       }, 60000)
 
+      // Poll for unread count more frequently (every 15 seconds) for real-time badge updates
+      const unreadInterval = setInterval(async () => {
+        try {
+          const response: any = await notificationsApi.getUnreadCount()
+          setUnreadCount(response.unreadCount || 0)
+        } catch (error) {
+          console.error('Error fetching unread count:', error)
+        }
+      }, 15000)
+
       return () => {
         clearInterval(interval)
+        clearInterval(unreadInterval)
       }
     }
   }, [userId])

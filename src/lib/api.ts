@@ -272,6 +272,9 @@ export const notificationsApi = {
   list: async () => {
     return apiRequest('/notifications')
   },
+  getUnreadCount: async () => {
+    return apiRequest('/notifications/unread-count')
+  },
   markAsRead: async (notificationId: string) => {
     return apiRequest(`/notifications/${notificationId}/read`, {
       method: 'PUT',
