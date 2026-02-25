@@ -28,7 +28,7 @@ export function useContactMessages() {
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/messages?status=new`, {
+      const response = await fetch('/api/admin/messages?status=new', {
         credentials: 'include',
       })
 

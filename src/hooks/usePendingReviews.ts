@@ -28,7 +28,7 @@ export function usePendingReviews() {
 
   const fetchPendingCount = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/entries?status=pending`, {
+      const response = await fetch('/api/admin/entries?status=pending', {
         credentials: 'include',
       })
 
