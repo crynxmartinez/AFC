@@ -46,7 +46,6 @@ model User {
   emailVerificationToken String? @map("email_verification_token")
   passwordResetToken  String?  @map("password_reset_token")
   passwordResetExpires DateTime? @map("password_reset_expires")
-  referralCode        String?  @unique @map("referral_code")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
@@ -69,9 +68,6 @@ model User {
   contestWins         ContestWinner[]
   contactSubmissions  ContactSubmission[]
   dailyXpClaims       DailyXpClaim[]
-  referralsMade       Referral[]       @relation("Referrer")
-  referredBy          Referral?        @relation("Referred")
-  withdrawals         Withdrawal[]
 
   @@map("users")
 }
@@ -406,43 +402,4 @@ model DailyXpClaim {
   @@unique([userId, action, claimedAt])
   @@index([userId])
   @@map("daily_xp_claims")
-}
-
-model Referral {
-  id            String   @id @default(uuid())
-  referrerId    String   @map("referrer_id")
-  referredId    String   @map("referred_id")
-  referralCode  String   @map("referral_code")
-  bonusXpAwarded Int     @default(0) @map("bonus_xp_awarded")
-  status        String   @default("pending")
-  createdAt     DateTime @default(now()) @map("created_at")
-  completedAt   DateTime? @map("completed_at")
-
-  referrer      User     @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
-  referred      User     @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
-
-  @@unique([referredId])
-  @@index([referrerId])
-  @@index([referralCode])
-  @@map("referrals")
-}
-
-model Withdrawal {
-  id              String   @id @default(uuid())
-  userId          String   @map("user_id")
-  amount          Int
-  pointsDeducted  Int      @map("points_deducted")
-  paymentMethod   String   @map("payment_method")
-  paymentDetails  String   @map("payment_details")
-  status          String   @default("pending")
-  requestedAt     DateTime @default(now()) @map("requested_at")
-  processedAt     DateTime? @map("processed_at")
-  adminNotes      String?  @map("admin_notes")
-  transactionId   String?  @map("transaction_id")
-
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-  @@map("withdrawals")
 }
