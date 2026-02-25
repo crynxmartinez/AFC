@@ -37,6 +37,8 @@ const UserProfilePage = lazy(() => import('./pages/UserProfilePage'))
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'))
 const SearchPage = lazy(() => import('./pages/SearchPage'))
 const ArtistsPage = lazy(() => import('./pages/ArtistsPage'))
+const ReferralsPage = lazy(() => import('./pages/ReferralsPage'))
+const WithdrawalsPage = lazy(() => import('./pages/WithdrawalsPage'))
 
 // Lazy load admin pages (rarely accessed)
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
@@ -103,6 +105,8 @@ function App() {
             <Route path="/points" element={<PointsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/referrals" element={<ReferralsPage />} />
+            <Route path="/withdrawals" element={<WithdrawalsPage />} />
           </Route>
 
           {/* Admin Routes */}
