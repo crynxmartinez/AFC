@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Trophy, User, Image } from 'lucide-react'
+import { Search, Trophy, User, Image, ChevronLeft, ChevronRight } from 'lucide-react'
 import { searchApi } from '@/lib/api'
 
 type SearchResult = {
@@ -22,6 +22,8 @@ export default function SearchPage() {
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState<'all' | 'contests' | 'users' | 'entries'>('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const resultsPerPage = 12
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,12 +75,19 @@ export default function SearchPage() {
       }
 
       setResults(searchResults)
+      setCurrentPage(1) // Reset to first page on new search
     } catch (error) {
       console.error('Error searching:', error)
     } finally {
       setLoading(false)
     }
   }
+
+  // Calculate pagination
+  const totalPages = Math.ceil(results.length / resultsPerPage)
+  const startIndex = (currentPage - 1) * resultsPerPage
+  const endIndex = startIndex + resultsPerPage
+  const paginatedResults = results.slice(startIndex, endIndex)
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -169,8 +178,14 @@ export default function SearchPage() {
       )}
 
       {results.length > 0 && (
-        <div className="space-y-4">
-          {results.map((result) => {
+        <>
+          {/* Results count */}
+          <div className="mb-4 text-sm text-text-secondary">
+            Showing {startIndex + 1}-{Math.min(endIndex, results.length)} of {results.length} results
+          </div>
+
+          <div className="space-y-4">
+            {paginatedResults.map((result) => {
             if (result.type === 'contest') {
               return (
                 <Link
@@ -276,6 +291,44 @@ export default function SearchPage() {
             return null
           })}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg border border-border hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            
+            <div className="flex gap-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    currentPage === page
+                      ? 'bg-primary text-white'
+                      : 'border border-border hover:border-primary'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg border border-border hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+        </>
       )}
 
       {!query && (
