@@ -9,6 +9,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'GET') {
     try {
+      // Auto-update contest status based on dates
+      const now = new Date()
+      const contestToCheck = await prisma.contest.findUnique({
+        where: { id: id as string },
+        select: { status: true, startDate: true, endDate: true },
+      })
+
+      if (contestToCheck) {
+        let newStatus = contestToCheck.status
+        
+        // Check if should be active
+        if (contestToCheck.status === 'draft' && 
+            contestToCheck.startDate <= now && 
+            contestToCheck.endDate >= now) {
+          newStatus = 'active'
+        }
+        
+        // Check if should be ended
+        if ((contestToCheck.status === 'draft' || contestToCheck.status === 'active') && 
+            contestToCheck.endDate < now) {
+          newStatus = 'ended'
+        }
+        
+        // Update if status changed
+        if (newStatus !== contestToCheck.status) {
+          await prisma.contest.update({
+            where: { id: id as string },
+            data: { status: newStatus },
+          })
+        }
+      }
+
       const contest = await prisma.contest.findUnique({
         where: { id: id as string },
         include: {

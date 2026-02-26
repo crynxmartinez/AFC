@@ -69,6 +69,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
       })
 
+      // Increment vote count
+      await prisma.entry.update({
+        where: { id: id as string },
+        data: { voteCount: { increment: 1 } },
+      })
+
       return res.status(201).json({ reaction })
     } catch (error) {
       console.error('Add reaction error:', error)
@@ -88,6 +94,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             entryId: id as string,
           },
         },
+      })
+
+      // Decrement vote count
+      await prisma.entry.update({
+        where: { id: id as string },
+        data: { voteCount: { decrement: 1 } },
       })
 
       return res.status(200).json({ message: 'Reaction removed' })

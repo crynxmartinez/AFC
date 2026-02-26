@@ -10,6 +10,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const { status } = req.query
       
+      // First, auto-update contest statuses based on dates
+      const now = new Date()
+      
+      // Update contests that should be active
+      await prisma.contest.updateMany({
+        where: {
+          status: 'draft',
+          startDate: { lte: now },
+          endDate: { gte: now },
+        },
+        data: { status: 'active' },
+      })
+      
+      // Update contests that should be ended
+      await prisma.contest.updateMany({
+        where: {
+          status: { in: ['draft', 'active'] },
+          endDate: { lt: now },
+        },
+        data: { status: 'ended' },
+      })
+      
       const where = status ? { status: status as string } : {}
       
       const contests = await prisma.contest.findMany({
