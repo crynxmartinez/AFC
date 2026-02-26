@@ -30,6 +30,7 @@ export default function AdminFinalizeContest() {
   const navigate = useNavigate()
   const [contest, setContest] = useState<Contest | null>(null)
   const [topEntries, setTopEntries] = useState<Entry[]>([])
+  const [allEntries, setAllEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
   const [finalizing, setFinalizing] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
@@ -62,9 +63,12 @@ export default function AdminFinalizeContest() {
         vote_count: entry.reactionCount || entry.voteCount || entry.vote_count || 0,
       }))
 
-      // Sort by votes and get top 3
+      // Sort by votes and get top 3 for display
       const sorted = entriesWithVotes.sort((a: any, b: any) => b.vote_count - a.vote_count)
       setTopEntries(sorted.slice(0, 3))
+      
+      // Store all entries for prize pool calculation
+      setAllEntries(entriesWithVotes)
     } catch (error) {
       console.error('Error fetching data:', error)
       toast.error('Failed to load contest data')
@@ -169,14 +173,14 @@ export default function AdminFinalizeContest() {
     )
   }
 
-  // Calculate prize pool from top 3 entries' reactions
-  const totalReactions = topEntries.reduce((sum, entry) => sum + entry.vote_count, 0)
+  // Calculate prize pool from ALL entries' votes
+  const totalReactions = allEntries.reduce((sum, entry) => sum + entry.vote_count, 0)
   const prizePool = totalReactions
   
-  const prize1st = Math.floor(prizePool * 0.5)
-  const prize2nd = Math.floor(prizePool * 0.2)
-  const prize3rd = Math.floor(prizePool * 0.1)
-  const remaining = prizePool - prize1st - prize2nd - prize3rd
+  const prize1st = Math.floor(prizePool * 0.5)  // 50%
+  const prize2nd = Math.floor(prizePool * 0.2)  // 20%
+  const prize3rd = Math.floor(prizePool * 0.1)  // 10%
+  const adminShare = Math.floor(prizePool * 0.2)  // 20% goes to admin
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -194,7 +198,7 @@ export default function AdminFinalizeContest() {
         <div className="flex items-center gap-6 text-sm">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-primary" />
-            <span className="font-semibold">Prize Pool: {prizePool} pts (from {totalReactions} reactions)</span>
+<span className="font-semibold">Prize Pool: {prizePool} pts (from {allEntries.length} entries, {totalReactions} total votes)</span>
           </div>
           <div className="text-text-secondary">
             Status: <span className="text-error font-semibold">Ended</span>
@@ -221,8 +225,8 @@ export default function AdminFinalizeContest() {
             <div className="text-sm text-text-secondary">3rd Place (10%)</div>
           </div>
           <div className="bg-background border border-border rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-text-secondary">{remaining} pts</div>
-            <div className="text-sm text-text-secondary">Remaining (20%)</div>
+            <div className="text-2xl font-bold text-text-secondary">{adminShare} pts</div>
+            <div className="text-sm text-text-secondary">Admin (20%)</div>
           </div>
         </div>
       </div>

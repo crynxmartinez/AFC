@@ -23,6 +23,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Contest already finalized' })
       }
 
+      // Get ALL entries to calculate total votes for prize pool
+      const allEntries = await prisma.entry.findMany({
+        where: {
+          contestId: id as string,
+          status: 'approved',
+        },
+        select: {
+          voteCount: true,
+        },
+      })
+
+      // Calculate prize pool from ALL entries' votes
+      const totalVotes = allEntries.reduce((sum, entry) => sum + entry.voteCount, 0)
+      const prizePool = totalVotes
+
       // Get top 3 entries by vote count
       const topEntries = await prisma.entry.findMany({
         where: {
@@ -40,15 +55,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'No entries to finalize' })
       }
 
-      // Calculate prize distribution (60%, 30%, 10%)
-      const prizeDistribution = [0.6, 0.3, 0.1]
-      const totalPrize = contest.prizePool + (contest.sponsorPrizeAmount || 0)
+      // Prize distribution: 50%, 20%, 10% to winners, 20% to admin
+      const prizeDistribution = [0.5, 0.2, 0.1]
+      const adminShare = Math.floor(prizePool * 0.2)
 
       // Create winners and distribute prizes
       const winners = await Promise.all(
         topEntries.map(async (entry: any, index: number) => {
           const placement = index + 1
-          const prizeAmount = Math.floor(totalPrize * prizeDistribution[index])
+          const prizeAmount = Math.floor(prizePool * prizeDistribution[index])
 
           // Create winner record
           const winner = await prisma.contestWinner.create({
@@ -94,10 +109,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         })
       )
 
+      // Give admin their 20% share
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          pointsBalance: { increment: adminShare },
+        },
+      })
+
       // Mark contest as finalized
       await prisma.contest.update({
         where: { id: id as string },
         data: {
+          prizePool: prizePool,
           prizePoolDistributed: true,
           finalizedAt: new Date(),
         },
