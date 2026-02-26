@@ -50,13 +50,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             orderBy: {
               placement: 'asc',
             },
-          })
+          }) as any[]
 
           return {
             contestId: contest.id,
             contestTitle: contest.title,
             finalizedAt: contest.finalizedAt,
-            winners: winners.map((w) => ({
+            winners: winners.map((w: any) => ({
               placement: w.placement,
               username: w.user.username,
               avatarUrl: w.user.avatarUrl,
