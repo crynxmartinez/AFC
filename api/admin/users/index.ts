@@ -1,7 +1,6 @@
 ﻿import type { VercelRequest, VercelResponse } from '@vercel/node'
 import prisma from '../../lib/prisma.js'
-import { verifyToken } from '../../lib/auth.js'
-import cookie from 'cookie'
+import { requireAdmin } from '../../lib/auth.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
@@ -9,18 +8,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Verify admin authentication
-    const cookies = cookie.parse(req.headers.cookie || '')
-    const token = cookies.session
-
-    if (!token) {
-      return res.status(401).json({ error: 'Not authenticated' })
-    }
-
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' })
-    }
+    const user = requireAdmin(req, res)
+    if (!user) return
 
     const users = await prisma.user.findMany({
       select: {
