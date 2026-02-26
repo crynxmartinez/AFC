@@ -65,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             phase2Url,
             phase3Url,
             phase4Url,
-            status: 'pending',
+            status: status || 'pending_review',
             submittedAt: new Date(),
             lastActivityAt: new Date(),
           },
@@ -85,7 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           phase2Url,
           phase3Url,
           phase4Url,
-          status: 'pending',
+          status: status || 'pending_review',
           submittedAt: new Date(),
         },
       })
