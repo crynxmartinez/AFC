@@ -27,10 +27,17 @@ export default function AdminUsers() {
   const fetchUsers = async () => {
     try {
       const response: any = await adminApi.getUsers()
-      const data = response.users || []
-      setUsers(data || [])
+      if (response.error) {
+        console.error('Error fetching users:', response.error)
+        toast.error(response.error)
+        setUsers([])
+      } else {
+        const data = response.data?.users || []
+        setUsers(data)
+      }
     } catch (error) {
       console.error('Error fetching users:', error)
+      setUsers([])
     } finally {
       setLoading(false)
     }

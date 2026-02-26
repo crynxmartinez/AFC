@@ -29,11 +29,11 @@ export default function AdminDashboard() {
     try {
       // Fetch admin stats
       const statsResponse: any = await adminApi.getStats()
-      const statsData = statsResponse.stats || {}
+      const statsData = statsResponse.data?.stats || {}
 
       // Fetch recent contests
       const contestsResponse: any = await contestsApi.list()
-      const contests = (contestsResponse.contests || []).slice(0, 5)
+      const contests = (contestsResponse.data?.contests || []).slice(0, 5)
 
       // Contests already have entry counts from API
       const contestsWithCounts = contests.map((contest: any) => ({
