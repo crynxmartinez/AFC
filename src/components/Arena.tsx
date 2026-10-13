@@ -19,7 +19,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import type { State } from '@/lib/types';
-import { ArenaContext, type Action } from './context';
+import { ArenaContext, useArena, type Action } from './context';
 import { Avatar } from './ui';
 import { Explore, Contests, ContestDetail, EntryDetail, Profile, Saved } from './discovery';
 import { Login, Wallet, Notifications, SettingsPage, Submit } from './participation';
@@ -33,7 +33,7 @@ const nav = [
   { href: '/notifications', label: 'Notifications', icon: Bell },
   { href: '/profile', label: 'Profile', icon: UserRound },
 ];
-export function Arena() {
+export function Arena({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [state, setState] = useState<State | null>(null);
@@ -120,22 +120,8 @@ export function Arena() {
       {item.label === 'Notifications' && unread > 0 && <b className="nav-count">{unread}</b>}
     </Link>
   );
-  let page;
-  if (path === '/') page = <Explore search={search} />;
-  else if (path === '/contests') page = <Contests search={search} />;
-  else if (path.startsWith('/contests/')) page = <ContestDetail id={path.split('/')[2]} />;
-  else if (path.startsWith('/entries/')) page = <EntryDetail id={path.split('/')[2]} />;
-  else if (path === '/submit') page = <Submit />;
-  else if (path === '/wallet') page = <Wallet />;
-  else if (path === '/saved') page = <Saved />;
-  else if (path === '/notifications') page = <Notifications />;
-  else if (path.startsWith('/profile')) page = <Profile id={path.split('/')[2] || 'me'} />;
-  else if (path === '/settings') page = <SettingsPage />;
-  else if (path === '/login') page = <Login />;
-  else if (path === '/admin') page = <Admin />;
-  else page = <Explore search={search} />;
   return (
-    <ArenaContext.Provider value={{ state, act, busy, toast: setMessage, refresh }}>
+    <ArenaContext.Provider value={{ state, act, busy, toast: setMessage, refresh, search }}>
       <a href="#main" className="skip-link">
         Skip to content
       </a>
@@ -252,7 +238,7 @@ export function Arena() {
               />
             </div>
           )}
-          {page}
+          {children}
         </main>
         <footer className="app-footer">
           <span>AFC · Arena for Creatives</span>
@@ -282,4 +268,23 @@ export function Arena() {
       )}
     </ArenaContext.Provider>
   );
+}
+
+// Only this route content remounts; the layout owns the shell and shared data.
+export function ArenaPage() {
+  const path = usePathname();
+  const { search } = useArena();
+  if (path === '/') return <Explore search={search} />;
+  if (path === '/contests') return <Contests search={search} />;
+  if (path.startsWith('/contests/')) return <ContestDetail id={path.split('/')[2]} />;
+  if (path.startsWith('/entries/')) return <EntryDetail id={path.split('/')[2]} />;
+  if (path === '/submit') return <Submit />;
+  if (path === '/wallet') return <Wallet />;
+  if (path === '/saved') return <Saved />;
+  if (path === '/notifications') return <Notifications />;
+  if (path.startsWith('/profile')) return <Profile id={path.split('/')[2] || 'me'} />;
+  if (path === '/settings') return <SettingsPage />;
+  if (path === '/login') return <Login />;
+  if (path === '/admin') return <Admin />;
+  return <Explore search={search} />;
 }

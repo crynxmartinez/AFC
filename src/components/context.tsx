@@ -12,6 +12,7 @@ export const ArenaContext = createContext<{
   busy: boolean;
   toast: (message: string) => void;
   refresh: () => Promise<void>;
+  search: string;
 } | null>(null);
 export function useArena() {
   const c = useContext(ArenaContext);

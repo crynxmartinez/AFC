@@ -1,4 +1,4 @@
-import { Arena } from '@/components/Arena';
+import { ArenaPage } from '@/components/Arena';
 import { db } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -47,5 +47,5 @@ export default async function Page({ params }: { params: Promise<{ slug?: string
     ].includes(slug[0])
   )
     notFound();
-  return <Arena />;
+  return <ArenaPage />;
 }
