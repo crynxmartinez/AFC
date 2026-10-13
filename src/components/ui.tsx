@@ -17,6 +17,7 @@ export const date = (value: string) =>
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+    timeZone: 'Asia/Manila',
   });
 export const openContest = (c: Contest) =>
   c.status === 'ACTIVE' &&
@@ -53,7 +54,7 @@ export function Countdown({ contest }: { contest: Contest }) {
   const left = Math.max(0, new Date(upcoming ? contest.startsAt : contest.endsAt).getTime() - now);
   const h = Math.floor(left / 3600000);
   return (
-    <span className="countdown">
+    <span className="countdown" suppressHydrationWarning>
       <Clock3 size={15} />
       {contest.status === 'ANNOUNCED'
         ? 'Results published'

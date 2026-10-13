@@ -1,17 +1,18 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Arena } from '@/components/Arena';
+import { getState } from '@/lib/state';
+import { pageMetadata, siteDescription, siteUrl } from '@/lib/seo';
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.APP_URL || 'http://127.0.0.1:3000'),
-  title: 'AFC — Arena for Creatives',
-  description:
-    'Create something extraordinary. Discover art and cosplay, explore the process, and support your favorite creators.',
+  metadataBase: new URL(siteUrl),
+  ...pageMetadata('AFC — Art & Cosplay Contests for Creatives', siteDescription, '/'),
 };
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const initialState = JSON.parse(JSON.stringify(await getState()));
   return (
     <html lang="en">
       <body>
-        <Arena>{children}</Arena>
+        <Arena initialState={initialState}>{children}</Arena>
       </body>
     </html>
   );

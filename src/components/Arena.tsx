@@ -34,10 +34,16 @@ const nav = [
   { href: '/notifications', label: 'Notifications', icon: Bell },
   { href: '/profile', label: 'Profile', icon: UserRound },
 ];
-export function Arena({ children }: { children: React.ReactNode }) {
+export function Arena({
+  children,
+  initialState,
+}: {
+  children: React.ReactNode;
+  initialState: State;
+}) {
   const path = usePathname();
   const router = useRouter();
-  const [state, setState] = useState<State | null>(null);
+  const [state, setState] = useState<State | null>(initialState);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');

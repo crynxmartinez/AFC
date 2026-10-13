@@ -68,7 +68,8 @@ export function Explore({ search }: { search: string }) {
   const { state } = useArena();
   const [filter, setFilter] = useState('ALL');
   const [sort, setSort] = useState('discover');
-  const [discoverySeed] = useState(() => Math.floor(Math.random() * 100000));
+  const [discoverySeed, setDiscoverySeed] = useState(0);
+  useEffect(() => setDiscoverySeed(Math.floor(Math.random() * 100000)), []);
   const discoveryRank = (id: string) => {
     let hash = discoverySeed;
     for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) | 0;
