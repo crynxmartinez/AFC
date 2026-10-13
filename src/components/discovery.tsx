@@ -500,14 +500,18 @@ export function EntryDetail({ id }: { id: string }) {
                 </div>
               </div>
               <VoteButton entry={entry} />
-              <p className="micro center">One vote per entry. A little support means a lot.</p>
-              <Link href="/wallet" className="wallet-line">
-                <span>Your wallet</span>
-                <strong>
-                  {state.me?.balance ?? 'Sign in for 100'} points
-                  <ArrowRight size={14} />
-                </strong>
-              </Link>
+              <p className="micro center">
+                Each like is one permanent vote · 1 point. Once per entry.
+              </p>
+              {state.me && (
+                <Link href="/wallet" className="wallet-line">
+                  <span>Your wallet</span>
+                  <strong>
+                    {state.me.balance} points
+                    <ArrowRight size={14} />
+                  </strong>
+                </Link>
+              )}
             </div>
             <Countdown contest={c} />
             <button className="report-link" onClick={() => setReport(!report)}>

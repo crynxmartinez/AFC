@@ -206,11 +206,13 @@ export function Arena({ children }: { children: React.ReactNode }) {
             <kbd>/</kbd>
           </div>
           <div className="top-actions">
-            <Link href="/wallet" className="balance-chip">
-              <Coins size={18} />
-              <b>{state.me?.balance ?? 100}</b>
-              <span>points</span>
-            </Link>
+            {state.me && (
+              <Link href="/wallet" className="balance-chip">
+                <Coins size={18} />
+                <b>{state.me.balance}</b>
+                <span>points</span>
+              </Link>
+            )}
             <Link href="/notifications" className="icon-button bell" aria-label="Notifications">
               <Bell size={20} />
               {unread > 0 && <i />}

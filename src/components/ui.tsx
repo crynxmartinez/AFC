@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { ArrowRight, Bookmark, Check, Clock3, Heart, ImageIcon, Trophy } from 'lucide-react';
+import { ArrowRight, Bookmark, Clock3, ThumbsUp, ImageIcon, Trophy } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useArena } from './context';
 import type { Contest, Entry, Person } from '@/lib/types';
 export const money = (value: number) =>
@@ -80,7 +81,8 @@ export function SaveButton({ id, kind = 'ENTRY' }: { id: string; kind?: string }
   );
 }
 export function VoteButton({ entry, compact = false }: { entry: Entry; compact?: boolean }) {
-  const { state, act, busy } = useArena();
+  const { state, act, busy, toast } = useArena();
+  const router = useRouter();
   const voted = state.myVotes.includes(entry.id);
   const contest = state.contests.find((c) => c.id === entry.contestId)!;
   const own = state.me?.id === entry.authorId;
@@ -88,10 +90,18 @@ export function VoteButton({ entry, compact = false }: { entry: Entry; compact?:
   return (
     <button
       disabled={busy || voted || own || closed}
+      type="button"
+      aria-pressed={voted}
+      aria-label={`${voted ? 'Liked' : 'Like'} ${entry.title} · ${entry.voteCount} votes${!voted && !own && !closed ? (state.me ? ' · costs 1 point' : ' · sign in required') : ''}`}
       className={compact ? 'vote-compact' : `button primary full ${voted ? 'voted' : ''}`}
-      onClick={() =>
-        act('vote', { id: entry.id }, 'Your vote is in. Thank you for supporting a creator!')
-      }
+      onClick={() => {
+        if (!state.me) {
+          toast('Please sign in to support this creator.');
+          router.push('/login');
+          return;
+        }
+        act('vote', { id: entry.id }, 'Your vote is in. Thank you for supporting a creator!');
+      }}
       title={
         own
           ? 'You cannot vote for your own entry'
@@ -100,16 +110,12 @@ export function VoteButton({ entry, compact = false }: { entry: Entry; compact?:
             : 'One permanent vote · 1 point'
       }
     >
-      {voted ? <Check size={compact ? 16 : 19} /> : <Heart size={compact ? 16 : 19} />}{' '}
-      {compact
-        ? entry.voteCount
-        : voted
-          ? 'Voted · Thank you!'
-          : own
-            ? 'Your entry'
-            : closed
-              ? 'Voting closed'
-              : 'Vote · 1 point'}
+      <ThumbsUp
+        size={compact ? 16 : 19}
+        fill={voted ? 'currentColor' : 'none'}
+        aria-hidden="true"
+      />{' '}
+      {entry.voteCount}
     </button>
   );
 }
