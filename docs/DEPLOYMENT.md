@@ -1,5 +1,7 @@
 # AFC online deployment
 
+Server-side functions are pinned to Singapore (`sin1`) in `vercel.json`, alongside the Singapore database. This takes effect on the next successful deployment; the build machine location is separate. This setting does not relocate the Blob store.
+
 ## Import and deploy
 
 1. Use the existing GitHub connection to `crynxmartinez/AFC`, production branch `main`.
