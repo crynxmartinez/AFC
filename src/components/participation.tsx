@@ -116,6 +116,12 @@ export function Login() {
             Resend confirmation
           </button>
           {confirmation && <p role="status">{confirmation}</p>}
+          {(register || confirmation) && (
+            <p className="micro">
+              Can’t find the confirmation email? Check your Spam or Junk folder. If you find the AFC
+              email there, mark it as “Not spam.” Still missing? Use Resend confirmation.
+            </p>
+          )}
         </form>
         <p className="center">
           {register ? 'Already have an account?' : 'New around here?'}{' '}

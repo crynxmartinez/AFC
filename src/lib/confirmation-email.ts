@@ -22,6 +22,8 @@ export async function sendConfirmationEmail(
     link.pathname = '/login';
     link.hash = '';
   }
+  const button = `<table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td bgcolor="#ff9547" style="border-radius:8px"><a href="${link.href}" style="display:inline-block;padding:14px 24px;border:1px solid #ff9547;border-radius:8px;background-color:#ff9547;color:#111111;font-family:Arial,sans-serif;font-size:16px;font-weight:bold;text-decoration:none">${deliveryTest ? 'Open AFC' : 'Confirm email'}</a></td></tr></table>`;
+  const backup = `<p style="font-size:13px;color:#555555">If the button does not work, open this link:<br><a href="${link.href}">${link.href}</a></p>`;
   const headers = {
     Authorization: `Bearer ${apiToken}`,
     Version: '2021-07-28',
@@ -69,8 +71,8 @@ export async function sendConfirmationEmail(
           ? `AFC email delivery test. No account is created or activated. Open AFC: ${link.href}`
           : `Confirm your AFC account: ${link.href}\nThis link expires in 24 hours. If you did not register, ignore this email.`,
         html: deliveryTest
-          ? `<h1>AFC email is connected</h1><p>This is your requested confirmation-email delivery test. No account was created or activated.</p><p><a href="${link.href}">Open AFC</a></p>`
-          : `<h1>Welcome to AFC</h1><p>Confirm your email to activate your account and receive your 100 welcome points.</p><p><a href="${link.href}" style="display:inline-block;padding:14px 24px;background:#ff9547;color:#111;text-decoration:none;border-radius:8px">Confirm email</a></p><p>This link expires in 24 hours. If you did not register, ignore this email.</p>`,
+          ? `<h1>AFC email is connected</h1><p>This is your requested confirmation-email delivery test. No account was created or activated.</p>${button}${backup}`
+          : `<h1>Welcome to AFC</h1><p>Confirm your email to activate your account and receive your 100 welcome points.</p>${button}${backup}<p>This link expires in 24 hours. If you did not register, ignore this email.</p>`,
       }),
     });
     if (!response.ok) throw new Error('Email unavailable');

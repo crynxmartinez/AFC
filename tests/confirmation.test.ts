@@ -71,6 +71,8 @@ test('GHL sends only confirmation email and adds afc without replacing tags', as
     assert.equal(calls[2].body.type, 'Email');
     assert.equal(calls[2].body.emailFrom, 'AFC <sender@example.com>');
     assert.match(String(calls[2].body.html), /Confirm email/);
+    assert.match(String(calls[2].body.html), /bgcolor="#ff9547"/);
+    assert.match(String(calls[2].body.html), /If the button does not work/);
     assert.match(String(calls[2].body.html), /confirm-email#aaaa/);
     assert.equal(calls.length, 3);
     await assert.rejects(
