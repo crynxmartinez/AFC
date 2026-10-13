@@ -26,6 +26,7 @@ export function Login() {
   const { state, act, busy } = useArena();
   const router = useRouter();
   const [register, setRegister] = useState(false);
+  const [confirmation, setConfirmation] = useState('');
   return (
     <div className="auth-layout">
       <section
@@ -60,14 +61,24 @@ export function Login() {
           onSubmit={async (e) => {
             e.preventDefault();
             const f = new FormData(e.currentTarget);
-            if (
-              await act(
-                register ? 'register' : 'login',
-                Object.fromEntries(f),
-                'Welcome to the arena!',
-              )
-            )
-              router.push('/');
+            const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+            const result = await act(
+              submitter?.value === 'resend'
+                ? 'resendConfirmation'
+                : register
+                  ? 'register'
+                  : 'login',
+              Object.fromEntries(f),
+            );
+            if (result?.confirmationRequired) {
+              setConfirmation(
+                result.emailSent
+                  ? 'Check your inbox. Click Confirm email to activate your account. The link expires in 24 hours.'
+                  : 'Please confirm your email before signing in. Need another link? Use Resend confirmation below.',
+              );
+            } else if (result?.alreadyConfirmed) {
+              setConfirmation('Your email is already confirmed. You can sign in.');
+            } else if (result) router.push('/');
           }}
         >
           {register && (
@@ -95,6 +106,16 @@ export function Login() {
             {register ? 'Create account' : 'Sign in'}
             <ArrowRight size={17} />
           </button>
+          <button
+            type="submit"
+            value="resend"
+            disabled={busy}
+            className="button ghost full"
+            formNoValidate
+          >
+            Resend confirmation
+          </button>
+          {confirmation && <p role="status">{confirmation}</p>}
         </form>
         <p className="center">
           {register ? 'Already have an account?' : 'New around here?'}{' '}

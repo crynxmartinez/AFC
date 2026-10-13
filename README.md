@@ -37,7 +37,7 @@ The login page has **Explore as a member** and **Open admin studio** buttons whe
 
 The local database is `prisma/afc.db`. Uploads are in `storage/uploads/`. Both survive application restarts and are excluded from Git. Back up both together before changing machines. Demo gallery artwork is generated sample content, not real contestant evidence; example stages are illustrative.
 
-Production uses Vercel, Prisma Postgres, and private Vercel Blob. See [deployment instructions](docs/DEPLOYMENT.md). No real payment processor or email recovery service is connected; online top-ups are disabled. Never commit credentials or deploy SQLite/local uploads to Vercel's ephemeral filesystem.
+Production uses Vercel, Prisma Postgres, and private Vercel Blob. See [deployment instructions](docs/DEPLOYMENT.md) and [registration email confirmation](docs/EMAIL-CONFIRMATION.md). GHL sends only registration confirmation emails. No real payment processor or password-recovery email service is connected; online top-ups are disabled. Never commit credentials or deploy SQLite/local uploads to Vercel's ephemeral filesystem.
 
 The source model is `prisma/schema.prisma` (SQLite). Run `npm run db:sync-schema` after model changes to update the PostgreSQL mirror, then create and review a new production migration. Production builds run `migrate deploy`, never `db push` or demo seeding. The Prisma client is selected from the configured database URL.
 

@@ -43,6 +43,7 @@ export default async function Page({ params }: { params: Promise<{ slug?: string
       'profile',
       'settings',
       'login',
+      'confirm-email',
       'admin',
     ].includes(slug[0])
   )

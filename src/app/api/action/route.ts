@@ -10,6 +10,8 @@ import {
 } from '@/lib/auth';
 import { AppError, castVote, demoCredit, isOpen, prizeSplit, stageLabels } from '@/lib/domain';
 import { throttle } from '@/lib/rate-limit';
+import { confirmEmail, confirmationHash, issueConfirmation } from '@/lib/confirmation';
+import { sendConfirmationEmail } from '@/lib/confirmation-email';
 const str = z.string().trim().min(1).max(160);
 const signup = z.object({
   email: z.string().email().max(200),
@@ -26,7 +28,20 @@ export async function POST(request: Request) {
     const data = await request.json();
     const action = str.parse(data.action);
     const host = request.headers.get('host') || '';
-    if (['login', 'register', 'demoLogin'].includes(action)) {
+    if (action === 'confirmEmail') {
+      await throttle(`confirm:${request.headers.get('x-vercel-forwarded-for') || 'local'}`);
+      return Response.json({
+        ok: true,
+        ...(await confirmEmail(
+          db,
+          z
+            .string()
+            .regex(/^[a-f0-9]{64}$/)
+            .parse(data.token),
+        )),
+      });
+    }
+    if (['login', 'register', 'demoLogin', 'resendConfirmation'].includes(action)) {
       const ip =
         process.env.VERCEL === '1'
           ? request.headers.get('x-vercel-forwarded-for') || 'unknown'
@@ -41,23 +56,60 @@ export async function POST(request: Request) {
       const email = z.string().email().max(200).parse(data.email).toLowerCase();
       await throttle(`email:${email}`);
       const password = z.string().min(8).max(128).parse(data.password);
+      const sendProof = async (userId: string) => {
+        await throttle(`confirmation-send:${userId}`, 1);
+        const token = await issueConfirmation(db, userId);
+        try {
+          await sendConfirmationEmail(email, token);
+        } catch (error) {
+          await db.emailConfirmation.deleteMany({ where: { id: confirmationHash(token) } });
+          throw error;
+        }
+        return Response.json({ ok: true, confirmationRequired: true, emailSent: true });
+      };
       if (action === 'register') {
         const input = signup.parse({ ...data, email, password });
+        const existing = await db.user.findUnique({ where: { email } });
+        if (existing) {
+          if (
+            !existing.emailVerifiedAt &&
+            !existing.suspended &&
+            checkPassword(password, existing.password)
+          )
+            return await sendProof(existing.id);
+          throw new AppError('An account already uses this email. Please sign in.');
+        }
+        const demo = localDemo(host);
         const user = await db.user.create({
           data: {
             email,
             password: hashPassword(password),
             name: input.name,
-            ledger: {
-              create: { amount: 100, description: 'Welcome bonus', eventKey: `welcome:${email}` },
-            },
+            emailVerifiedAt: demo ? new Date() : null,
+            balance: demo ? 100 : 0,
+            ledger: demo
+              ? {
+                  create: {
+                    amount: 100,
+                    description: 'Welcome bonus',
+                    eventKey: `welcome:${email}`,
+                  },
+                }
+              : undefined,
           },
         });
+        if (!demo) return await sendProof(user.id);
         await startSession(user.id);
       } else {
         const user = await db.user.findUnique({ where: { email } });
         if (!user || user.suspended || !checkPassword(password, user.password))
           throw new AppError('Email or password is incorrect.', 401);
+        if (!user.emailVerifiedAt && !localDemo(host)) {
+          if (action === 'resendConfirmation') return await sendProof(user.id);
+          return Response.json({ ok: true, confirmationRequired: true, emailSent: false });
+        }
+        if (action === 'resendConfirmation')
+          return Response.json({ ok: true, alreadyConfirmed: true });
         await startSession(user.id);
       }
       return Response.json({ ok: true });

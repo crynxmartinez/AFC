@@ -15,6 +15,7 @@ const env = {
   ...parseEnv(readFileSync('.env.admin', 'utf8')),
 };
 const secrets = [
+  env.GHL_API_TOKEN,
   env.DATABASE_URL,
   env.DIRECT_URL,
   env.BLOB_READ_WRITE_TOKEN,

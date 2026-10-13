@@ -20,7 +20,12 @@ export async function currentUser() {
     where: { id: tokenHash(token) },
     include: { user: true },
   });
-  return session && session.expiresAt > new Date() && !session.user.suspended ? session.user : null;
+  return session &&
+    session.expiresAt > new Date() &&
+    !session.user.suspended &&
+    (session.user.emailVerifiedAt || localDemo((await headers()).get('host') || ''))
+    ? session.user
+    : null;
 }
 export async function startSession(userId: string) {
   const token = randomBytes(32).toString('hex');

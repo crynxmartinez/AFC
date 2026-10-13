@@ -24,6 +24,7 @@ import { Avatar } from './ui';
 import { Explore, Contests, ContestDetail, EntryDetail, Profile, Saved } from './discovery';
 import { Login, Wallet, Notifications, SettingsPage, Submit } from './participation';
 import { Admin } from './admin';
+import { ConfirmEmail } from './ConfirmEmail';
 const nav = [
   { href: '/', label: 'Explore', icon: Compass },
   { href: '/contests', label: 'Contests', icon: Trophy },
@@ -287,6 +288,7 @@ export function ArenaPage() {
   if (path.startsWith('/profile')) return <Profile id={path.split('/')[2] || 'me'} />;
   if (path === '/settings') return <SettingsPage />;
   if (path === '/login') return <Login />;
+  if (path === '/confirm-email') return <ConfirmEmail />;
   if (path === '/admin') return <Admin />;
   return <Explore search={search} />;
 }

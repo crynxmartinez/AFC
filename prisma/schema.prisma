@@ -9,6 +9,8 @@ model User {
   id String @id @default(cuid())
   email String @unique
   password String
+  emailVerifiedAt DateTime?
+  confirmations EmailConfirmation[]
   name String
   bio String @default("")
   avatar String @default("")
@@ -33,6 +35,14 @@ model Session {
   userId String
   user User @relation(fields:[userId], references:[id], onDelete:Cascade)
   expiresAt DateTime
+}
+model EmailConfirmation {
+  id String @id
+  userId String
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([userId])
 }
 model Contest {
   id String @id @default(cuid())

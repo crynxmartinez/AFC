@@ -19,7 +19,7 @@ try {
   }
   for (const args of [
     ['scripts/prisma.mjs', 'migrate', 'deploy'],
-    ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/domain.test.ts'],
+    ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/domain.test.ts', 'tests/confirmation.test.ts'],
   ]) {
     const result = spawnSync(process.execPath, args, { env, stdio: 'inherit' });
     if (result.status !== 0) throw new Error('PostgreSQL validation failed');

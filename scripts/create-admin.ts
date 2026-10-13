@@ -15,6 +15,7 @@ async function main() {
       name: 'AFC Admin',
       password: hashPassword(password),
       role: 'ADMIN',
+      emailVerifiedAt: new Date(),
       ledger: {
         create: { amount: 100, description: 'Welcome bonus', eventKey: `welcome:${email}` },
       },
