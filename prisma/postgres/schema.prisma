@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  password String
+  name String
+  bio String @default("")
+  avatar String @default("")
+  role String @default("USER")
+  balance Int @default(100)
+  suspended Boolean @default(false)
+  notifyActivity Boolean @default(true)
+  notifyContests Boolean @default(true)
+  featuredEntryId String?
+  createdAt DateTime @default(now())
+  entries Entry[]
+  sessions Session[]
+  votes Vote[]
+  ledger Ledger[]
+  comments Comment[]
+  bookmarks Bookmark[]
+  notifications Notification[]
+  media Media[]
+}
+model Session {
+  id String @id
+  userId String
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  expiresAt DateTime
+}
+model Contest {
+  id String @id @default(cuid())
+  title String
+  description String
+  type String
+  banner String
+  rules String
+  prize Int @default(0)
+  customPrizes String @default("")
+  resultsNote String @default("")
+  status String @default("DRAFT")
+  startsAt DateTime
+  endsAt DateTime
+  createdAt DateTime @default(now())
+  entries Entry[]
+  winners Winner[]
+}
+model Entry {
+  id String @id @default(cuid())
+  title String
+  description String @default("")
+  authorId String
+  author User @relation(fields:[authorId], references:[id])
+  contestId String
+  contest Contest @relation(fields:[contestId], references:[id])
+  status String @default("DRAFT")
+  moderationNote String @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  stages Stage[]
+  votes Vote[]
+  comments Comment[]
+  winners Winner[]
+  @@unique([authorId,contestId])
+}
+model Stage {
+  id String @id @default(cuid())
+  entryId String
+  entry Entry @relation(fields:[entryId], references:[id], onDelete:Cascade)
+  position Int
+  label String
+  url String
+  @@unique([entryId,position])
+}
+model Media {
+  id String @id @default(cuid())
+  ownerId String
+  owner User @relation(fields:[ownerId], references:[id])
+  key String @unique
+  blobPath String?
+  createdAt DateTime @default(now())
+}
+model Vote {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId], references:[id])
+  entryId String
+  entry Entry @relation(fields:[entryId], references:[id])
+  createdAt DateTime @default(now())
+  @@unique([userId,entryId])
+}
+model Ledger {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId], references:[id])
+  amount Int
+  description String
+  eventKey String @unique
+  entryId String?
+  createdAt DateTime @default(now())
+}
+model Bookmark {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId], references:[id])
+  targetId String
+  kind String
+  @@unique([userId,targetId,kind])
+}
+model Follow {
+  id String @id @default(cuid())
+  followerId String
+  followingId String
+  @@unique([followerId,followingId])
+}
+model Comment {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId], references:[id])
+  entryId String
+  entry Entry @relation(fields:[entryId], references:[id])
+  body String
+  hidden Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+model Report {
+  id String @id @default(cuid())
+  reporterId String
+  targetId String
+  kind String
+  reason String
+  resolved Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId], references:[id])
+  title String
+  body String
+  href String
+  read Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+model Winner {
+  id String @id @default(cuid())
+  contestId String
+  contest Contest @relation(fields:[contestId], references:[id])
+  entryId String
+  entry Entry @relation(fields:[entryId], references:[id])
+  place Int
+  amount Int
+  voteCount Int
+  @@unique([contestId,place])
+}
+model Audit {
+  id String @id @default(cuid())
+  actorId String
+  action String
+  targetId String
+  detail String @default("")
+  createdAt DateTime @default(now())
+}
+model RateLimit {
+  id String @id
+  count Int @default(1)
+  expiresAt DateTime
+  @@index([expiresAt])
+}

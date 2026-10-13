@@ -1,143 +1,62 @@
-# Arena for Creatives (AFC)
+# AFC — Arena for Creatives
 
-A competitive art platform for Filipino digital artists featuring 4-phase submissions, vote-based prizes, and gamification.
+A creative contest platform built with Next.js, React, TypeScript and Prisma. Local development uses SQLite; production uses Prisma Postgres and private Vercel Blob. Desktop left navigation and mobile bottom navigation follow the approved design concepts.
 
-## 🚀 Tech Stack
+## Run locally
 
-- **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: TailwindCSS (Dark Mode)
-- **Backend**: Supabase (PostgreSQL + Auth + Storage)
-- **State Management**: Zustand
-- **Payments**: SaligPay
+Use Node.js 24 LTS.
 
-## 📋 Prerequisites
-
-- Node.js 18+ and npm
-- Supabase account
-
-## 🛠️ Setup Instructions
-
-### 1. Install Dependencies
-
-```bash
+```powershell
 npm install
+Copy-Item .env.example .env
+npm run db:generate
+npm run db:push
+npm run db:seed
+npm run build
+npm start
 ```
 
-### 2. Configure Environment Variables
+Open http://127.0.0.1:3000 . For development use `npm run dev` instead of build/start. Do not run development and production against the same `.next` directory simultaneously. Stop the app before regenerating Prisma on Windows because the query-engine DLL is loaded by the server.
 
-The `.env.local` file has already been created with your Supabase credentials.
+The login page has **Explore as a member** and **Open admin studio** buttons when `LOCAL_DEMO=true` and the server is accessed through localhost/127.0.0.1. Real registration and password sign-in also work. Demo accounts: `demo-member@afc.local` / `demo-admin@afc.local`, password `AfcLocal2026!`. These are public development credentials only. Never deploy this database or seed accounts to a public environment.
 
-### 3. Set Up Supabase Database
+## What works
 
-1. Go to your Supabase project: https://pqyfzmkerzvyqswnmtvp.supabase.co
-2. Navigate to the SQL Editor
-3. Copy the contents of `supabase-schema.sql`
-4. Paste and run the SQL script
+- Public discovery, search by entry/creator/contest, Art/Cosplay filters, discovery/newest/vote sorts, contest pages and ranking.
+- All three art stages and both cosplay stages publicly accessible after approval, with full-size viewing.
+- Real sessions and registration; 100-point starting credit in a persistent ledger.
+- One vote per account per entry; transactional deduction and unique database constraint; no self-votes.
+- Private drafts, sequential image uploads, validation, preview, submission locking, review, changes requested, approval/disqualification.
+- Bookmarks, follows, ordinary comments, reports, creator portfolios, optional featured entry, avatar upload, dark/light preference.
+- Wallet history, private My Votes, clearly labeled simulated top-ups with retry protection.
+- In-app activity/contest notifications, read state and preferences. Deadline reminders are reconciled when the app is opened; an online scheduler is a later deployment task.
+- Admin contest drafts and publishing, closing, moderation, reports, account suspension, audited results with enforced rank and 50/30/20 split. Ties require explanation; at least three eligible entries are required for publishing.
+- Local images stored on disk with authorization on draft access. Uploads are decoded and normalized before storage.
 
-This will create all necessary tables, indexes, RLS policies, and triggers.
+## Storage and online handoff
 
-### 4. Configure Supabase Storage
+The local database is `prisma/afc.db`. Uploads are in `storage/uploads/`. Both survive application restarts and are excluded from Git. Back up both together before changing machines. Demo gallery artwork is generated sample content, not real contestant evidence; example stages are illustrative.
 
-1. In Supabase Dashboard, go to Storage
-2. Create the following buckets:
-   - `contest-thumbnails` (public)
-   - `entry-artworks` (public)
-   - `user-avatars` (public)
+Production uses Vercel, Prisma Postgres, and private Vercel Blob. See [deployment instructions](docs/DEPLOYMENT.md). No real payment processor or email recovery service is connected; online top-ups are disabled. Never commit credentials or deploy SQLite/local uploads to Vercel's ephemeral filesystem.
 
-### 5. Run Development Server
+The source model is `prisma/schema.prisma` (SQLite). Run `npm run db:sync-schema` after model changes to update the PostgreSQL mirror, then create and review a new production migration. Production builds run `migrate deploy`, never `db push` or demo seeding. The Prisma client is selected from the configured database URL.
 
-```bash
-npm run dev
+Uploads are limited to 3 MB, decoded and normalized into WebP. Private Blob files are served through an authorization-aware route: drafts remain private, and guests can view every stage of approved entries.
+
+## Verify
+
+```powershell
+npm run typecheck
+npm test
+node node_modules/tsx/dist/cli.mjs tests/http-flow.ts
+npm run build
 ```
 
-The app will be available at `http://localhost:5173`
+HTTP checks require the server running on port 3000. They create isolated test accounts and remove their own database records. The database test suite verifies concurrent repeat votes, self-vote rejection, deadline boundaries, point credits and prize arithmetic.
 
-## 📁 Project Structure
+## Planning and concepts
 
-```
-src/
-├── components/
-│   ├── auth/          # Protected routes
-│   └── layout/        # Navbar, Sidebar, etc.
-├── pages/             # Route pages
-│   ├── admin/         # Admin dashboard pages
-│   └── ...            # User pages
-├── lib/               # Supabase client, utilities
-├── stores/            # Zustand state management
-├── types/             # TypeScript types
-└── App.tsx            # Main app with routing
-```
-
-## 🎨 Features
-
-### User Features
-- 4-phase artwork submission (Sketch → Line Art → Base Colors → Final)
-- Vote on entries (1 point = 1 vote)
-- Purchase points via SaligPay
-- Follow artists
-- Comment on entries (100 char max)
-- XP & leveling system
-- Badges & achievements
-
-### Admin Features
-- Create and manage contests
-- Review and approve submissions
-- View analytics dashboard
-- Manage users
-
-## 💰 Financial Model
-
-- **1 point = ₱1 PHP = 1 vote**
-- **Top 3 Prize Distribution**:
-  - 1st Place: 50%
-  - 2nd Place: 20%
-  - 3rd Place: 10%
-  - Platform: 20%
-- **Platform Revenue**: 100% of 4th+ place votes
-
-## 🔐 User Roles
-
-- **User**: Browse, submit, vote, follow, comment
-- **Admin**: All user functions + admin dashboard
-
-## 📦 Point Packages
-
-| Package | Price | Bonus | Total |
-|---------|-------|-------|-------|
-| Starter | ₱20 | +2 | 22 pts |
-| Basic | ₱50 | +5 | 55 pts |
-| Popular | ₱100 | +15 | 115 pts |
-| Pro | ₱500 | +100 | 600 pts |
-| Champion | ₱1,000 | +250 | 1,250 pts |
-
-*First-time buyers get +10 bonus points*
-
-## 🚀 Deployment
-
-### Vercel Deployment
-
-1. Push code to GitHub
-2. Import project in Vercel
-3. Add environment variables:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-4. Deploy
-
-## 📝 Development Roadmap
-
-- [x] Phase 1: Foundation (Auth, UI Shell)
-- [ ] Phase 2: Contest System
-- [ ] Phase 3: Submission System
-- [ ] Phase 4: Points & Voting
-- [ ] Phase 5: Gamification
-- [ ] Phase 6: Social Features
-- [ ] Phase 7: Admin Analytics
-- [ ] Phase 8: Polish & Launch
-
-## 🤝 Contributing
-
-This is a private project. Contact the owner for contribution guidelines.
-
-## 📄 License
-
-Proprietary - All rights reserved
+- `docs/PLATFORM-PLAN.md`: fixed requirements, defaults, workflows, states, data contract, delivery sequence and acceptance criteria.
+- `docs/concepts/`: five desktop and five mobile images (Explore, Contest, Entry, Submit, Wallet).
+- `docs/concepts/PROMPTS.md`: exact mockup prompts. Generated with the built-in image tool.
+- `public/art/`: generated demo illustration assets. Never treat these as approved human-made contest submissions.

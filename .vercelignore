@@ -1,1 +1,6 @@
-# Vercel ignore file
+.env*
+storage/
+prisma/*.db*
+docs/concepts/
+docs/screenshots/
+tests/
